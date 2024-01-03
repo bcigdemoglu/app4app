@@ -8,7 +8,6 @@ async function getPage(id: string) {
 }
 
 export async function GET() {
-  console.log(process.env);
   const recordMap = await getPage("b57f92a1577e48fcae50a841889968a3");
   return NextResponse.json(recordMap);
 }
