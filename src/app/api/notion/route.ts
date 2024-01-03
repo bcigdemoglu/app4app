@@ -7,7 +7,8 @@ async function getPage(id: string) {
   return recordMap;
 }
 
-export async function GET(request: NextRequest) {
-  const recordMap = await getPage("1e4cd8ab556e4b8b900f5c49157ad5a4");
+export async function GET() {
+  console.log(process.env);
+  const recordMap = await getPage("b57f92a1577e48fcae50a841889968a3");
   return NextResponse.json(recordMap);
 }

@@ -10,7 +10,7 @@ const nextConfig = {
                 },
 				{
 					key: 'Access-Control-Allow-Origin',
-					value: '*'
+                    value: 'https://www.ilayda.com'
 				},
 				{
 					key: 'Access-Control-Allow-Methods',
