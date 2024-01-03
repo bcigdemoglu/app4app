@@ -26,7 +26,7 @@ function Input({ label, value, setValue }: InputProps) {
 async function getNotionRecordMap() {
   try {
     const res = await fetch("/api/notion", {
-      cache: "no-cache",
+      cache: "no-store",
     });
     console.log(res);
     const recordMap = await res.json();
