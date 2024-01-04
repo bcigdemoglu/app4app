@@ -1,6 +1,11 @@
+const { withContentlayer } = require("next-contentlayer");
+
 /** @type {import('next').NextConfig} */
 
+
 const nextConfig = {
+    reactStrictMode: true,
+    swcMinify: true,
     headers: async () => [
 		{
 			source: '/api/:path*',
@@ -23,6 +28,14 @@ const nextConfig = {
 			]
 		}
 	],
+    images: {
+        remotePatterns: [
+          {
+            protocol: 'https',
+            hostname: 'avatars.githubusercontent.com'
+          },
+        ],
+      },
 };
 
-module.exports = nextConfig;
+module.exports = withContentlayer(nextConfig);

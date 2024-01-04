@@ -9,20 +9,30 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@mdx-js/loader": "^3.0.0",
+    "@types/mdx": "^2.0.10",
+    "contentlayer": "^0.3.4",
+    "date-fns": "^3.0.6",
+    "mdx": "^0.3.1",
     "next": "14.0.4",
+    "next-contentlayer": "^0.3.4",
     "notion-client": "^6.16.0",
     "react": "^18",
     "react-dom": "^18",
-    "react-notion-x": "^6.16.0"
+    "react-notion-x": "^6.16.0",
+    "reading-time": "^1.5.0"
   },
   "devDependencies": {
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
+    "@typescript-eslint/eslint-plugin": "^6.17.0",
     "autoprefixer": "^10.0.1",
     "eslint": "^8",
     "eslint-config-next": "14.0.4",
+    "eslint-config-prettier": "^9.1.0",
     "postcss": "^8",
+    "prettier-plugin-tailwindcss": "^0.5.10",
     "tailwindcss": "^3.3.0",
     "typescript": "^5"
   }
