@@ -1,14 +1,10 @@
-// import { NextRequest, NextResponse } from 'next/server';
-import { NextResponse } from 'next/server';
-import { NotionAPI } from 'notion-client';
+import { getRecordMap } from '@/app/actions';
+import { NextRequest, NextResponse } from 'next/server';
 
-async function getPage(id: string) {
-  const notion = new NotionAPI();
-  const recordMap = await notion.getPage(id);
-  return recordMap;
-}
-
-export async function GET() {
-  const recordMap = await getPage('b57f92a1577e48fcae50a841889968a3');
+export async function GET(request: NextRequest) {
+  // Get request parameter pageId from the request
+  const { searchParams } = new URL(request.url);
+  const pageId = searchParams.get('pageId');
+  const recordMap = await getRecordMap(pageId);
   return NextResponse.json(recordMap);
 }

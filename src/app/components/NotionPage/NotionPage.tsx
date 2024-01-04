@@ -1,6 +1,6 @@
-"use client";
+'use client';
 
-import { NotionRenderer } from "react-notion-x";
+import { NotionRenderer } from 'react-notion-x';
 
 export default function NotionPage({ recordMap }: { recordMap: any }) {
   return (
@@ -13,7 +13,7 @@ export default function NotionPage({ recordMap }: { recordMap: any }) {
         />
       ) : (
         <span>
-          {"Notion page appears here... I love you Ilom. ".repeat(100)}
+          {'Notion page appears here... I love you Ilom. '.repeat(100)}
         </span>
       )}
     </div>
