@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
-import { Hotjar } from './components/headscripts';
+import Hotjar from './components/Hotjar';
 // import { GoogleAnalytics } from '@next/third-parties/google';
 
 // core styles shared by all of react-notion-x (required)
