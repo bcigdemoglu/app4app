@@ -10,6 +10,7 @@ An application to create applications
 - Sitemap: <https://www.ilayda.com/sitemap.xml>
 - Vercel Dashboard: <https://vercel.com/bcigdemoglu/app4app>
 - [Google Search Console](https://search.google.com/u/2/search-console/performance/search-analytics?resource_id=sc-domain%3Ailayda.com)
+- [Hotjar Dashboard](https://insights.hotjar.com/sites/3813067/dashboard/95jiZm9LTQBKY5RJ5g5h3D-Site-overview)
 
 ## Important Files
 
