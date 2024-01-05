@@ -8,7 +8,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
   const blogs = allPosts.map((post) => ({
     url: `${BASE_URL}${post.url}`,
-    lastModified,
+    lastModified: post.lastModified,
   }));
   const routes = ['', '/blog', '/playground'].map((route) => ({
     url: `${BASE_URL}${route}`,
