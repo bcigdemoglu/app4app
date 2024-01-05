@@ -1,6 +1,11 @@
 import Link from 'next/link';
 import Navbar from '@/app/components/Navbar';
 
+export const metadata = {
+  title: "Ilayda's Website",
+  description: 'Grow your business with Ilayda',
+};
+
 export default function Home() {
   return (
     <>
@@ -53,8 +58,8 @@ export default function Home() {
         <div id='about-us-top'>
           <div className='inline-block overflow-hidden rounded-full border-4 border-white'>
             <img
-              src='https://media.licdn.com/dms/image/D4D03AQHP1faoUtfRkA/profile-displayphoto-shrink_200_200/0/1694772225626?e=2147483647&v=beta&t=Soe1jP4xQLpe_2bNVujg4iYN_jz7J-wn5w5hqFuvCjY'
-              alt='Profile'
+              src='/ilayda.jpeg'
+              alt='Ilayda Buyukdogan Profile'
               className='h-32 w-32 object-cover'
             />
           </div>
@@ -146,12 +151,12 @@ export default function Home() {
       >
         <div className='flex space-x-4'>
           <img
-            src='https://i.pinimg.com/736x/a3/90/ff/a390ffeb79349a5777e0c7c9b929ef32.jpg'
+            src='youngperson.jpg'
             alt='Person 1'
             className='h-32 w-auto rounded-full border-4 border-yellow-500'
           />
           <img
-            src='https://pics.craiyon.com/2023-07-15/8a97ba59f4234b6a90a5533af4426da2.webp'
+            src='/oldman.webp'
             alt='Person 2'
             className='h-32 w-auto rounded-full border-4 border-yellow-500'
           />
@@ -189,11 +194,7 @@ export default function Home() {
           </Link>
         </div>
         <div className=''>
-          <img
-            src='https://static.vecteezy.com/system/resources/thumbnails/009/344/446/small/3ds-hexagon-block-align-to-many-shape-blank-block-for-add-your-text-or-wording-png.png'
-            alt='Person 1'
-            className='h-32 w-auto'
-          />
+          <img src='/hexagon.webp' alt='Hexagon' className='h-32 w-auto' />
         </div>
       </div>
 

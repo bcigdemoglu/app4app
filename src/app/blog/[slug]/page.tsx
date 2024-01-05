@@ -1,7 +1,7 @@
 'server-only';
 
 import { allPosts } from 'contentlayer/generated';
-// import dayjs from "dayjs";
+import dayjs from 'dayjs';
 import { Metadata } from 'next';
 import { useMDXComponent } from 'next-contentlayer/hooks';
 import Image from 'next/image';
@@ -20,21 +20,17 @@ interface Props {
 
 export function generateMetadata({ params }: Props): Metadata {
   const post = allPosts.find((post) => post.slug === params.slug)!;
-  // const description =
-  // 	post.excerpt?.length || 0 > 160 ? post.excerpt?.substring(0, 160) + '...' : post.excerpt;
 
   return {
-    title: `${post.title} - Ilayda Blog`,
-    // description,
-    // authors: { name: post.author },
+    title: `${post.title}`,
+    description: post.description,
+    authors: { name: post.author },
     openGraph: {
       title: post.title,
-      // description,
+      description: post.description,
       images: post.image,
     },
-    twitter: {
-      card: 'summary_large_image',
-    },
+    metadataBase: new URL('https://www.ilayda.com'),
   };
 }
 
@@ -48,25 +44,27 @@ export default function Page({ params }: Props) {
   return (
     <>
       <Navbar />
-      <div className='lg:prose-xs prose dark:prose-invert container m-auto mb-20 max-w-4xl p-4 pt-14'>
+      <div className='lg:prose-xs prose container m-auto mb-20 max-w-4xl p-4 pt-14'>
         <>
           <figure>
-            <Image
-              src={post.image}
-              alt={post.imageAlt ?? ''}
-              className='mt-8 rounded-xl'
-              height={400}
-              width={900}
-            />
+            {post.image && (
+              <Image
+                src={post.image}
+                alt={post.imageAlt ?? ''}
+                className='mt-8 rounded-xl'
+                height={400}
+                width={900}
+              />
+            )}
           </figure>
           <section className='-mx-8 flex flex-wrap gap-4 rounded-xl px-8'>
             <div className='w-full grow'>
               <h1 className='m-0 text-2xl leading-snug sm:text-4xl sm:leading-normal'>
                 {post.title}
               </h1>
-              <p className='m-0 mt-2'>
+              <p className='m-2 ml-0'>
                 by <b>{post.author}</b> &middot;{' '}
-                {/* {dayjs(post.date).format("MM/DD/YYYY")} */}
+                {dayjs(post.date).format('MM/DD/YYYY')}
               </p>
             </div>
             {/* <div className="flex flex-wrap gap-2">

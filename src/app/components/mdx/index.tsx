@@ -1,17 +1,9 @@
 import { MDXComponents } from 'mdx/types';
-import NextImage, { ImageProps } from 'next/image';
-
-const Image = (props: ImageProps) => (
-  <NextImage
-    // Weirdly enough this works in production but not in dev...
-    placeholder={process.env.NODE_ENV === 'production' ? 'blur' : undefined}
-    {...props}
-  />
-);
+import NextImage from 'next/image';
 
 export const BlogMDXComponents = {
-  img: Image, // we remap 'img' to 'Image'
-  Image,
+  img: NextImage, // we remap 'img' to 'NextImage'
+  NextImage,
 } as MDXComponents;
 
-// export const DocMDXComponents = { img: Image, Image, Notice } as MDXComponents;
+// export const DocMDXComponents = { img: NextImage, NextImage, Notice } as MDXComponents;

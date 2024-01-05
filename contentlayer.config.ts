@@ -11,6 +11,11 @@ const Post = defineDocumentType(() => ({
       description: 'The title of the post',
       required: true,
     },
+    description: {
+      type: 'string',
+      description: 'The metadata description of the post',
+      required: true,
+    },
     category: {
       type: 'string',
       description: 'The category of the post',
@@ -29,8 +34,6 @@ const Post = defineDocumentType(() => ({
     image: {
       type: 'string',
       description: 'Blog Image URL',
-      // TODO: Change this to a generic default image
-      default: 'https://avatars.githubusercontent.com/u/101227423?s=200&v=4',
     },
     imageAlt: { type: 'string', description: 'Blog Image Alt' },
   },
@@ -50,7 +53,11 @@ const Post = defineDocumentType(() => ({
     image: {
       type: 'string',
       resolve: (post: any) =>
-        post.image.startsWith('http') ? post.image : `/${post.image}`,
+        `/blogimg/${post._raw.sourceFileName.replace(/\.mdx$/, '.png')}`,
+    },
+    imageAlt: {
+      type: 'string',
+      resolve: (post: any) => `Image for ${post.title}`,
     },
     lastModified: {
       type: 'date',
