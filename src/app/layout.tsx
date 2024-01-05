@@ -1,6 +1,8 @@
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
+import { Hotjar } from './components/headscripts';
+// import { GoogleAnalytics } from '@next/third-parties/google';
 
 // core styles shared by all of react-notion-x (required)
 import 'react-notion-x/src/styles.css';
@@ -24,6 +26,8 @@ export default function RootLayout({
   return (
     <html lang='en'>
       <body className={inter.className}>{children}</body>
+      <Hotjar />
+      {/* <GoogleAnalytics gaId='G-XYZ' /> */}
     </html>
   );
 }
