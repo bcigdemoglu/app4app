@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import Navbar from '@/app/components/Navbar';
+import Image from 'next/image';
 
 export const metadata = {
   title: "Ilayda's Website",
@@ -57,10 +58,13 @@ export default function Home() {
       >
         <div id='about-us-top'>
           <div className='inline-block overflow-hidden rounded-full border-4 border-white'>
-            <img
+            <Image
               src='/ilayda.jpeg'
               alt='Ilayda Buyukdogan Profile'
               className='h-32 w-32 object-cover'
+              width={0}
+              height={0}
+              sizes='100vw'
             />
           </div>
           <h1 className='mt-4 text-3xl'>
@@ -150,15 +154,21 @@ export default function Home() {
         className='grid grid-cols-2 place-items-center gap-4 bg-purple-700 p-8 text-white'
       >
         <div className='flex space-x-4'>
-          <img
-            src='youngperson.jpg'
+          <Image
+            src='/youngperson.jpg'
             alt='Person 1'
             className='h-32 w-auto rounded-full border-4 border-yellow-500'
+            width={0}
+            height={0}
+            sizes='100vw'
           />
-          <img
+          <Image
             src='/oldman.webp'
             alt='Person 2'
             className='h-32 w-auto rounded-full border-4 border-yellow-500'
+            width={0}
+            height={0}
+            sizes='100vw'
           />
         </div>
         <div className='max-w-lg'>
@@ -194,7 +204,14 @@ export default function Home() {
           </Link>
         </div>
         <div className=''>
-          <img src='/hexagon.webp' alt='Hexagon' className='h-32 w-auto' />
+          <Image
+            src='/hexagon.webp'
+            alt='Hexagon'
+            className='h-32 w-auto'
+            width={0}
+            height={0}
+            sizes='100vw'
+          />
         </div>
       </div>
 
