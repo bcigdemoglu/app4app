@@ -2,7 +2,7 @@ import Link from 'next/link';
 
 export default function Navbar() {
   return (
-    <nav className='sticky top-0 z-30 bg-white shadow backdrop-blur-xl backdrop-filter'>
+    <nav className='h-13 sticky top-0 z-30 bg-white bg-opacity-50 shadow backdrop-blur-xl backdrop-filter'>
       <div className='flex items-center justify-between p-4'>
         <div className='text-xl font-bold'>
           <Link href='/' className='text-gray-800 hover:text-gray-600'>
@@ -10,7 +10,7 @@ export default function Navbar() {
           </Link>
         </div>
         <div className='space-x-4'>
-          <Link href='#my-journey'>
+          <Link href='/#about-us'>
             <span className='text-gray-800 hover:font-bold hover:text-gray-600'>
               My Journey
             </span>

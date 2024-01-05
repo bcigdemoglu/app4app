@@ -15,12 +15,10 @@ export default function Home() {
           <p className='text-base'>
             Join a nurturing environment to grow your business concepts.
           </p>
-          <Link
-            href='/playground'
-            id='join-playground-btn'
-            className='rounded-md bg-blue-600 px-4 py-2 text-white'
-          >
-            Join Playground
+          <Link href='/playground' id='join-playground-btn'>
+            <button className='mt-4 rounded-md bg-blue-600 px-4 py-2 text-white'>
+              Join Playground
+            </button>
           </Link>
         </div>
         <div id='hero-right' className='max-w-xs'>
@@ -48,7 +46,10 @@ export default function Home() {
         </div>
       </div>
 
-      <div id='about-us' className='bg-blue-900 p-12 text-center text-white'>
+      <div
+        id='about-us'
+        className='bg-blue-900 p-14 pt-16 text-center text-white'
+      >
         <div id='about-us-top'>
           <div className='inline-block overflow-hidden rounded-full border-4 border-white'>
             <img
