@@ -28,14 +28,14 @@ export default function RootLayout({
       <body className={inter.className}>{children}</body>
       <Hotjar />
       <div className='container'>
-        <Script src='https://www.googletagmanager.com/gtag/js?id=F85KQVZHR3' />
+        <Script src='https://www.googletagmanager.com/gtag/js?id=G-F85KQVZHR3' />
         <Script id='google-analytics'>
           {`
           window.dataLayer = window.dataLayer || [];
           function gtag(){dataLayer.push(arguments);}
           gtag('js', new Date());
 
-          gtag('config', 'F85KQVZHR3');
+          gtag('config', 'G-F85KQVZHR3');
         `}
         </Script>
       </div>
