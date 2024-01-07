@@ -1,8 +1,9 @@
 import Link from 'next/link';
 import Navbar from '@/app/components/Navbar';
 import Image from 'next/image';
+import type { Metadata } from 'next/types';
 
-export const metadata = {
+export const metadata: Metadata = {
   title: "Ilayda's Website",
   description: 'Grow your business with Ilayda',
 };

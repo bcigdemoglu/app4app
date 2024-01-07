@@ -2,7 +2,7 @@
 
 import { allPosts } from 'contentlayer/generated';
 import dayjs from 'dayjs';
-import { Metadata } from 'next';
+import type { Metadata } from 'next/types';
 import { useMDXComponent } from 'next-contentlayer/hooks';
 import Image from 'next/image';
 import { notFound } from 'next/navigation';
