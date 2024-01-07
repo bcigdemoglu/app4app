@@ -2,6 +2,7 @@ import type { Metadata } from 'next/types';
 import { Inter } from 'next/font/google';
 import './globals.css';
 import Hotjar from './components/Hotjar';
+import GoogleAnalytics from './components/GoogleAnalytics';
 
 // core styles shared by all of react-notion-x (required)
 import 'react-notion-x/src/styles.css';
@@ -9,7 +10,6 @@ import 'react-notion-x/src/styles.css';
 import 'prismjs/themes/prism-tomorrow.css';
 // used for rendering equations (optional)
 import 'katex/dist/katex.min.css';
-import Script from 'next/script';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -27,18 +27,7 @@ export default function RootLayout({
     <html lang='en'>
       <body className={inter.className}>{children}</body>
       <Hotjar />
-      <div className='container'>
-        <Script src='https://www.googletagmanager.com/gtag/js?id=G-F85KQVZHR3' />
-        <Script id='google-analytics'>
-          {`
-          window.dataLayer = window.dataLayer || [];
-          function gtag(){dataLayer.push(arguments);}
-          gtag('js', new Date());
-
-          gtag('config', 'G-F85KQVZHR3');
-        `}
-        </Script>
-      </div>
+      <GoogleAnalytics />
     </html>
   );
 }
