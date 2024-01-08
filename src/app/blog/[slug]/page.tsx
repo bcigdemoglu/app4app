@@ -2,7 +2,7 @@
 
 import { allPosts } from 'contentlayer/generated';
 import dayjs from 'dayjs';
-import type { Metadata } from 'next/types';
+import { Metadata } from 'next';
 import { useMDXComponent } from 'next-contentlayer/hooks';
 import Image from 'next/image';
 import { notFound } from 'next/navigation';
@@ -17,10 +17,10 @@ interface Props {
   params: { slug: string };
 }
 
-export function generateMetadata({ params }: Props): Metadata {
+export function generateMetadata({ params }: Props): Metadata | null {
   const post = allPosts.find((post) => post.slug === params.slug);
 
-  if (!post) notFound();
+  if (!post) return null;
 
   return {
     title: post.title,
@@ -45,7 +45,7 @@ export default function Page({ params }: Props) {
   return (
     <>
       <Navbar />
-      <div className='lg:prose-xs prose container m-auto mb-20 max-w-4xl p-4 pt-14'>
+      <div className='lg:prose-xs container prose m-auto mb-20 max-w-4xl p-4 pt-14'>
         <>
           <figure>
             {post.image && (

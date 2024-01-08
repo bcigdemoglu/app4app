@@ -1,4 +1,4 @@
-import type { Metadata } from 'next/types';
+import { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
 import Hotjar from './components/Hotjar';
