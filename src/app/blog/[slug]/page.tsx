@@ -7,8 +7,7 @@ import { useMDXComponent } from 'next-contentlayer/hooks';
 import Image from 'next/image';
 import { notFound } from 'next/navigation';
 import Navbar from '@/app/components/Navbar';
-// import { BlogTag } from '~/components/BlogTag';
-import { BlogMDXComponents } from './../../components/mdx';
+import { BlogMDXComponents } from '@/app/components/mdx';
 
 export function generateStaticParams(): Array<Props['params']> {
   return allPosts.map((post) => ({ slug: post.slug }));
@@ -19,10 +18,12 @@ interface Props {
 }
 
 export function generateMetadata({ params }: Props): Metadata {
-  const post = allPosts.find((post) => post.slug === params.slug)!;
+  const post = allPosts.find((post) => post.slug === params.slug);
+
+  if (!post) notFound();
 
   return {
-    title: `${post.title}`,
+    title: post.title,
     description: post.description,
     authors: { name: post.author },
     openGraph: {
