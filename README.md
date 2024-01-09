@@ -9,6 +9,7 @@ An application to create applications
 - Local: <http://localhost:3000>
 - Sitemap: <https://www.ilayda.com/sitemap.xml>
 - Vercel Dashboard: <https://vercel.com/bcigdemoglu/ilayda>
+  - [Vercel Analytics](https://vercel.com/bcigdemoglu/ilayda/analytics)
 - [Google Search Console](https://search.google.com/u/2/search-console/performance/search-analytics?resource_id=sc-domain%3Ailayda.com)
   - [Sitemap Indexing](https://search.google.com/u/2/search-console/index?resource_id=sc-domain:ilayda.com&pages=SITEMAP&sitemap=https:%2F%2Fwww.ilayda.com%2Fsitemap.xml)
 - [Hotjar Dashboard](https://insights.hotjar.com/sites/3813067/dashboard/95jiZm9LTQBKY5RJ5g5h3D-Site-overview)
