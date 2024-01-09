@@ -19,6 +19,7 @@ An application to create applications
 - Blog post generator: [contentlayer.config.ts](contentlayer.config.ts)
 - Blog posts located at: [posts](posts)
 - Blog post images located at: [posts](posts)
+- 404 Not Found Page: [not-found.tsx](src/app/not-found.tsx)
 
 ## Run locally
 

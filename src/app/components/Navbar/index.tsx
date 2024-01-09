@@ -1,6 +1,9 @@
-import Link from 'next/link';
+'use client';
 
-import { ReactNode } from 'react';
+import { faBars } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import Link from 'next/link';
+import { useState, ReactNode } from 'react';
 
 function NavLink({ href, children }: { href: string; children: ReactNode }) {
   return (
@@ -38,15 +41,33 @@ function AnimatedNavLink({
 }
 
 export default function Navbar() {
+  const [navbarOpen, setNavbarOpen] = useState(false);
+
   return (
     <nav className='h-13 sticky top-0 z-30 bg-white bg-opacity-50 shadow backdrop-blur-xl backdrop-filter'>
-      <div className='flex items-center justify-between p-4'>
-        <div className='text-xl font-bold'>
-          <Link href='/' className='text-gray-800 hover:text-gray-600'>
+      <div className='flex flex-col items-center p-2 md:flex-row md:items-center md:justify-between'>
+        <div className='flex w-full justify-between px-2 text-xl font-bold md:px-4 md:text-2xl'>
+          <Link
+            href='/'
+            className='focus:shadow-outline rounded-lg text-gray-800 hover:text-gray-600'
+          >
             ilayda.com
           </Link>
+          <button
+            className='cursor-pointer px-3 py-1 leading-none text-gray-900 outline-none focus:outline-none md:hidden'
+            type='button'
+            aria-label='button'
+            onClick={() => setNavbarOpen(!navbarOpen)}
+          >
+            <FontAwesomeIcon icon={faBars} />
+          </button>
         </div>
-        <div className='space-x-4'>
+        <nav
+          className={
+            'flex flex-grow flex-col items-center justify-end gap-1 space-x-4 whitespace-nowrap md:flex md:flex-row' +
+            (navbarOpen ? ' flex' : ' hidden')
+          }
+        >
           <NavLink href='/#about-us'>My Journey</NavLink>
           <NavLink href='/blog'>Blog</NavLink>
           <AnimatedNavLink href='/affirmations' additionalClasses='bg-red-600'>
@@ -55,7 +76,7 @@ export default function Navbar() {
           <AnimatedNavLink href='/playground' additionalClasses='bg-blue-600'>
             Playground
           </AnimatedNavLink>
-        </div>
+        </nav>
       </div>
     </nav>
   );

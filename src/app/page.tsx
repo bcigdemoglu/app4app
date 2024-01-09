@@ -15,7 +15,7 @@ export default function Home() {
 
       <div
         id='hero'
-        className='grid grid-cols-2 place-items-center gap-4 bg-white p-8'
+        className='grid grid-cols-1 place-items-center gap-4 bg-white p-8 md:grid-cols-2'
       >
         <div id='hero-left' className='space-y-4'>
           <h1 className='text-4xl font-bold'>EMPOWER YOUR BUSINESS IDEA</h1>
@@ -50,6 +50,60 @@ export default function Home() {
               Get Started
             </button>
           </form>
+        </div>
+      </div>
+
+      <div className='bg-blue-900 text-white'>
+        {/* Awards & Accolades Section */}
+        <div className='py-12'>
+          <div className='mx-auto max-w-6xl px-4'>
+            <div className='mb-10 text-center'>
+              <h2 className='mb-4 text-3xl font-semibold uppercase'>
+                Awards & Accolades
+              </h2>
+              <div className='inline-block border-t-2 border-white'></div>
+            </div>
+            <div className='grid grid-cols-1 items-center gap-8 md:grid-cols-3'>
+              {Array.from({ length: 3 }).map((_, index) => (
+                <div className='relative grid' key={index}>
+                  <Image
+                    src='/laurel.svg'
+                    alt='award'
+                    width={200}
+                    height={0}
+                    className='justify-self-center'
+                  />
+                  <p className='absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 transform text-center'>
+                    Award {index + 1}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* As Featured In Section */}
+        <div className='bg-blue-800 py-12'>
+          <div className='mx-auto max-w-6xl px-4'>
+            <div className='mb-10 text-center'>
+              <h2 className='mb-4 text-3xl font-semibold uppercase'>
+                As Featured In
+              </h2>
+              <div className='inline-block border-t-2 border-white'></div>
+            </div>
+            <div className='grid grid-cols-2 items-center gap-8 md:grid-cols-4 lg:grid-cols-6'>
+              {Array.from({ length: 6 }).map((_, index) => (
+                <Image
+                  key={index}
+                  src='/MicrosoftLogo.png'
+                  alt='microsoft'
+                  width={200}
+                  height={200}
+                  className='justify-self-center'
+                />
+              ))}
+            </div>
+          </div>
         </div>
       </div>
 
@@ -89,8 +143,8 @@ export default function Home() {
         </div>
       </div>
 
-      <div className='grid grid-cols-2 bg-blue-800'>
-        <div className='sticky top-0 flex h-screen items-center p-8 text-white'>
+      <div className='grid grid-cols-1 bg-blue-800 md:grid-cols-2'>
+        <div className='top-0 flex h-screen items-center p-8 text-white md:sticky'>
           <h2 className='text-3xl font-bold'>
             Three more ways I can help you.
           </h2>
@@ -127,7 +181,7 @@ export default function Home() {
 
       <div
         id='demo'
-        className='grid grid-cols-2 place-items-center gap-4 bg-purple-900 p-8 text-white'
+        className='grid grid-cols-1 place-items-center gap-4 bg-purple-900 p-8 text-white md:grid-cols-2'
       >
         <div className='rounded-lg bg-black p-4'>
           <p className='h-32 w-auto text-yellow-400'>
@@ -152,7 +206,7 @@ export default function Home() {
 
       <div
         id='start-for-free'
-        className='grid grid-cols-2 place-items-center gap-4 bg-purple-700 p-8 text-white'
+        className='grid grid-cols-1 place-items-center gap-4 bg-purple-700 p-8 text-white md:grid-cols-2'
       >
         <div className='flex space-x-4'>
           <Image
@@ -188,7 +242,7 @@ export default function Home() {
 
       <div
         id='cta'
-        className='grid grid-cols-2 place-items-center gap-4 bg-blue-900 p-8 text-white'
+        className='grid grid-cols-1 place-items-center gap-4 bg-blue-900 p-8 text-white md:grid-cols-2'
       >
         <div className='max-w-lg'>
           <h2 className='mb-4 text-2xl font-bold'>
@@ -222,11 +276,6 @@ export default function Home() {
             <div>
               <h3 className='mb-3 text-lg font-bold'>Playground</h3>
               <ul>
-                <li>
-                  <a href='#idea-lab' className='hover:text-gray-300'>
-                    Idea Lab
-                  </a>
-                </li>
                 <li>
                   <a href='/playground' className='hover:text-gray-300'>
                     Playground Platform
