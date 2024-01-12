@@ -1,21 +1,30 @@
 'use client';
 
 import { NotionRenderer } from 'react-notion-x';
+import { ExtendedRecordMap } from 'notion-types';
 
-export default function NotionPage({ recordMap }: { recordMap: any }) {
+// Not not render code
+const IgnoreCode = () => {};
+
+export default function NotionPage({
+  recordMap,
+}: {
+  recordMap: ExtendedRecordMap;
+}) {
   return (
-    <div>
-      {recordMap ? (
-        <NotionRenderer
-          recordMap={recordMap}
-          fullPage={true}
-          darkMode={false}
-        />
-      ) : (
-        <span>
-          {'Notion page appears here... I love you Ilom. '.repeat(100)}
-        </span>
-      )}
+    <div className='flex flex-col overflow-auto bg-white'>
+      <div className='flex-grow overflow-auto '>
+        {recordMap ? (
+          <NotionRenderer
+            recordMap={recordMap}
+            fullPage={true}
+            darkMode={false}
+            components={{ Code: IgnoreCode }}
+          />
+        ) : (
+          <span>{'Lesson inaccessible, please refresh'.repeat(100)}</span>
+        )}
+      </div>
     </div>
   );
 }

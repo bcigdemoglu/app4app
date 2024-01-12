@@ -1,97 +1,194 @@
 'use client';
 
+import { updateForm } from '@/app/actions';
+import { MDXRemote, MDXRemoteSerializeResult } from 'next-mdx-remote';
 import { useEffect, useState } from 'react';
+import { useFormState, useFormStatus } from 'react-dom';
+import { Lesson } from './data';
+import Link from 'next/link';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faArrowsRotate } from '@fortawesome/free-solid-svg-icons';
 
-type InputProps = {
-  label: string;
-  value: any;
-  setValue: (_value: any) => void;
-};
+function I_INPUT({ name, placeholder }: { name: string; placeholder: string }) {
+  const [value, setValue] = useState('');
 
-function Input({ label, value, setValue }: InputProps) {
+  useEffect(() => {
+    setValue(localStorage.getItem(`ilayda.${name}`) || '');
+  }, []);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newValue = e.target.value;
+    localStorage.setItem(`ilayda.${name}`, newValue);
+    setValue(newValue);
+  };
+
   return (
     <input
       type='text'
+      name={name}
       value={value}
-      onChange={(e) => {
-        setValue(e.target.value);
-      }}
-      className='border p-1 text-blue-950'
-      placeholder={`Your ${label}`}
+      onChange={handleChange}
+      className='rounded-lg bg-yellow-200 pl-2 pr-1 text-blue-800 '
+      size={Math.max(name.length, value.length)}
+      placeholder={placeholder ?? name}
+      required
     />
   );
 }
 
-export function Lesson1Output() {
-  const [lesson1, setLesson1] = useState('');
-
-  useEffect(() => {
-    // Function to update state based on localStorage
-    const updateStateFromLocalStorage = () => {
-      const storedValue = localStorage.getItem('lesson1');
-      if (storedValue) {
-        setLesson1(storedValue);
-      }
-    };
-
-    // Call the function to update state when component mounts
-    if (typeof window !== 'undefined') {
-      updateStateFromLocalStorage();
-    }
-
-    const handleStorageChange = () => {
-      updateStateFromLocalStorage();
-    };
-
-    // Add event listener for localStorage changes
-    window.addEventListener('storage', handleStorageChange);
-
-    // Cleanup function
-    return () => {
-      window.removeEventListener('storage', handleStorageChange);
-    };
-  }, []);
-
-  return (
-    <div className='border bg-gray-100 p-4'>
-      <p>{lesson1}</p>
-    </div>
-  );
+function I_SUPERLONGTEXT() {
+  return 'a '.repeat(1000);
 }
 
-export function Lesson1() {
-  const [name, setName] = useState('');
-  const [reason, setReason] = useState('');
-  const [action, setAction] = useState('');
+function I_OUTPUT({ name }: { name: string }) {
+  const [value, setValue] = useState('');
 
   useEffect(() => {
-    if (!localStorage.getItem('lesson1')) {
-      localStorage.setItem('lesson1', 'Your sentence will appear here...');
-    }
+    setValue(localStorage.getItem(`ilayda.${name}`) || '');
   }, []);
 
-  const updateSentence = () => {
-    if (name && reason && action) {
-      const newSentence = `I ${name}, am committed to start working on my idea. The reason I want to work on my idea is ${reason} and I will ${action}.`;
-      localStorage.setItem('lesson1', newSentence);
-    }
-  };
+  return <>{value}</>;
+}
+
+// Output components cannot contain input components.
+const mdxOutputComponents = { I_OUTPUT, I_SUPERLONGTEXT };
+// All output components are available to the input components as well.
+const mdxInputComponents = { ...mdxOutputComponents, I_INPUT };
+
+const LessonButton = ({
+  lesson,
+  lessonCompleted,
+}: {
+  lesson: Lesson;
+  lessonCompleted: boolean;
+}) => {
+  const firstLessonLink = `/playground/1`;
+  const prevLesson = lesson.prev;
+  const prevLessonLink = `/playground/${prevLesson}`;
+  const nextLesson = lesson.next;
+  const nextLessonLink = `/playground/${nextLesson}`;
 
   return (
-    <div className='flex flex-col border bg-blue-950 p-4 text-white'>
-      <p>
-        I <Input label='Name' value={name} setValue={setName} />, am committed
-        to start working on my idea. The reason I want to work on my idea is{' '}
-        <Input label='Reason' value={reason} setValue={setReason} /> and I will{' '}
-        <Input label='Action' value={action} setValue={setAction} />.
-      </p>
-
+    <>
       <button
-        className='bottom-0 mt-auto rounded bg-green-500 p-2 text-white'
-        onClick={updateSentence}
+        disabled={!lessonCompleted}
+        className='rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700 disabled:bg-blue-300'
       >
-        Send
+        Export
       </button>
-    </div>
+      <Link href={prevLessonLink}>
+        <button
+          className='rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700 disabled:bg-blue-300'
+          disabled={!prevLesson}
+        >
+          Back
+        </button>
+      </Link>
+      {nextLesson ? (
+        <Link href={nextLessonLink}>
+          <button
+            className='rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700 disabled:bg-blue-300'
+            disabled={!lessonCompleted}
+          >
+            Next
+          </button>
+        </Link>
+      ) : (
+        <Link href={firstLessonLink}>
+          <button className='rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700 disabled:bg-blue-300'>
+            Return to beginning
+          </button>
+        </Link>
+      )}
+    </>
+  );
+};
+
+export default function LessonSections({
+  lesson,
+  mdxInputSource,
+  mdxOutputSource,
+}: {
+  lesson: Lesson;
+  mdxInputSource: MDXRemoteSerializeResult;
+  mdxOutputSource: MDXRemoteSerializeResult;
+}) {
+  const [loading, setLoading] = useState(true);
+  const [inputsReady, setInputsReady] = useState(false);
+  const [lessonCompleted, setLessonCompleted] = useState(false);
+  const [invalidFields, formAction] = useFormState(updateForm, ['all']);
+  const status = useFormStatus();
+
+  const resetInputs = () => {
+    setInputsReady(false);
+    setLessonCompleted(false);
+  };
+
+  useEffect(() => {
+    console.log('invalidFields', invalidFields);
+    if (invalidFields.length === 0) {
+      setInputsReady(true);
+      setLessonCompleted(true);
+    }
+    setLoading(false);
+  }, [invalidFields]);
+
+  return (
+    <>
+      <form
+        action={formAction}
+        className='prose flex flex-grow flex-col overflow-auto bg-white text-sm'
+      >
+        <div className='flex-grow overflow-auto p-4'>
+          {loading ? (
+            'Loading playground...'
+          ) : (
+            <MDXRemote {...mdxInputSource} components={mdxInputComponents} />
+          )}
+        </div>
+        <div className='bottom-0 left-0 flex w-full justify-start space-x-2  bg-white p-2'>
+          <button
+            type='submit'
+            aria-disabled={status.pending}
+            disabled={status.pending}
+            className='rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700 disabled:bg-blue-300'
+          >
+            Submit
+          </button>
+          <button
+            type='reset'
+            aria-disabled={status.pending}
+            disabled={status.pending}
+            onClick={resetInputs}
+            className='rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700 disabled:bg-blue-300'
+          >
+            <FontAwesomeIcon icon={faArrowsRotate} />
+          </button>
+        </div>
+      </form>
+      <div className='prose flex flex-grow flex-col overflow-auto bg-sky-100 text-sm'>
+        <div className='flex-grow overflow-auto p-4 text-sm'>
+          {inputsReady ? (
+            <MDXRemote {...mdxOutputSource} components={mdxOutputComponents} />
+          ) : (
+            <span>
+              {
+                'Please fill out all fields in playground, then click `SUBMIT` to see the outputs'
+              }
+            </span>
+          )}
+        </div>
+      </div>
+
+      <footer className='col-span-3 grid grid-cols-3 p-2'>
+        <div></div>
+        <div className='flex items-center justify-center'>
+          <span>{lesson.title}</span>
+        </div>
+        <div className='flex flex-grow justify-end gap-2'>
+          <LessonButton lesson={lesson} lessonCompleted={lessonCompleted} />
+        </div>
+      </footer>
+    </>
   );
 }

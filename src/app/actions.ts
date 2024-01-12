@@ -8,3 +8,18 @@ export async function getRecordMap(id: string | null) {
   const recordMap = await notion.getPage(pageId);
   return recordMap;
 }
+
+export async function updateForm(
+  _currentState: string[],
+  formData: FormData
+): Promise<string[]> {
+  const emptyKeys: string[] = [];
+
+  for (const [key, value] of formData.entries()) {
+    if (!key.startsWith('$') && value === '') {
+      emptyKeys.push(key);
+    }
+  }
+
+  return emptyKeys;
+}

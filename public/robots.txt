@@ -1,5 +1,5 @@
 User-agent: *
 Allow: /
-Disallow: /api
+Disallow: /playground
 
-Sitemap: https://www.ilayda.com/sitemap.xml
+Sitemap: https://app.ilayda.com/sitemap.xml
