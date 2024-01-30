@@ -37,7 +37,7 @@ function I_INPUT({ name, placeholder }: { name: string; placeholder: string }) {
 }
 
 function I_SUPERLONGTEXT() {
-  return 'a '.repeat(1000);
+  return 'a '.repeat(2000);
 }
 
 function I_OUTPUT({ name }: { name: string }) {
@@ -116,7 +116,8 @@ export default function LessonSections({
   const [loading, setLoading] = useState(true);
   const [inputsReady, setInputsReady] = useState(false);
   const [lessonCompleted, setLessonCompleted] = useState(false);
-  const [invalidFields, formAction] = useFormState(updateForm, ['all']);
+  const initialFormState = { invalidFields: ['all'] };
+  const [formState, formAction] = useFormState(updateForm, initialFormState);
   const status = useFormStatus();
 
   const resetInputs = () => {
@@ -125,12 +126,12 @@ export default function LessonSections({
   };
 
   useEffect(() => {
-    if (invalidFields.length === 0) {
+    if (formState.invalidFields.length === 0) {
       setInputsReady(true);
       setLessonCompleted(true);
     }
     setLoading(false);
-  }, [invalidFields]);
+  }, [formState.invalidFields]);
 
   return (
     <>

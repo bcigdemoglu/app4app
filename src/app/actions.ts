@@ -9,11 +9,14 @@ export async function getRecordMap(id: string | null) {
   return recordMap;
 }
 
+type FormState = { invalidFields: String[] };
+
 export async function updateForm(
-  _currentState: string[],
+  _currentState: FormState,
   formData: FormData
-): Promise<string[]> {
+): Promise<FormState> {
   const emptyKeys: string[] = [];
+  const formState = { invalidFields: emptyKeys };
 
   for (const [key, value] of formData.entries()) {
     if (!key.startsWith('$') && value === '') {
@@ -21,5 +24,5 @@ export async function updateForm(
     }
   }
 
-  return emptyKeys;
+  return formState;
 }
