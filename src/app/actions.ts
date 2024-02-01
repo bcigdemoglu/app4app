@@ -9,7 +9,7 @@ export async function getRecordMap(id: string | null) {
   return recordMap;
 }
 
-type FormState = { invalidFields: String[] };
+type FormState = { invalidFields: string[] };
 
 export async function updateForm(
   _currentState: FormState,

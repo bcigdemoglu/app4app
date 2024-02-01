@@ -13,6 +13,7 @@ An application to create applications
 - [Google Search Console](https://search.google.com/u/2/search-console/performance/search-analytics?resource_id=sc-domain%3Ailayda.com)
   - [Sitemap Indexing](https://search.google.com/u/2/search-console/index?resource_id=sc-domain:ilayda.com&pages=SITEMAP&sitemap=https:%2F%2Fwww.ilayda.com%2Fsitemap.xml)
 - [Hotjar Dashboard](https://insights.hotjar.com/sites/3813067/dashboard/95jiZm9LTQBKY5RJ5g5h3D-Site-overview)
+- [Supabase Dashboard](<[https://supabase.com/dashboard/projects](https://supabase.com/dashboard/project/fehegdrzmwuqmeutkptb)>)
 
 ## Important Files
 
@@ -33,6 +34,10 @@ command -v brew &> /dev/null || /bin/bash -c "$(curl -fsSL https://raw.githubuse
 command -v node &> /dev/null || brew install node
 # Install pnpm if not installed
 command -v pnpm &> /dev/null || brew install pnpm
+# Install supabase if not installed
+brew install supabase/tap/supabase && brew upgrade supabase
+# Generate supabase table
+supabase gen types typescript --project-id fehegdrzmwuqmeutkptb > ./src/app/lib/database.types.ts
 ```
 
 ### Run dev server

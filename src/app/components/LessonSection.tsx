@@ -4,7 +4,7 @@ import { updateForm } from '@/app/actions';
 import { MDXRemote, MDXRemoteSerializeResult } from 'next-mdx-remote';
 import { useEffect, useState } from 'react';
 import { useFormState, useFormStatus } from 'react-dom';
-import { Lesson } from './data';
+import { Lesson } from '../lib/data';
 import Link from 'next/link';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faArrowsRotate } from '@fortawesome/free-solid-svg-icons';
@@ -14,7 +14,7 @@ function I_INPUT({ name, placeholder }: { name: string; placeholder: string }) {
 
   useEffect(() => {
     setValue(localStorage.getItem(`ilayda.${name}`) || '');
-  }, []);
+  }, [name]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value;
@@ -45,7 +45,7 @@ function I_OUTPUT({ name }: { name: string }) {
 
   useEffect(() => {
     setValue(localStorage.getItem(`ilayda.${name}`) || '');
-  }, []);
+  }, [name]);
 
   return <>{value}</>;
 }

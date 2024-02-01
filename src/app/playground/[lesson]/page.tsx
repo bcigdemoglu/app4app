@@ -1,8 +1,8 @@
 import LessonSections from '@/app/components/LessonSection';
-import { LessonMap, getLessonMDX } from '@/app/components/LessonSection/data';
+import { LESSON_MAP, getLessonMDX } from '@/app/lib/data';
 import { notFound } from 'next/navigation';
 import { getRecordMap } from '@/app/actions';
-import NotionPage from '@/app/components/NotionPage/NotionPage';
+import NotionPage from '@/app/components/NotionPage';
 import Image from 'next/image';
 
 export const metadata = {
@@ -11,7 +11,9 @@ export const metadata = {
 };
 
 export function generateStaticParams(): Array<Props['params']> {
-  return Object.keys(LessonMap).map((lessonPage) => ({ lesson: lessonPage }));
+  return Object.keys(LESSON_MAP).map((lessonPage) => ({
+    lesson: lessonPage,
+  }));
 }
 
 interface Props {
@@ -22,11 +24,11 @@ export default async function Page({ params }: Props) {
   if (
     typeof params.lesson !== 'string' ||
     isNaN(parseInt(params.lesson)) ||
-    !LessonMap[parseInt(params.lesson)]
+    !LESSON_MAP[parseInt(params.lesson)]
   )
     notFound();
 
-  const lesson = LessonMap[parseInt(params.lesson)];
+  const lesson = LESSON_MAP[parseInt(params.lesson)];
   const notionId = lesson.id;
   const recordMap = await getRecordMap(notionId);
 
