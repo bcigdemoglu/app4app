@@ -34,9 +34,15 @@ command -v brew &> /dev/null || /bin/bash -c "$(curl -fsSL https://raw.githubuse
 command -v node &> /dev/null || brew install node
 # Install pnpm if not installed
 command -v pnpm &> /dev/null || brew install pnpm
-# Install supabase if not installed
+```
+
+#### Maintain DB types
+
+```bash
+# Install supabase and login
 brew install supabase/tap/supabase && brew upgrade supabase
-# Generate supabase table
+supabase login
+# Generate supabase table types
 supabase gen types typescript --project-id fehegdrzmwuqmeutkptb > ./src/app/lib/database.types.ts
 ```
 
@@ -48,4 +54,6 @@ pnpm install
 pnpm dev
 # Open in browser
 open -a "Google Chrome" http://localhost:3000
+# Get the local server URL which is accessible from the local network
+ifconfig | grep "inet " | grep -v 127.0.0.1 | awk '{print "http://"$2":3000"}'
 ```

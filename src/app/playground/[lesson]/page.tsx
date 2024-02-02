@@ -1,9 +1,10 @@
 import LessonSections from '@/app/components/LessonSection';
 import { LESSON_MAP, getLessonMDX } from '@/app/lib/data';
-import { notFound } from 'next/navigation';
-import { getRecordMap } from '@/app/actions';
+import { notFound, redirect } from 'next/navigation';
+import { getRecordMap } from './actions';
 import NotionPage from '@/app/components/NotionPage';
 import Image from 'next/image';
+import { getAuthUser } from '@/app/utils/userActions';
 
 export const metadata = {
   title: "Ilayda's Playground: How to Start a Business",
@@ -27,6 +28,11 @@ export default async function Page({ params }: Props) {
     !LESSON_MAP[parseInt(params.lesson)]
   )
     notFound();
+
+  const user = await getAuthUser();
+  if (!user) {
+    redirect('/login');
+  }
 
   const lesson = LESSON_MAP[parseInt(params.lesson)];
   const notionId = lesson.id;
