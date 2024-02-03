@@ -3,8 +3,9 @@ import { LESSON_MAP, getLessonMDX } from '@/app/lib/data';
 import { notFound, redirect } from 'next/navigation';
 import { getRecordMap } from './actions';
 import NotionPage from '@/app/components/NotionPage';
-import Image from 'next/image';
-import { getAuthUser } from '@/app/utils/userActions';
+import Link from 'next/link';
+import { cookies } from 'next/headers';
+import { createClient } from '@/app/utils/supabase/server';
 
 export const metadata = {
   title: "Ilayda's Playground: How to Start a Business",
@@ -29,9 +30,22 @@ export default async function Page({ params }: Props) {
   )
     notFound();
 
-  const user = await getAuthUser();
+  const cookieStore = cookies();
+  const supabase = createClient(cookieStore);
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
   if (!user) {
-    redirect('/login');
+    redirect('/register');
+  }
+
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('*')
+    .single();
+  if (!profile) {
+    redirect('/my-account');
   }
 
   const lesson = LESSON_MAP[parseInt(params.lesson)];
@@ -49,19 +63,28 @@ export default async function Page({ params }: Props) {
           </span>
         </div>
         <div className='flex justify-end gap-1'>
-          <button className=' '>
-            <Image
-              src='/ilayda.jpeg'
-              alt='Ilayda Buyukdogan Profile'
-              className='h-10 w-10 overflow-hidden rounded-full border object-cover'
-              width={100}
-              height={0}
-              sizes='100vw'
-            />
-          </button>
-          <button className='rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700 disabled:bg-blue-300'>
-            My account
-          </button>
+          <Link href='/my-account'>
+            <button className=' '>
+              {/* <Image
+                src='/ilayda.jpeg'
+                alt='Ilayda Buyukdogan Profile'
+                className='h-10 w-10 overflow-hidden rounded-full border object-cover'
+                width={100}
+                height={0}
+                sizes='100vw'
+              /> */}
+              <span className='inline-flex h-10 w-10 items-center justify-center rounded-full bg-purple-500'>
+                <span className='font-bold text-white'>
+                  {profile?.full_name.charAt(0).toUpperCase()}
+                </span>
+              </span>
+            </button>
+          </Link>
+          <Link href='/my-account'>
+            <button className='rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700 disabled:bg-blue-300'>
+              My account
+            </button>
+          </Link>
         </div>
       </header>
 

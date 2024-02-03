@@ -1,5 +1,6 @@
 import Link from 'next/link';
-import { login } from './actions';
+import Image from 'next/image';
+import { handleLogInWithGoogle, login } from './actions';
 import { redirect } from 'next/navigation';
 import { getAuthUser } from '@/app/utils/userActions';
 
@@ -17,14 +18,22 @@ export default async function LoginPage() {
       </div>
 
       <div className='space-y-4'>
-        <button
-          type='button'
-          className='flex w-full items-center justify-center rounded-md border border-zinc-300 bg-white px-4 py-2 text-sm font-medium text-zinc-700 shadow-sm hover:bg-zinc-50'
-        >
-          <span className='mr-3'>[Google Icon SVG]</span>{' '}
-          {/* Replace [Google Icon SVG] with the actual SVG */}
-          Log in with Google
-        </button>
+        <form>
+          <button
+            formAction={handleLogInWithGoogle}
+            type='submit'
+            className='flex w-full items-center justify-center rounded-md border border-zinc-300 bg-white px-4 py-2 font-medium text-zinc-700 shadow-sm hover:bg-zinc-50'
+          >
+            <Image
+              src='/google.svg'
+              alt='Google icon'
+              width={28}
+              height={28}
+              className='mr-2'
+            />
+            Log in with Google
+          </button>
+        </form>
 
         <div className='flex items-center justify-center'>
           <div className='t-2 h-px flex-grow bg-zinc-300'></div>

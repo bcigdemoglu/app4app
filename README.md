@@ -14,6 +14,7 @@ An application to create applications
   - [Sitemap Indexing](https://search.google.com/u/2/search-console/index?resource_id=sc-domain:ilayda.com&pages=SITEMAP&sitemap=https:%2F%2Fwww.ilayda.com%2Fsitemap.xml)
 - [Hotjar Dashboard](https://insights.hotjar.com/sites/3813067/dashboard/95jiZm9LTQBKY5RJ5g5h3D-Site-overview)
 - [Supabase Dashboard](<[https://supabase.com/dashboard/projects](https://supabase.com/dashboard/project/fehegdrzmwuqmeutkptb)>)
+- [Google OAuth Cloud Console](https://console.cloud.google.com/apis/credentials?authuser=2&project=app4app-413214)
 
 ## Important Files
 

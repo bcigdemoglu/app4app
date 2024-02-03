@@ -17,8 +17,7 @@ export async function register(formData: FormData) {
     password: formData.get('password') as string,
     options: {
       data: {
-        firstname: formData.get('firstname') as string,
-        lastname: formData.get('lastname') as string,
+        full_name: formData.get('full_name') as string,
       },
     },
   };

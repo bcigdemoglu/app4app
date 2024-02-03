@@ -1,7 +1,9 @@
 import Link from 'next/link';
+import Image from 'next/image';
 import { register } from './actions';
 import { getAuthUser } from '@/app/utils/userActions';
 import { redirect } from 'next/navigation';
+import { handleLogInWithGoogle } from '../login/actions';
 
 export default async function RegisterPage() {
   const user = await getAuthUser();
@@ -17,14 +19,22 @@ export default async function RegisterPage() {
       </div>
 
       <div className='space-y-4'>
-        <button
-          type='button'
-          className='flex w-full items-center justify-center rounded-md border border-zinc-300 bg-white px-4 py-2 text-sm font-medium text-zinc-700 shadow-sm hover:bg-zinc-50'
-        >
-          <span className='mr-3'>[Google Icon SVG]</span>{' '}
-          {/* Replace [Google Icon SVG] with the actual SVG */}
-          Sign up with Google
-        </button>
+        <form>
+          <button
+            formAction={handleLogInWithGoogle}
+            type='submit'
+            className='flex w-full items-center justify-center rounded-md border border-zinc-300 bg-white px-4 py-2 font-medium text-zinc-700 shadow-sm hover:bg-zinc-50'
+          >
+            <Image
+              src='/google.svg'
+              alt='Google icon'
+              width={28}
+              height={28}
+              className='mr-2'
+            />
+            Sign up with Google
+          </button>
+        </form>
 
         <div className='flex items-center justify-center'>
           <div className='t-2 h-px flex-grow bg-zinc-300'></div>
@@ -38,36 +48,19 @@ export default async function RegisterPage() {
       <form className='space-y-6'>
         <div>
           <label
-            htmlFor='firstname'
+            htmlFor='full_name'
             className='block text-sm font-medium text-zinc-700'
           >
-            First Name
+            Full Name
           </label>
           <input
             type='text'
-            name='firstname'
-            id='firstname'
-            autoComplete='firstname'
+            name='full_name'
+            id='full_name'
+            autoComplete='full_name'
             required
             className='mt-1 block w-full rounded-md border border-slate-300 bg-white px-3 py-2 placeholder-zinc-400 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500'
-            placeholder='First Name'
-          />
-        </div>
-        <div>
-          <label
-            htmlFor='lastname'
-            className='block text-sm font-medium text-zinc-700'
-          >
-            Last Name
-          </label>
-          <input
-            type='text'
-            name='lastname'
-            id='lastname'
-            autoComplete='lastname'
-            required
-            className='mt-1 block w-full rounded-md border border-slate-300 bg-white px-3 py-2 placeholder-zinc-400 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500'
-            placeholder='Last Name'
+            placeholder='Full Name'
           />
         </div>
 

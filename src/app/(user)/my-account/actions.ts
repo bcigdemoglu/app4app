@@ -16,8 +16,8 @@ export async function updateProfile(formData: FormData) {
   }
 
   const userProfile = {
-    firstname: formData.get('firstname') as string,
-    lastname: formData.get('lastname') as string,
+    full_name: formData.get('full_name') as string,
+    email: formData.get('email') as string,
     updated_at: new Date().toISOString(),
   };
 

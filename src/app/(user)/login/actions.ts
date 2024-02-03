@@ -1,7 +1,7 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import { cookies } from 'next/headers';
+import { cookies, headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 
 import { createClient } from '@/app/utils/supabase/actions';
@@ -34,5 +34,23 @@ export async function login(formData: FormData) {
   } else {
     revalidatePath('/', 'layout');
     redirect('/playground');
+  }
+}
+
+export async function handleLogInWithGoogle() {
+  const origin = headers().get('origin');
+  const cookieStore = cookies();
+  const supabase = createClient(cookieStore);
+
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider: 'google',
+    options: {
+      redirectTo: `${origin}/auth/confirm`,
+    },
+  });
+
+  if (data.url) redirect(data.url);
+  if (error) {
+    redirect('/error');
   }
 }

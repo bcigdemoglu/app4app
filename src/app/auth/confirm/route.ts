@@ -9,12 +9,16 @@ export async function GET(request: NextRequest) {
   const cookieStore = cookies();
 
   const { searchParams } = new URL(request.url);
+  // For oauth
+  const code = searchParams.get('code');
+  // For email otp
   const token_hash = searchParams.get('token_hash');
   const type = searchParams.get('type') as EmailOtpType | null;
-  const next = searchParams.get('next') ?? '/';
+  const next = searchParams.get('next') ?? '/playground';
 
   const redirectTo = request.nextUrl.clone();
   redirectTo.pathname = next;
+  redirectTo.searchParams.delete('code');
   redirectTo.searchParams.delete('token_hash');
   redirectTo.searchParams.delete('type');
 
@@ -26,7 +30,12 @@ export async function GET(request: NextRequest) {
       token_hash,
     });
     if (!error) {
-      redirectTo.searchParams.delete('next');
+      return NextResponse.redirect(redirectTo);
+    }
+  } else if (code) {
+    const supabase = createClient(cookieStore);
+    const { error } = await supabase.auth.exchangeCodeForSession(code);
+    if (!error) {
       return NextResponse.redirect(redirectTo);
     }
   }

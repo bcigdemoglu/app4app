@@ -1,8 +1,8 @@
-import { isLoggedIn } from '@/app/utils/userHelpers';
 import { redirect } from 'next/navigation';
 import { cookies } from 'next/headers';
 import { createClient } from '@/app/utils/supabase/server';
 import { updateProfile, logout } from './actions';
+import Link from 'next/link';
 
 function InputField({
   name,
@@ -35,8 +35,10 @@ export default async function RegisterPage() {
   const cookieStore = cookies();
   const supabase = createClient(cookieStore);
 
-  const user = await supabase.auth.getUser();
-  if (!isLoggedIn(user)) {
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) {
     redirect('/register');
   }
 
@@ -56,14 +58,11 @@ export default async function RegisterPage() {
 
       <form className='space-y-6'>
         <InputField
-          name='firstname'
-          label='First Name'
-          defaultValue={profile?.firstname}
-        />
-        <InputField
-          name='lastname'
-          label='Last Name'
-          defaultValue={profile?.lastname}
+          name='full_name'
+          label='Full Name'
+          defaultValue={
+            profile ? profile.full_name : user.user_metadata.full_name
+          }
         />
 
         {profile && (
@@ -74,11 +73,17 @@ export default async function RegisterPage() {
           </div>
         )}
 
-        {user.data.user?.email && (
+        {user?.email && (
           <div>
             <span className='block text-sm font-medium text-zinc-700'>
-              Email: {user.data.user.email}
+              Email: {user.email}
             </span>
+            <input
+              name='email'
+              className='hidden'
+              value={user.email}
+              readOnly={true}
+            />
           </div>
         )}
 
@@ -88,9 +93,21 @@ export default async function RegisterPage() {
             type='submit'
             className='flex w-full justify-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2'
           >
-            {profile ? 'Update Profile' : 'Create Profile'}
+            {profile
+              ? 'Update Profile'
+              : 'Create Profile and Go to Playground!'}
           </button>
         </div>
+
+        {profile && (
+          <div>
+            <Link href='/playground'>
+              <button className='flex w-full justify-center rounded-md border border-transparent bg-pink-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-pink-700 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:ring-offset-2'>
+                Go to Playground!
+              </button>
+            </Link>
+          </div>
+        )}
 
         <div>
           <button
