@@ -28,7 +28,7 @@ export async function updateProfile(formData: FormData) {
   }
 
   revalidatePath('/', 'layout');
-  redirect('/my-account');
+  redirect('/playground');
 }
 
 export async function logout() {

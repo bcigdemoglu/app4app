@@ -3,6 +3,7 @@ import { cookies } from 'next/headers';
 import { createClient } from '@/app/utils/supabase/server';
 import { updateProfile, logout } from './actions';
 import Link from 'next/link';
+import { getAuthUserAndProfile } from '@/app/utils/userActions';
 
 function InputField({
   name,
@@ -31,21 +32,11 @@ function InputField({
   );
 }
 
-export default async function RegisterPage() {
-  const cookieStore = cookies();
-  const supabase = createClient(cookieStore);
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+export default async function MyAccountPage() {
+  const { user, profile } = await getAuthUserAndProfile();
   if (!user) {
     redirect('/register');
   }
-
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('*')
-    .single();
 
   return (
     <div>

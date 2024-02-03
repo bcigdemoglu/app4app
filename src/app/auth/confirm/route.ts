@@ -14,7 +14,7 @@ export async function GET(request: NextRequest) {
   // For email otp
   const token_hash = searchParams.get('token_hash');
   const type = searchParams.get('type') as EmailOtpType | null;
-  const next = searchParams.get('next') ?? '/playground';
+  const next = searchParams.get('next') ?? '/';
 
   const redirectTo = request.nextUrl.clone();
   redirectTo.pathname = next;
