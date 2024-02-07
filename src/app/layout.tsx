@@ -8,10 +8,6 @@ import { SpeedInsights } from '@vercel/speed-insights/next';
 
 // core styles shared by all of react-notion-x (required)
 import 'react-notion-x/src/styles.css';
-// used for code syntax highlighting (optional)
-import 'prismjs/themes/prism-tomorrow.css';
-// used for rendering equations (optional)
-import 'katex/dist/katex.min.css';
 
 // The following import prevents a Font Awesome icon server-side rendering bug,
 // where the icons flash from a very large icon down to a properly sized one:
