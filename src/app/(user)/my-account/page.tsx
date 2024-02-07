@@ -1,6 +1,4 @@
 import { redirect } from 'next/navigation';
-import { cookies } from 'next/headers';
-import { createClient } from '@/app/utils/supabase/server';
 import { updateProfile, logout } from './actions';
 import Link from 'next/link';
 import { getAuthUserAndProfile } from '@/app/utils/userActions';

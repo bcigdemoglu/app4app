@@ -12,12 +12,9 @@ export default async function LoginPage() {
 
   return (
     <div>
-      <div className='space-y-2 text-center'>
+      <div className='space-y-5'>
         <h2 className='text-3xl font-extrabold text-zinc-900'>Welcome back</h2>
         <p className='text-zinc-500'>Login to continue building</p>
-      </div>
-
-      <div className='space-y-4'>
         <form>
           <button
             formAction={handleLogInWithGoogle}

@@ -49,7 +49,7 @@ export default async function Page({ params }: Props) {
   }
 
   const lesson = LESSON_MAP[parseInt(params.lesson)];
-  const notionId = lesson.id;
+  const { notionId } = lesson;
   const recordMap = await getRecordMap(notionId);
 
   const { mdxInputSource, mdxOutputSource } = await getLessonMDX(recordMap);

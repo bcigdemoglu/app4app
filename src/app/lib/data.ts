@@ -6,6 +6,7 @@ import { MDXRemoteSerializeResult } from 'next-mdx-remote';
 
 export interface Lesson {
   id: string;
+  notionId: string;
   title: string;
   description: string;
   prev: number | null;
@@ -16,14 +17,16 @@ export type LessonMap = Record<number, Lesson>;
 
 export const LESSON_MAP: LessonMap = {
   1: {
-    id: '5186495d873648d48ad0061e433b2caa',
+    id: '1',
+    notionId: '5186495d873648d48ad0061e433b2caa',
     title: 'Lesson 1: Commitment',
     description: 'How to commit to your idea?',
     prev: null,
     next: 2,
   },
   2: {
-    id: '8060ad9aaa5e44dfa4086af80f18dc3c',
+    id: '2',
+    notionId: '8060ad9aaa5e44dfa4086af80f18dc3c',
     title: 'Lesson 2: Reality',
     description: "What's the reality of your idea?",
     prev: 1,

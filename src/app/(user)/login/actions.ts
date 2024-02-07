@@ -20,6 +20,7 @@ export async function login(formData: FormData) {
   const { error } = await supabase.auth.signInWithPassword(credentials);
 
   if (error) {
+    console.error('error', error);
     redirect('/error');
   }
 
@@ -39,6 +40,10 @@ export async function login(formData: FormData) {
 
 export async function handleLogInWithGoogle() {
   const origin = headers().get('origin');
+
+  console.log('headers', headers());
+  console.log('origin', origin);
+
   const cookieStore = cookies();
   const supabase = createClient(cookieStore);
 
@@ -48,6 +53,8 @@ export async function handleLogInWithGoogle() {
       redirectTo: `${origin}/auth/confirm`,
     },
   });
+
+  console.log('data', data);
 
   if (data.url) redirect(data.url);
   if (error) {

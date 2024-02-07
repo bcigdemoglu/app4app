@@ -8,27 +8,33 @@ import { Lesson } from '../lib/data';
 import Link from 'next/link';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faArrowsRotate } from '@fortawesome/free-solid-svg-icons';
+import { createClient } from '../utils/supabase/client';
+// import { renderToStaticMarkup, renderToString } from 'react-dom/server';
 
-function I_INPUT({ name, placeholder }: { name: string; placeholder: string }) {
+const toTextFieldId = (name: string) => `I_TEXT.${name}`;
+function I_TEXT({ name, placeholder }: { name: string; placeholder: string }) {
+  const fieldId = toTextFieldId(name);
   const [value, setValue] = useState('');
 
   useEffect(() => {
-    setValue(localStorage.getItem(`ilayda.${name}`) || '');
+    setValue(localStorage.getItem(`ilayda.${fieldId}`) || '');
   }, [name]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value;
-    localStorage.setItem(`ilayda.${name}`, newValue);
+    localStorage.setItem(`ilayda.${fieldId}`, newValue);
     setValue(newValue);
   };
 
   return (
     <input
       type='text'
-      name={name}
+      id={fieldId}
+      name={fieldId}
       value={value}
       onChange={handleChange}
-      className='rounded-lg bg-yellow-200 pl-2 pr-1 text-blue-800 '
+      // className='rounded-lg bg-yellow-200 pl-2 pr-1 text-blue-800 '
+      className='mt-1 rounded-md border border-slate-300 bg-white pl-2 pr-1 placeholder-zinc-400 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 '
       size={Math.max(name.length, value.length)}
       placeholder={placeholder ?? name}
       required
@@ -36,24 +42,28 @@ function I_INPUT({ name, placeholder }: { name: string; placeholder: string }) {
   );
 }
 
-function I_SUPERLONGTEXT() {
+function O_SUPERLONGTEXT() {
   return 'a '.repeat(2000);
 }
 
-function I_OUTPUT({ name }: { name: string }) {
+function O_TEXT({ name }: { name: string }) {
+  const fieldId = toTextFieldId(name);
   const [value, setValue] = useState('');
 
   useEffect(() => {
-    setValue(localStorage.getItem(`ilayda.${name}`) || '');
-  }, [name]);
+    setValue(localStorage.getItem(`ilayda.${fieldId}`) || '');
+  }, []);
 
   return <>{value}</>;
 }
 
 // Output components cannot contain input components.
-const mdxOutputComponents = { I_OUTPUT, I_SUPERLONGTEXT };
+const mdxOutputComponents = { O_TEXT, O_SUPERLONGTEXT };
 // All output components are available to the input components as well.
-const mdxInputComponents = { ...mdxOutputComponents, I_INPUT };
+const mdxInputComponents = {
+  ...mdxOutputComponents,
+  I_TEXT: I_TEXT.bind(null),
+};
 
 const LessonButton = ({
   lesson,
@@ -113,12 +123,20 @@ export default function LessonSections({
   mdxInputSource: MDXRemoteSerializeResult;
   mdxOutputSource: MDXRemoteSerializeResult;
 }) {
+  const supabase = createClient();
+
+  const { id: lessonId, notionId } = lesson;
   const [loading, setLoading] = useState(true);
   const [inputsReady, setInputsReady] = useState(false);
   const [lessonCompleted, setLessonCompleted] = useState(false);
   const initialFormState = { invalidFields: ['all'] };
   const [formState, formAction] = useFormState(updateForm, initialFormState);
   const status = useFormStatus();
+  const outputJsx = (
+    <span id='mdxoutput'>
+      <MDXRemote {...mdxInputSource} components={mdxInputComponents} />
+    </span>
+  );
 
   const resetInputs = () => {
     setInputsReady(false);
@@ -126,6 +144,12 @@ export default function LessonSections({
   };
 
   useEffect(() => {
+    supabase.auth.getUser().then(({ data: user }) => {
+      console.log(user);
+    });
+
+    // console.log(JSON.stringify(outputJsx.type.name));
+
     if (formState.invalidFields.length === 0) {
       setInputsReady(true);
       setLessonCompleted(true);
@@ -140,12 +164,20 @@ export default function LessonSections({
         className='prose flex flex-grow flex-col overflow-auto bg-white text-sm'
       >
         <div className='flex-grow overflow-auto p-4'>
-          {loading ? (
-            'Loading playground...'
-          ) : (
-            <MDXRemote {...mdxInputSource} components={mdxInputComponents} />
-          )}
+          {loading ? 'Loading playground...' : outputJsx}
         </div>
+        <input
+          type='hidden'
+          readOnly={true}
+          name='lesson_id'
+          value={lessonId}
+        />
+        <input
+          type='hidden'
+          readOnly={true}
+          name='notion_id'
+          value={notionId}
+        />
         <div className='bottom-0 left-0 flex w-full justify-start space-x-2   p-2'>
           <button
             type='submit'

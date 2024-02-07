@@ -13,12 +13,10 @@ export default async function RegisterPage() {
 
   return (
     <div>
-      <div className='space-y-2 text-center'>
+      <div className='space-y-5'>
         <h2 className='text-3xl font-extrabold text-zinc-900'>Sign up</h2>
         <p className='text-zinc-500'>Create your free Playground account</p>
-      </div>
 
-      <div className='space-y-4'>
         <form>
           <button
             formAction={handleLogInWithGoogle}
@@ -111,7 +109,7 @@ export default async function RegisterPage() {
         </div>
       </form>
 
-      <div className='mt-4 text-center text-sm text-zinc-500'>
+      <div className='mt-4 text-sm text-zinc-500'>
         Already have an account?{' '}
         <Link
           href='/login'
