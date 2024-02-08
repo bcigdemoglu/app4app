@@ -6,23 +6,27 @@ import { type NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/app/utils/supabase/actions';
 
 export async function GET(request: NextRequest) {
-  const cookieStore = cookies();
-
-  const { searchParams } = new URL(request.url);
-  // For oauth
+  const { searchParams, origin } = new URL(request.url);
+  // "code" for oauth
   const code = searchParams.get('code');
-  // For email otp
+  // "token_hash" for email otp
   const token_hash = searchParams.get('token_hash');
   const type = searchParams.get('type') as EmailOtpType | null;
+  // redirection
   const next = searchParams.get('next') ?? '/';
+  const redirectTo = `${origin}${next}`;
 
-  const redirectTo = request.nextUrl.clone();
-  redirectTo.pathname = next;
-  redirectTo.searchParams.delete('code');
-  redirectTo.searchParams.delete('token_hash');
-  redirectTo.searchParams.delete('type');
+  console.log(
+    'origin',
+    origin,
+    'searchParams',
+    searchParams,
+    'redirectTo',
+    redirectTo
+  );
 
   if (token_hash && type) {
+    const cookieStore = cookies();
     const supabase = createClient(cookieStore);
 
     const { error: verifyOtpError } = await supabase.auth.verifyOtp({
@@ -35,6 +39,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.redirect(redirectTo);
     }
   } else if (code) {
+    const cookieStore = cookies();
     const supabase = createClient(cookieStore);
     const { error: codeSessionError } =
       await supabase.auth.exchangeCodeForSession(code);
@@ -46,6 +51,7 @@ export async function GET(request: NextRequest) {
   }
 
   // return the user to an error page with some instructions
-  redirectTo.pathname = '/error';
-  return NextResponse.redirect(redirectTo);
+  return NextResponse.redirect(
+    `${origin}/error?msg=Invalid%20code%20or%20token_hash`
+  );
 }
