@@ -14,7 +14,7 @@ export default function Page() {
   return (
     <>
       <Navbar />
-      <div className='lg:prose-xs prose prose-a:no-underline container m-auto mb-20 flex max-w-4xl flex-col p-4 pt-32'>
+      <div className='lg:prose-xs container prose m-auto mb-20 flex max-w-4xl flex-col p-4 pt-32 prose-a:no-underline'>
         <section>
           <h1 className='fade-in-heading m-0'>Blog</h1>
           <p className='fade-in-heading animation-delay-1'>

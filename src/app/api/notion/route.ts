@@ -1,4 +1,4 @@
-import { getRecordMap } from '@/app/actions';
+import { getRecordMap } from '@/app/playground/[lesson]/actions';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(request: NextRequest) {

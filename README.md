@@ -13,6 +13,8 @@ An application to create applications
 - [Google Search Console](https://search.google.com/u/2/search-console/performance/search-analytics?resource_id=sc-domain%3Ailayda.com)
   - [Sitemap Indexing](https://search.google.com/u/2/search-console/index?resource_id=sc-domain:ilayda.com&pages=SITEMAP&sitemap=https:%2F%2Fwww.ilayda.com%2Fsitemap.xml)
 - [Hotjar Dashboard](https://insights.hotjar.com/sites/3813067/dashboard/95jiZm9LTQBKY5RJ5g5h3D-Site-overview)
+- [Supabase Dashboard](https://supabase.com/dashboard/project/fehegdrzmwuqmeutkptb)
+- [Google OAuth Cloud Console](https://console.cloud.google.com/apis/credentials?authuser=2&project=app4app-413214)
 
 ## Important Files
 
@@ -35,6 +37,16 @@ command -v node &> /dev/null || brew install node
 command -v pnpm &> /dev/null || brew install pnpm
 ```
 
+#### Maintain DB types
+
+```bash
+# Install supabase and login
+brew install supabase/tap/supabase && brew upgrade supabase
+supabase login
+# Generate supabase table types
+supabase gen types typescript --project-id fehegdrzmwuqmeutkptb > ./src/app/lib/database.types.ts
+```
+
 ### Run dev server
 
 ```bash
@@ -43,4 +55,6 @@ pnpm install
 pnpm dev
 # Open in browser
 open -a "Google Chrome" http://localhost:3000
+# Get the local server URL which is accessible from the local network
+ifconfig | grep "inet " | grep -v 127.0.0.1 | awk '{print "http://"$2":3000"}'
 ```
