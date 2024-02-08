@@ -12,6 +12,7 @@ export async function updateProfile(formData: FormData) {
   const { error: authError } = await supabase.auth.getUser();
 
   if (authError) {
+    console.error('authError', authError);
     redirect('/error');
   }
 
@@ -21,9 +22,12 @@ export async function updateProfile(formData: FormData) {
     updated_at: new Date().toISOString(),
   };
 
-  const { error } = await supabase.from('profiles').upsert(userProfile);
+  const { error: profileError } = await supabase
+    .from('profiles')
+    .upsert(userProfile);
 
-  if (error) {
+  if (profileError) {
+    console.error('profileError', profileError);
     redirect('/error');
   }
 
@@ -35,9 +39,10 @@ export async function logout() {
   const cookieStore = cookies();
   const supabase = createClient(cookieStore);
 
-  const { error } = await supabase.auth.signOut();
+  const { error: signoutError } = await supabase.auth.signOut();
 
-  if (error) {
+  if (signoutError) {
+    console.error('signoutError', signoutError);
     redirect('/error');
   }
 

@@ -17,17 +17,23 @@ export async function login(formData: FormData) {
     password: formData.get('password') as string,
   };
 
-  const { error } = await supabase.auth.signInWithPassword(credentials);
+  const { data: loginData, error: signInWithPasswordError } =
+    await supabase.auth.signInWithPassword(credentials);
 
-  if (error) {
-    console.error('error', error);
+  if (signInWithPasswordError) {
+    console.error('error', signInWithPasswordError);
     redirect('/error');
   }
+  console.log('loginData', loginData);
 
-  const { data: profile } = await supabase
+  const { data: profile, error: loginProfileError } = await supabase
     .from('profiles')
     .select('*')
     .single();
+
+  if (loginProfileError) {
+    console.error('loginProfileError', loginProfileError);
+  }
 
   if (!profile) {
     revalidatePath('/', 'layout');
@@ -47,17 +53,19 @@ export async function handleLogInWithGoogle() {
   const cookieStore = cookies();
   const supabase = createClient(cookieStore);
 
-  const { data, error } = await supabase.auth.signInWithOAuth({
-    provider: 'google',
-    options: {
-      redirectTo: `${origin}/auth/confirm`,
-    },
-  });
+  const { data: oauthData, error: signInWithOAuthError } =
+    await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: `${origin}/auth/confirm`,
+      },
+    });
 
-  console.log('data', data);
-
-  if (data.url) redirect(data.url);
-  if (error) {
+  if (signInWithOAuthError) {
+    console.error('error', signInWithOAuthError);
     redirect('/error');
   }
+
+  console.log('oauthData', oauthData);
+  if (oauthData.url) redirect(oauthData.url);
 }
