@@ -46,6 +46,8 @@ export default async function Page({ params }: Props) {
     .single();
   if (!profile) {
     redirect('/my-account');
+  } else if (profile.plan.toLowerCase() === 'free') {
+    redirect('/upgrade');
   }
 
   const lesson = LESSON_MAP[parseInt(params.lesson)];
@@ -73,9 +75,9 @@ export default async function Page({ params }: Props) {
                 height={0}
                 sizes='100vw'
               /> */}
-              <span className='inline-flex h-10 w-10 items-center justify-center rounded-full bg-purple-500'>
+              <span className='inline-flex h-10 items-center justify-center rounded-full bg-purple-500 px-2'>
                 <span className='font-bold text-white'>
-                  {profile?.full_name.charAt(0).toUpperCase()}
+                  {profile?.full_name}
                 </span>
               </span>
             </button>

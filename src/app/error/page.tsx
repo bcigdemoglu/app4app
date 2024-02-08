@@ -1,6 +1,12 @@
 import Link from 'next/link';
 
-export default function Error() {
+export default function Error({
+  searchParams,
+}: {
+  searchParams?: {
+    msg?: string;
+  };
+}) {
   return (
     <div className='flex h-screen items-center justify-center bg-gray-100'>
       <div className='text-center'>
@@ -11,7 +17,9 @@ export default function Error() {
           Something went wrong.
         </p>
         <p className='mt-4 text-lg text-gray-900'>
-          Sorry, there was an error. Please try again later.
+          {searchParams?.msg
+            ? searchParams?.msg
+            : 'Sorry, there was an error. Please try again later.'}
         </p>
         <Link
           href='/'
