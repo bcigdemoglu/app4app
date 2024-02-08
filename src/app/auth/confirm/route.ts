@@ -25,17 +25,22 @@ export async function GET(request: NextRequest) {
   if (token_hash && type) {
     const supabase = createClient(cookieStore);
 
-    const { error } = await supabase.auth.verifyOtp({
+    const { error: verifyOtpError } = await supabase.auth.verifyOtp({
       type,
       token_hash,
     });
-    if (!error) {
+    if (verifyOtpError) {
+      console.error('verifyOtpError', verifyOtpError);
+    } else {
       return NextResponse.redirect(redirectTo);
     }
   } else if (code) {
     const supabase = createClient(cookieStore);
-    const { error } = await supabase.auth.exchangeCodeForSession(code);
-    if (!error) {
+    const { error: codeSessionError } =
+      await supabase.auth.exchangeCodeForSession(code);
+    if (codeSessionError) {
+      console.error('codeSessionError', codeSessionError);
+    } else {
       return NextResponse.redirect(redirectTo);
     }
   }

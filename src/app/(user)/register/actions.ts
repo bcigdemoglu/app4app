@@ -22,9 +22,10 @@ export async function register(formData: FormData) {
     },
   };
 
-  const { error } = await supabase.auth.signUp(credentials);
+  const { error: registerError } = await supabase.auth.signUp(credentials);
 
-  if (error) {
+  if (registerError) {
+    console.error('registerError', registerError);
     redirect('/error');
   }
 

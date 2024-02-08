@@ -18,7 +18,7 @@ function I_TEXT({ name, placeholder }: { name: string; placeholder: string }) {
 
   useEffect(() => {
     setValue(localStorage.getItem(`ilayda.${fieldId}`) || '');
-  }, [name]);
+  }, [name, fieldId]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value;
@@ -52,7 +52,7 @@ function O_TEXT({ name }: { name: string }) {
 
   useEffect(() => {
     setValue(localStorage.getItem(`ilayda.${fieldId}`) || '');
-  }, []);
+  }, [fieldId]);
 
   return <>{value}</>;
 }
@@ -125,6 +125,7 @@ export default function LessonSections({
 }) {
   const supabase = createClient();
 
+  // const [user, setUser] = useState<User | null>(null);
   const { id: lessonId, notionId } = lesson;
   const [loading, setLoading] = useState(true);
   const [inputsReady, setInputsReady] = useState(false);
@@ -146,6 +147,7 @@ export default function LessonSections({
   useEffect(() => {
     supabase.auth.getUser().then(({ data: user }) => {
       console.log(user);
+      // setUser(user.user);
     });
 
     // console.log(JSON.stringify(outputJsx.type.name));
