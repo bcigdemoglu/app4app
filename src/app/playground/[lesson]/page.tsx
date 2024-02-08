@@ -46,7 +46,7 @@ export default async function Page({ params }: Props) {
     .single();
   if (!profile) {
     redirect('/my-account');
-  } else if (profile.plan.toLowerCase() === 'free') {
+  } else if (!profile.plan) {
     redirect('/upgrade');
   }
 

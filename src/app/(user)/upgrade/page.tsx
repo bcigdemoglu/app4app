@@ -23,7 +23,7 @@ export default async function UpgradePage() {
   }
 
   const { full_name, plan } = profile;
-  if (plan.toLowerCase() !== 'free') {
+  if (plan && plan.toLowerCase() !== 'free') {
     redirect('/playground');
   }
 
@@ -32,7 +32,7 @@ export default async function UpgradePage() {
       <div className='space-y-2 text-center'>
         <h2 className='text-3xl font-extrabold text-zinc-900'>Wait!</h2>
         <p className='text-zinc-500'>
-          Hi {full_name}, you are currently on {plan} Tier.
+          Hi {full_name}, you are currently on Free Tier.
         </p>
         <p className='text-zinc-500'>
           Please contact info@ilayda.com to purchase or confirm your upgrade.
