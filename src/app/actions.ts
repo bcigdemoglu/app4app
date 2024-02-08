@@ -17,9 +17,12 @@ function isSameJson(obj1: Json, obj2: Json): boolean {
   return JSON.stringify(obj1) === JSON.stringify(obj2);
 }
 
-function safeJsonObject(obj?: Json): JsonObject {
+function verifiedJsonObjectFromDB(
+  obj: Json | undefined,
+  errMsg: string
+): JsonObject {
   if (!isJsonObject(obj)) {
-    return {};
+    throw new Error(errMsg);
   }
   return obj as JsonObject;
 }
@@ -59,23 +62,33 @@ export async function updateForm(
       .select('*')
       .single();
 
+    if (getUserProgressError) {
+      console.error('getUserProgressError', getUserProgressError);
+    }
+
     // Get full object or default to empty object
-    const inputsByLessonIdFromDB = userProgress?.inputs_by_lesson_id;
-    console.log('userProgress', userProgress, 'error', getUserProgressError);
-    console.log('inputsByLessonId', inputsByLessonIdFromDB);
-    if (!isJsonObject(inputsByLessonIdFromDB)) {
-      throw new Error(
+    let existingInputsByLessonId: JsonObject = {};
+    let existingLessonInput: JsonObject = {};
+    if (userProgress) {
+      // Get user progress if there is one in DB
+      console.log('userProgress', userProgress);
+      const inputsByLessonIdFromDB = verifiedJsonObjectFromDB(
+        userProgress.inputs_by_lesson_id,
         `FATAL_DB_ERROR: inputs_by_lesson_id is not an object for user ${user.id}!`
       );
+      console.log('inputsByLessonIdFromDB', inputsByLessonIdFromDB);
+      existingInputsByLessonId = inputsByLessonIdFromDB;
+      if (inputsByLessonIdFromDB[lessonId]) {
+        // Get lesson input if there is one in the DB
+        const lessonInputFromDB = verifiedJsonObjectFromDB(
+          inputsByLessonIdFromDB[lessonId],
+          `FATAL_DB_ERROR: inputs_by_lesson_id.${lessonId} is not an object for user ${user.id}!`
+        );
+        console.log('lessonInputFromDB', lessonInputFromDB);
+        existingLessonInput = lessonInputFromDB;
+      }
     }
-    const inputsByLessonId = safeJsonObject(inputsByLessonIdFromDB);
-    const lessonInputFromDB = inputsByLessonId[lessonId];
-    if (!isJsonObject(lessonInputFromDB)) {
-      throw new Error(
-        `FATAL_DB_ERROR: inputs_by_lesson_id.${lessonId} is not an object for user ${user.id}!`
-      );
-    }
-    const existingLessonInput = safeJsonObject(lessonInputFromDB);
+
     // drop metadata for comparison if present
     delete existingLessonInput?.metadata;
     if (isSameJson(existingLessonInput, newLessonInput)) {
@@ -91,25 +104,26 @@ export async function updateForm(
       };
 
       const updatedInputsByLessonId = {
-        ...inputsByLessonId,
+        ...existingInputsByLessonId,
         ...{ [lessonId]: lessonInputWithMetadata },
       };
-      const { data, error: updateUserProgressError } = await supabase
-        .from('user_progress')
-        .upsert({
-          id: user.id,
-          inputs_by_lesson_id: updatedInputsByLessonId,
-          modified_at: new Date().toISOString(),
-        })
-        .select();
-
-      console.log('data', data, 'error', updateUserProgressError);
+      const { data: updatedUserProgress, error: updateUserProgressError } =
+        await supabase
+          .from('user_progress')
+          .upsert({
+            id: user.id,
+            inputs_by_lesson_id: updatedInputsByLessonId,
+            modified_at: new Date().toISOString(),
+          })
+          .select();
 
       if (updateUserProgressError) {
+        console.error('updateUserProgressError', updateUserProgressError);
         throw new Error(
           `DB_ERROR: could not update inputs_by_lesson_id for user ${user.id}`
         );
       }
+      console.log('updatedUserProgress', updatedUserProgress);
     }
     return formState;
   }
