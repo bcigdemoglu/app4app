@@ -2,11 +2,11 @@
   "editor.codeActionsOnSave": {
     "source.fixAll.eslint": "explicit"
   },
-  "editor.formatOnSave": true, // Tell VSCode to format files on save
+  "editor.formatOnSave": true,
   "editor.defaultFormatter": "esbenp.prettier-vscode",
   "editor.quickSuggestions": {
     "strings": "on"
   },
   "tailwindCSS.lint.recommendedVariantOrder": "error",
-  "tailwindCSS.lint.cssConflict": "error" // Tell VSCode to use Prettier as default file formatter
+  "tailwindCSS.lint.cssConflict": "error"
 }
