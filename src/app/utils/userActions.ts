@@ -1,7 +1,7 @@
-'use server';
+'server-only';
 
 import { cookies } from 'next/headers';
-import { createClient } from './supabase/actions';
+import { createClient } from './supabase/server';
 import { User } from '@supabase/supabase-js';
 import { Tables } from '@/app/lib/database.types';
 
