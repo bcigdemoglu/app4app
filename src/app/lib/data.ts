@@ -1,19 +1,5 @@
-'server-only';
-
 import { ExtendedRecordMap, Block } from 'notion-types';
-import { serialize } from 'next-mdx-remote/serialize';
-import { MDXRemoteSerializeResult } from 'next-mdx-remote';
-
-export interface Lesson {
-  id: string;
-  notionId: string;
-  title: string;
-  description: string;
-  prev: number | null;
-  next: number | null;
-}
-
-export type LessonMap = Record<number, Lesson>;
+import { LessonMap } from '@/app/lib/types';
 
 export const LESSON_MAP: LessonMap = {
   1: {
@@ -71,23 +57,4 @@ export const getLessonOutputMDX = (recordMap: ExtendedRecordMap) => {
       .map((b) => extractMarkdownText(b))
       ?.at(1) || ''
   );
-};
-
-export const getLessonMDX = async (
-  recordMap: ExtendedRecordMap
-): Promise<{
-  mdxInputSource: MDXRemoteSerializeResult;
-  mdxOutputSource: MDXRemoteSerializeResult;
-}> => {
-  // Start both serialization operations in parallel
-  const inputMDXPromise = serialize(getLessonInputMDX(recordMap));
-  const outputMDXPromise = serialize(getLessonOutputMDX(recordMap));
-
-  // Wait for both operations to complete
-  const [mdxInputSource, mdxOutputSource] = await Promise.all([
-    inputMDXPromise,
-    outputMDXPromise,
-  ]);
-
-  return { mdxInputSource, mdxOutputSource };
 };

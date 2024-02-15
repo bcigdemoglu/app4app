@@ -5,7 +5,7 @@ import { logout } from '../my-account/actions';
 import Link from 'next/link';
 
 export default async function ResetPasswordPage() {
-  const { user, profile } = await getAuthUserAndProfile();
+  const { user } = await getAuthUserAndProfile();
   if (!user) {
     redirect('/register');
   }

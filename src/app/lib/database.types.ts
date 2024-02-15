@@ -38,22 +38,28 @@ export type Database = {
       }
       user_progress: {
         Row: {
+          course_id: string | null
           created_at: string
           id: string
-          inputs_by_lesson_id: Json
+          inputs_by_lesson_id: Json | null
           modified_at: string | null
+          outputs_by_lesson_id: Json | null
         }
         Insert: {
+          course_id?: string | null
           created_at?: string
           id?: string
-          inputs_by_lesson_id?: Json
+          inputs_by_lesson_id?: Json | null
           modified_at?: string | null
+          outputs_by_lesson_id?: Json | null
         }
         Update: {
+          course_id?: string | null
           created_at?: string
           id?: string
-          inputs_by_lesson_id?: Json
+          inputs_by_lesson_id?: Json | null
           modified_at?: string | null
+          outputs_by_lesson_id?: Json | null
         }
         Relationships: []
       }

@@ -3,37 +3,19 @@
 import { cookies } from 'next/headers';
 import { createClient } from '@/app/utils/supabase/actions';
 import { redirect } from 'next/navigation';
-import { Json } from '@/app/lib/database.types';
+import {
+  JsonObject,
+  verifiedJsonObjectFromDB,
+  isSameJson,
+  UpdateUserInputFormState,
+} from '@/app/lib/types';
+import { revalidatePath } from 'next/cache';
 
-type FormState = { invalidFields: string[] };
-
-type JsonObject = { [key: string]: Json };
-
-function isJsonObject(obj?: Json): boolean {
-  return typeof obj === 'object' && obj !== null && !Array.isArray(obj);
-}
-
-function isSameJson(obj1: Json, obj2: Json): boolean {
-  return JSON.stringify(obj1) === JSON.stringify(obj2);
-}
-
-function verifiedJsonObjectFromDB(
-  obj: Json | undefined,
-  errMsg: string
-): JsonObject {
-  if (!isJsonObject(obj)) {
-    throw new Error(errMsg);
-  }
-  return obj as JsonObject;
-}
-
-export async function updateForm(
-  _currentState: FormState,
+export async function updateUserInputsByLessonId(
+  _currentState: UpdateUserInputFormState,
   formData: FormData
-): Promise<FormState> {
-  const emptyKeys: string[] = [];
+): Promise<UpdateUserInputFormState> {
   const newLessonInput: JsonObject = {};
-  const formState = { invalidFields: emptyKeys };
   const lessonId = formData.get('lesson_id') as string;
 
   for (const [key, value] of formData.entries()) {
@@ -56,75 +38,160 @@ export async function updateForm(
 
   if (!user) {
     redirect('/login');
+  }
+
+  const { data: userProgress, error: getUserProgressError } = await supabase
+    .from('user_progress')
+    .select('*')
+    .single();
+
+  if (getUserProgressError) {
+    console.error('getUserProgressError', getUserProgressError);
+  }
+
+  // Get full object or default to empty object
+  let existingInputsByLessonId: JsonObject = {};
+  let existingLessonInput: JsonObject = {};
+  if (userProgress && userProgress.inputs_by_lesson_id) {
+    // Get user progress if there is one in DB
+    const inputsByLessonIdFromDB = verifiedJsonObjectFromDB(
+      userProgress.inputs_by_lesson_id,
+      `FATAL_DB_ERROR: inputs_by_lesson_id is not an object for user ${user.id}!`
+    );
+    existingInputsByLessonId = inputsByLessonIdFromDB;
+    if (inputsByLessonIdFromDB[lessonId]) {
+      // Get lesson input if there is one in the DB
+      const lessonInputWithMetadataFromDB = verifiedJsonObjectFromDB(
+        inputsByLessonIdFromDB[lessonId],
+        `FATAL_DB_ERROR: inputs_by_lesson_id.${lessonId} is not an object for user ${user.id}!`
+      );
+      const lessonInputFromDB = verifiedJsonObjectFromDB(
+        lessonInputWithMetadataFromDB['data'],
+        `FATAL_DB_ERROR: inputs_by_lesson_id.${lessonId}.data is not an object for user ${user.id}!`
+      );
+      existingLessonInput = lessonInputFromDB;
+    }
+  }
+
+  if (isSameJson(existingLessonInput, newLessonInput)) {
+    // Fast check for no change in input fields, do not update DB
+    console.log("No change in input fields, don't update DB");
+    return { state: 'noupdate', data: existingLessonInput };
   } else {
-    const { data: userProgress, error: getUserProgressError } = await supabase
+    // New object, update DB
+    const lessonInputWithMetadata = {
+      data: newLessonInput,
+      metadata: {
+        modified_at: new Date().toISOString(),
+      },
+    };
+
+    const updatedInputsByLessonId = {
+      ...existingInputsByLessonId,
+      ...{ [lessonId]: lessonInputWithMetadata },
+    };
+    const { data: updatedUserProgress, error: updateUserProgressError } =
+      await supabase
+        .from('user_progress')
+        .upsert({
+          id: user.id,
+          inputs_by_lesson_id: updatedInputsByLessonId,
+          modified_at: new Date().toISOString(),
+        })
+        .select()
+        .single();
+
+    if (updateUserProgressError) {
+      console.error('updateUserProgressError', updateUserProgressError);
+      throw new Error(
+        `DB_ERROR: could not update inputs_by_lesson_id for user ${user.id}`
+      );
+    }
+    revalidatePath('/playground');
+    const updatedData = (
+      (updatedUserProgress.inputs_by_lesson_id as JsonObject)[
+        lessonId
+      ] as JsonObject
+    )['data'] as JsonObject;
+    return {
+      state: 'success',
+      data: updatedData,
+    };
+  }
+}
+
+export async function updateUserOutputByLessonId(
+  outputHTML: string,
+  lessonId: string
+): Promise<string> {
+  const cookieStore = cookies();
+  const supabase = createClient(cookieStore);
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    redirect('/login');
+  }
+
+  const { data: userProgress, error: getUserProgressError } = await supabase
+    .from('user_progress')
+    .select('*')
+    .single();
+
+  if (getUserProgressError) {
+    console.error('getUserProgressError', getUserProgressError);
+  }
+
+  const outputsByLessonIdFromDB =
+    (userProgress?.outputs_by_lesson_id as JsonObject) || {};
+
+  const lessonOutputWithMetadaFromDB =
+    (outputsByLessonIdFromDB[lessonId] as JsonObject) || {};
+
+  const lessonOutputFromDB =
+    (lessonOutputWithMetadaFromDB['data'] as string) || '';
+
+  if (lessonOutputFromDB === outputHTML) {
+    // Fast check for no change in output, do not update DB
+    console.log("No change in output, don't update DB");
+    return outputHTML;
+  }
+
+  const lessonOutputWithMetadata = {
+    data: outputHTML,
+    metadata: {
+      modified_at: new Date().toISOString(),
+    },
+  };
+
+  const updatedOutputsByLessonId = {
+    ...outputsByLessonIdFromDB,
+    ...{ [lessonId]: lessonOutputWithMetadata },
+  };
+  const { data: updatedUserProgress, error: updateUserProgressError } =
+    await supabase
       .from('user_progress')
-      .select('*')
+      .upsert({
+        id: user.id,
+        outputs_by_lesson_id: updatedOutputsByLessonId,
+        modified_at: new Date().toISOString(),
+      })
+      .select()
       .single();
 
-    if (getUserProgressError) {
-      console.error('getUserProgressError', getUserProgressError);
-    }
-
-    // Get full object or default to empty object
-    let existingInputsByLessonId: JsonObject = {};
-    let existingLessonInput: JsonObject = {};
-    if (userProgress) {
-      // Get user progress if there is one in DB
-      console.log('userProgress', userProgress);
-      const inputsByLessonIdFromDB = verifiedJsonObjectFromDB(
-        userProgress.inputs_by_lesson_id,
-        `FATAL_DB_ERROR: inputs_by_lesson_id is not an object for user ${user.id}!`
-      );
-      console.log('inputsByLessonIdFromDB', inputsByLessonIdFromDB);
-      existingInputsByLessonId = inputsByLessonIdFromDB;
-      if (inputsByLessonIdFromDB[lessonId]) {
-        // Get lesson input if there is one in the DB
-        const lessonInputFromDB = verifiedJsonObjectFromDB(
-          inputsByLessonIdFromDB[lessonId],
-          `FATAL_DB_ERROR: inputs_by_lesson_id.${lessonId} is not an object for user ${user.id}!`
-        );
-        console.log('lessonInputFromDB', lessonInputFromDB);
-        existingLessonInput = lessonInputFromDB;
-      }
-    }
-
-    // drop metadata for comparison if present
-    delete existingLessonInput?.metadata;
-    if (isSameJson(existingLessonInput, newLessonInput)) {
-      // Fast check for no change in input fields, do not update DB
-      return formState;
-    } else {
-      // New object, update DB
-      const lessonInputWithMetadata = {
-        ...newLessonInput,
-        metadata: {
-          modified_at: new Date().toISOString(),
-        },
-      };
-
-      const updatedInputsByLessonId = {
-        ...existingInputsByLessonId,
-        ...{ [lessonId]: lessonInputWithMetadata },
-      };
-      const { data: updatedUserProgress, error: updateUserProgressError } =
-        await supabase
-          .from('user_progress')
-          .upsert({
-            id: user.id,
-            inputs_by_lesson_id: updatedInputsByLessonId,
-            modified_at: new Date().toISOString(),
-          })
-          .select();
-
-      if (updateUserProgressError) {
-        console.error('updateUserProgressError', updateUserProgressError);
-        throw new Error(
-          `DB_ERROR: could not update inputs_by_lesson_id for user ${user.id}`
-        );
-      }
-      console.log('updatedUserProgress', updatedUserProgress);
-    }
-    return formState;
+  if (updateUserProgressError) {
+    console.error('updateUserProgressError', updateUserProgressError);
+    throw new Error(
+      `DB_ERROR: could not update outputs_by_lesson_id for user ${user.id}`
+    );
   }
+  revalidatePath('/playground');
+  const updatedData = (
+    (updatedUserProgress.outputs_by_lesson_id as JsonObject)[
+      lessonId
+    ] as JsonObject
+  )['data'] as string;
+  return updatedData;
 }

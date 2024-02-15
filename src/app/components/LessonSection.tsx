@@ -1,71 +1,21 @@
 'use client';
 
-import { updateForm } from '@/app/actions';
+import {
+  updateUserInputsByLessonId,
+  updateUserOutputByLessonId as updateUserOutputsByLessonId,
+} from '@/app/actions';
 import { MDXRemote, MDXRemoteSerializeResult } from 'next-mdx-remote';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState, useTransition } from 'react';
 import { useFormState, useFormStatus } from 'react-dom';
-import { Lesson } from '../lib/data';
+import { JsonObject, Lesson, UpdateUserInputFormState } from '@/app/lib/types';
 import Link from 'next/link';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faArrowsRotate } from '@fortawesome/free-solid-svg-icons';
-import { createClient } from '../utils/supabase/client';
-// import { renderToStaticMarkup, renderToString } from 'react-dom/server';
+import { renderToStaticMarkup } from 'react-dom/server';
+import { getMdxInputComponents } from '@/app/components/MdxInputComponents';
+import { getMdxOutputComponents } from './MdxOutputComponents';
 
-const toTextFieldId = (name: string) => `I_TEXT.${name}`;
-function I_TEXT({ name, placeholder }: { name: string; placeholder: string }) {
-  const fieldId = toTextFieldId(name);
-  const [value, setValue] = useState('');
-
-  useEffect(() => {
-    setValue(localStorage.getItem(`ilayda.${fieldId}`) || '');
-  }, [name, fieldId]);
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newValue = e.target.value;
-    localStorage.setItem(`ilayda.${fieldId}`, newValue);
-    setValue(newValue);
-  };
-
-  return (
-    <input
-      type='text'
-      id={fieldId}
-      name={fieldId}
-      value={value}
-      onChange={handleChange}
-      // className='rounded-lg bg-yellow-200 pl-2 pr-1 text-blue-800 '
-      className='mt-1 rounded-md border border-slate-300 bg-white pl-2 pr-1 placeholder-zinc-400 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 '
-      size={Math.max(name.length, value.length)}
-      placeholder={placeholder ?? name}
-      required
-    />
-  );
-}
-
-function O_SUPERLONGTEXT() {
-  return 'a '.repeat(2000);
-}
-
-function O_TEXT({ name }: { name: string }) {
-  const fieldId = toTextFieldId(name);
-  const [value, setValue] = useState('');
-
-  useEffect(() => {
-    setValue(localStorage.getItem(`ilayda.${fieldId}`) || '');
-  }, [fieldId]);
-
-  return <>{value}</>;
-}
-
-// Output components cannot contain input components.
-const mdxOutputComponents = { O_TEXT, O_SUPERLONGTEXT };
-// All output components are available to the input components as well.
-const mdxInputComponents = {
-  ...mdxOutputComponents,
-  I_TEXT: I_TEXT.bind(null),
-};
-
-const LessonButton = ({
+const LessonButtons = ({
   lesson,
   lessonCompleted,
 }: {
@@ -114,59 +64,120 @@ const LessonButton = ({
   );
 };
 
+const CleanOutputMessage = () => {
+  return (
+    <span>
+      {
+        'Please fill out all fields in playground, then click "SUBMIT" button to see the outputs'
+      }
+    </span>
+  );
+};
+
+const FormButtons = ({
+  lessonCompleted,
+  isPendingOutputGeneration,
+  resetForm: resetInputs,
+}: {
+  lessonCompleted: boolean;
+  isPendingOutputGeneration: boolean;
+  resetForm: () => void;
+}) => {
+  const status = useFormStatus();
+
+  return (
+    <>
+      <div className='bottom-0 left-0 flex w-full justify-start space-x-2   p-2'>
+        <button
+          type='submit'
+          aria-disabled={status.pending}
+          disabled={status.pending || isPendingOutputGeneration}
+          className='rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700 disabled:bg-blue-300'
+        >
+          Submit
+        </button>
+        <button
+          type='reset'
+          value='reset'
+          aria-disabled={status.pending}
+          disabled={status.pending || !lessonCompleted}
+          onClick={resetInputs}
+          className='rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700 disabled:bg-blue-300'
+        >
+          <FontAwesomeIcon icon={faArrowsRotate} />
+        </button>
+      </div>
+    </>
+  );
+};
+
 export default function LessonSections({
   lesson,
   mdxInputSource,
   mdxOutputSource,
+  lessonInputsFromDB,
+  lessonOutputfromDB,
 }: {
   lesson: Lesson;
   mdxInputSource: MDXRemoteSerializeResult;
   mdxOutputSource: MDXRemoteSerializeResult;
+  lessonInputsFromDB: JsonObject | null;
+  lessonOutputfromDB: string | null;
 }) {
-  const supabase = createClient();
-
-  // const [user, setUser] = useState<User | null>(null);
   const { id: lessonId, notionId } = lesson;
   const [loading, setLoading] = useState(true);
-  const [inputsReady, setInputsReady] = useState(false);
-  const [lessonCompleted, setLessonCompleted] = useState(false);
-  const initialFormState = { invalidFields: ['all'] };
-  const [formState, formAction] = useFormState(updateForm, initialFormState);
-  const status = useFormStatus();
-  const outputJsx = (
-    <span id='mdxoutput'>
-      <MDXRemote {...mdxInputSource} components={mdxInputComponents} />
-    </span>
+  const [lessonCompleted, setLessonCompleted] = useState(
+    lessonOutputfromDB !== null
+  );
+  const [formState, formAction] = useFormState(updateUserInputsByLessonId, {
+    state: 'pending',
+  } as UpdateUserInputFormState);
+  const formRef = useRef<HTMLFormElement>(null);
+  const [isPendingOutputGeneration, startTransition] = useTransition();
+  const [cachedOutput, setCachedOutputs] = useState(lessonOutputfromDB);
+  const [cachedInputs, setCachedInputs] = useState(lessonInputsFromDB);
+
+  // All output components are available to the input components as well.
+  const mdxOutputComponents = getMdxOutputComponents(lessonInputsFromDB);
+  const mdxInputComponents = getMdxInputComponents(cachedInputs);
+
+  const inputMdxJsx = (
+    <MDXRemote {...mdxInputSource} components={mdxInputComponents} />
+  );
+  const outputMdxJsx = (
+    <MDXRemote {...mdxOutputSource} components={mdxOutputComponents} />
   );
 
-  const resetInputs = () => {
-    setInputsReady(false);
-    setLessonCompleted(false);
+  const resetForm = () => {
+    setCachedInputs(null);
   };
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data: user }) => {
-      console.log(user);
-      // setUser(user.user);
-    });
-
-    // console.log(JSON.stringify(outputJsx.type.name));
-
-    if (formState.invalidFields.length === 0) {
-      setInputsReady(true);
+    console.log('running useEffect', formState.state, lessonCompleted);
+    if (formState.state === 'success' || formState.state === 'noupdate') {
+      startTransition(async () => {
+        const outputHTML = renderToStaticMarkup(outputMdxJsx);
+        const updatedOutput = await updateUserOutputsByLessonId(
+          outputHTML,
+          lessonId
+        );
+        setCachedOutputs(updatedOutput);
+      });
+      setCachedInputs(formState.data);
       setLessonCompleted(true);
     }
     setLoading(false);
-  }, [formState.invalidFields]);
+  }, [formState.state]);
 
   return (
     <>
       <form
         action={formAction}
+        ref={formRef}
         className='prose flex flex-grow flex-col overflow-auto bg-white text-sm'
       >
         <div className='flex-grow overflow-auto p-4'>
-          {loading ? 'Loading playground...' : outputJsx}
+          {loading ? 'Loading playground...' : inputMdxJsx}
         </div>
         <input
           type='hidden'
@@ -181,35 +192,23 @@ export default function LessonSections({
           value={notionId}
         />
         <div className='bottom-0 left-0 flex w-full justify-start space-x-2   p-2'>
-          <button
-            type='submit'
-            aria-disabled={status.pending}
-            disabled={status.pending}
-            className='rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700 disabled:bg-blue-300'
-          >
-            Submit
-          </button>
-          <button
-            type='reset'
-            aria-disabled={status.pending}
-            disabled={status.pending}
-            onClick={resetInputs}
-            className='rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700 disabled:bg-blue-300'
-          >
-            <FontAwesomeIcon icon={faArrowsRotate} />
-          </button>
+          <FormButtons
+            lessonCompleted={lessonCompleted}
+            resetForm={resetForm}
+            isPendingOutputGeneration={isPendingOutputGeneration}
+          />
         </div>
       </form>
       <div className='prose flex flex-grow flex-col overflow-auto bg-sky-50 text-sm'>
         <div className='flex-grow overflow-auto p-4 text-sm'>
-          {inputsReady ? (
-            <MDXRemote {...mdxOutputSource} components={mdxOutputComponents} />
+          {isPendingOutputGeneration ? (
+            'Generating awesome results!'
+          ) : cachedOutput ? (
+            <div dangerouslySetInnerHTML={{ __html: cachedOutput }} />
+          ) : lessonCompleted ? (
+            outputMdxJsx
           ) : (
-            <span>
-              {
-                'Please fill out all fields in playground, then click `SUBMIT` to see the outputs'
-              }
-            </span>
+            <CleanOutputMessage />
           )}
         </div>
       </div>
@@ -220,7 +219,7 @@ export default function LessonSections({
           <span>{lesson.title}</span>
         </div>
         <div className='flex flex-grow justify-end gap-2'>
-          <LessonButton lesson={lesson} lessonCompleted={lessonCompleted} />
+          <LessonButtons lesson={lesson} lessonCompleted={lessonCompleted} />
         </div>
       </footer>
     </>

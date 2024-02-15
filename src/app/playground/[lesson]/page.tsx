@@ -1,22 +1,22 @@
 import LessonSections from '@/app/components/LessonSection';
-import { LESSON_MAP, getLessonMDX } from '@/app/lib/data';
+import { LESSON_MAP } from '@/app/lib/data';
 import { notFound, redirect } from 'next/navigation';
 import { getRecordMap } from './actions';
 import NotionPage from '@/app/components/NotionPage';
 import Link from 'next/link';
 import { cookies } from 'next/headers';
 import { createClient } from '@/app/utils/supabase/server';
+import {
+  fetchUserProgressFromDB,
+  getLessonInputs,
+  getLessonMDX,
+  getLessonOutput,
+} from '@/app/utils/lessonHelpers';
 
 export const metadata = {
   title: "Ilayda's Playground: How to Start a Business",
   description: 'How to start a busines in 2024',
 };
-
-export function generateStaticParams(): Array<Props['params']> {
-  return Object.keys(LESSON_MAP).map((lessonPage) => ({
-    lesson: lessonPage,
-  }));
-}
 
 interface Props {
   params: { lesson: string };
@@ -51,7 +51,18 @@ export default async function Page({ params }: Props) {
   }
 
   const lesson = LESSON_MAP[parseInt(params.lesson)];
-  const { notionId } = lesson;
+  const { notionId, id: lessonId } = lesson;
+  const userProgressFromDB = await fetchUserProgressFromDB();
+  const lessonInputsFromDB = getLessonInputs(
+    userProgressFromDB,
+    lessonId,
+    user
+  );
+  const lessonOutputfromDB = getLessonOutput(
+    userProgressFromDB,
+    lessonId,
+    user
+  );
   const recordMap = await getRecordMap(notionId);
 
   const { mdxInputSource, mdxOutputSource } = await getLessonMDX(recordMap);
@@ -97,8 +108,16 @@ export default async function Page({ params }: Props) {
       <LessonSections
         mdxInputSource={mdxInputSource}
         mdxOutputSource={mdxOutputSource}
+        lessonInputsFromDB={lessonInputsFromDB}
+        lessonOutputfromDB={lessonOutputfromDB}
         lesson={lesson}
       />
     </main>
   );
+}
+
+export function generateStaticParams(): Array<Props['params']> {
+  return Object.keys(LESSON_MAP).map((lessonPage) => ({
+    lesson: lessonPage,
+  }));
 }
