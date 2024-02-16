@@ -26,15 +26,15 @@ An application to create applications
 
 ## Run locally
 
-### Install required tools: `brew`, `node` and `pnpm`
+### Install required tools: `nvm`, `brew`, `node` and `pnpm`
 
 ```bash
 # Install brew if not installed
 command -v brew &> /dev/null || /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-# Install node if not installed
-command -v node &> /dev/null || brew install node
 # Install pnpm if not installed
-command -v pnpm &> /dev/null || brew install pnpm
+command -v pnpm &> /dev/null || curl -fsSL https://get.pnpm.io/install.sh | sh -
+# Install and use node ^20
+pnpm env use --global 20
 ```
 
 #### Maintain DB types

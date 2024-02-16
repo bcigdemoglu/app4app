@@ -2,8 +2,11 @@
   "name": "app4app",
   "version": "0.1.0",
   "private": true,
+  "engines": {
+    "node": "^20"
+  },
   "scripts": {
-    "dev": "next dev",
+    "dev": "NODE_OPTIONS='--inspect --trace-deprecation' next dev",
     "build": "next build",
     "start": "next start",
     "lint": "next lint"
@@ -40,13 +43,12 @@
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
-    "@typescript-eslint/eslint-plugin": "^6.17.0",
+    "@typescript-eslint/eslint-plugin": "^7",
     "autoprefixer": "^10.0.1",
     "eslint": "^8",
-    "eslint-config-next": "14.0.4",
-    "eslint-config-prettier": "^9.1.0",
-    "eslint-plugin-import": "^2.29.1",
-    "markdownlint": "^0.33.0",
+    "eslint-config-next": "^14",
+    "eslint-config-prettier": "^9",
+    "eslint-plugin-import": "^2",
     "postcss": "^8",
     "prettier-plugin-tailwindcss": "^0.5.10",
     "tailwindcss": "^3.3.0",

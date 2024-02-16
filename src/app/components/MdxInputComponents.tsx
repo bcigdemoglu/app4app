@@ -1,10 +1,11 @@
 'use client';
 
 import { JsonObject, MDXOutputComponents } from '@/app/lib/types';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import { getMdxOutputComponents, toTextFieldId } from './MdxOutputComponents';
 
 export function getMdxInputComponents(
+  clearInputs: boolean,
   lessonInputsFromDB: JsonObject | null
 ): MDXOutputComponents {
   function I_TEXT({
@@ -15,43 +16,35 @@ export function getMdxInputComponents(
     placeholder?: string;
   }) {
     const fieldId = toTextFieldId(name);
-    const defaultValue = lessonInputsFromDB
-      ? (lessonInputsFromDB[fieldId] as string) || ''
-      : '';
+    const initialValue = clearInputs
+      ? ''
+      : localStorage.getItem(`ilayda.${fieldId}`) ??
+        (lessonInputsFromDB?.[fieldId] as string) ??
+        '';
     const fieldRef = useRef<HTMLTextAreaElement>(null);
-    const [value, setValue] = useState(defaultValue);
 
-    // useEffect(() => {
-    //   setValue(localStorage.getItem(`ilayda.${fieldId}`) || '');
-    // }, [name, fieldId]);
-
-    // const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    //   const newValue = e.target.value;
-    //   localStorage.setItem(`ilayda.${fieldId}`, newValue);
-    //   setValue(newValue);
-    //   setInputSize(e.target.value.length || name.length);
-    // };
     const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-      const newValue = e.target.value;
-      localStorage.setItem(`ilayda.${fieldId}`, newValue);
-      setValue(newValue);
+      localStorage.setItem(`ilayda.${fieldId}`, e.target.value);
+      if (fieldRef.current) {
+        const newHeight = fieldRef.current.scrollHeight + 2;
+        fieldRef.current.style.height = newHeight + 'px'; // Fit the textarea to its content
+      }
     };
 
     useEffect(() => {
       if (fieldRef.current) {
-        fieldRef.current.style.height = fieldRef.current.scrollHeight + 'px'; // Fit the textarea to its content
+        const newHeight = fieldRef.current.scrollHeight + 2;
+        fieldRef.current.style.height = newHeight + 'px'; // Fit the textarea to its content
       }
-      // const lineBreaks = value.split('\n').length;
-      // setRows(lineBreaks >= 1 ? lineBreaks : 1);
-    }, [value]);
+    }, []);
 
     return (
       <textarea
         id={fieldId}
         name={fieldId}
-        value={value}
         ref={fieldRef}
         onChange={handleChange}
+        defaultValue={initialValue}
         className='mt-1 block w-full rounded-md border border-slate-300 bg-white pl-2 pr-1 font-mono placeholder-zinc-400 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500'
         placeholder={placeholder ?? name}
         rows={1}

@@ -45,6 +45,8 @@ export async function fetchUserProgressFromDB(): Promise<UserProgressTable | nul
   const { data: userProgress, error: getUserProgressError } = await supabase
     .from('user_progress')
     .select('*')
+    .eq('course_id', 'demo')
+    .eq('user_id', user.id)
     .single();
 
   if (getUserProgressError) {

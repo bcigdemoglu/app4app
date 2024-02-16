@@ -10,7 +10,6 @@ import {
   UpdateUserInputFormState,
 } from '@/app/lib/types';
 import { revalidatePath } from 'next/cache';
-
 export async function updateUserInputsByLessonId(
   _currentState: UpdateUserInputFormState,
   formData: FormData
@@ -43,6 +42,8 @@ export async function updateUserInputsByLessonId(
   const { data: userProgress, error: getUserProgressError } = await supabase
     .from('user_progress')
     .select('*')
+    .eq('course_id', 'demo')
+    .eq('user_id', user.id)
     .single();
 
   if (getUserProgressError) {
@@ -71,33 +72,35 @@ export async function updateUserInputsByLessonId(
       );
       existingLessonInput = lessonInputFromDB;
     }
+    if (isSameJson(existingLessonInput, newLessonInput)) {
+      // Fast check for no change in input fields, do not update DB
+      return { state: 'noupdate', data: existingLessonInput };
+    }
   }
 
-  if (isSameJson(existingLessonInput, newLessonInput)) {
-    // Fast check for no change in input fields, do not update DB
-    console.log("No change in input fields, don't update DB");
-    return { state: 'noupdate', data: existingLessonInput };
-  } else {
-    // New object, update DB
-    const lessonInputWithMetadata = {
-      data: newLessonInput,
-      metadata: {
-        modified_at: new Date().toISOString(),
-      },
-    };
+  // New object, update DB
+  const lessonInputWithMetadata = {
+    data: newLessonInput,
+    metadata: {
+      modified_at: new Date().toISOString(),
+    },
+  };
 
-    const updatedInputsByLessonId = {
-      ...existingInputsByLessonId,
-      ...{ [lessonId]: lessonInputWithMetadata },
-    };
+  const updatedInputsByLessonId = {
+    ...existingInputsByLessonId,
+    ...{ [lessonId]: lessonInputWithMetadata },
+  };
+
+  if (userProgress) {
     const { data: updatedUserProgress, error: updateUserProgressError } =
       await supabase
         .from('user_progress')
-        .upsert({
-          id: user.id,
+        .update({
+          user_id: user.id,
           inputs_by_lesson_id: updatedInputsByLessonId,
           modified_at: new Date().toISOString(),
         })
+        .eq('id', userProgress.id)
         .select()
         .single();
 
@@ -105,6 +108,35 @@ export async function updateUserInputsByLessonId(
       console.error('updateUserProgressError', updateUserProgressError);
       throw new Error(
         `DB_ERROR: could not update inputs_by_lesson_id for user ${user.id}`
+      );
+    }
+    revalidatePath('/playground');
+    const updatedData = (
+      (updatedUserProgress.inputs_by_lesson_id as JsonObject)[
+        lessonId
+      ] as JsonObject
+    )['data'] as JsonObject;
+    return {
+      state: 'success',
+      data: updatedData,
+    };
+  } else {
+    const { data: updatedUserProgress, error: insertUserProgressError } =
+      await supabase
+        .from('user_progress')
+        .insert({
+          course_id: 'demo',
+          user_id: user.id,
+          inputs_by_lesson_id: updatedInputsByLessonId,
+          modified_at: new Date().toISOString(),
+        })
+        .select()
+        .single();
+
+    if (insertUserProgressError) {
+      console.error('insertUserProgressError', insertUserProgressError);
+      throw new Error(
+        `DB_ERROR: could not insert inputs_by_lesson_id for user ${user.id}`
       );
     }
     revalidatePath('/playground');
@@ -138,24 +170,28 @@ export async function updateUserOutputByLessonId(
   const { data: userProgress, error: getUserProgressError } = await supabase
     .from('user_progress')
     .select('*')
+    .eq('course_id', 'demo')
+    .eq('user_id', user.id)
     .single();
 
   if (getUserProgressError) {
     console.error('getUserProgressError', getUserProgressError);
   }
+  if (!userProgress) {
+    throw new Error(
+      `FATAL_DB_ERROR: no user_progress found for user ${user.id} to update output!`
+    );
+  }
 
   const outputsByLessonIdFromDB =
-    (userProgress?.outputs_by_lesson_id as JsonObject) || {};
+    (userProgress.outputs_by_lesson_id as JsonObject) || {};
 
-  const lessonOutputWithMetadaFromDB =
-    (outputsByLessonIdFromDB[lessonId] as JsonObject) || {};
-
-  const lessonOutputFromDB =
-    (lessonOutputWithMetadaFromDB['data'] as string) || '';
+  const lessonOutputFromDB = (
+    outputsByLessonIdFromDB[lessonId] as JsonObject
+  )?.['data'] as string;
 
   if (lessonOutputFromDB === outputHTML) {
     // Fast check for no change in output, do not update DB
-    console.log("No change in output, don't update DB");
     return outputHTML;
   }
 
@@ -170,14 +206,17 @@ export async function updateUserOutputByLessonId(
     ...outputsByLessonIdFromDB,
     ...{ [lessonId]: lessonOutputWithMetadata },
   };
+
   const { data: updatedUserProgress, error: updateUserProgressError } =
     await supabase
       .from('user_progress')
-      .upsert({
-        id: user.id,
+      .update({
+        id: userProgress.id,
+        user_id: user.id,
         outputs_by_lesson_id: updatedOutputsByLessonId,
         modified_at: new Date().toISOString(),
       })
+      .eq('id', userProgress.id)
       .select()
       .single();
 

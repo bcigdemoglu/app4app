@@ -10,7 +10,12 @@ export function getMdxOutputComponents(
     const value = lessonInputsFromDB
       ? (lessonInputsFromDB[fieldId] as string)
       : 'ERROR';
-    return <span id={fieldId}>{value}</span>;
+    return (
+      // Respect the newlines in the value
+      <span className='whitespace-pre-line' id={fieldId}>
+        {value}
+      </span>
+    );
   }
   return {
     O_TEXT,

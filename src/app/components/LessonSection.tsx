@@ -134,40 +134,41 @@ export default function LessonSections({
   } as UpdateUserInputFormState);
   const formRef = useRef<HTMLFormElement>(null);
   const [isPendingOutputGeneration, startTransition] = useTransition();
-  const [cachedOutput, setCachedOutputs] = useState(lessonOutputfromDB);
-  const [cachedInputs, setCachedInputs] = useState(lessonInputsFromDB);
-
-  // All output components are available to the input components as well.
-  const mdxOutputComponents = getMdxOutputComponents(lessonInputsFromDB);
-  const mdxInputComponents = getMdxInputComponents(cachedInputs);
-
-  const inputMdxJsx = (
-    <MDXRemote {...mdxInputSource} components={mdxInputComponents} />
+  const [outputHTML, setOutputHTML] = useState(lessonOutputfromDB);
+  const [clearInputs, setClearInputs] = useState(false);
+  const lessonInputs = JSON.stringify(
+    formState.data ?? lessonInputsFromDB ?? {}
   );
-  const outputMdxJsx = (
-    <MDXRemote {...mdxOutputSource} components={mdxOutputComponents} />
+  const mdxInputComponents = getMdxInputComponents(
+    clearInputs,
+    JSON.parse(lessonInputs)
   );
 
   const resetForm = () => {
-    setCachedInputs(null);
+    setClearInputs(true);
   };
 
   useEffect(() => {
-    console.log('running useEffect', formState.state, lessonCompleted);
     if (formState.state === 'success' || formState.state === 'noupdate') {
+      setClearInputs(false);
+      const lessonInputsJSON = JSON.parse(lessonInputs);
       startTransition(async () => {
-        const outputHTML = renderToStaticMarkup(outputMdxJsx);
-        const updatedOutput = await updateUserOutputsByLessonId(
-          outputHTML,
+        const generatedOutputHTML = renderToStaticMarkup(
+          <MDXRemote
+            {...mdxOutputSource}
+            components={getMdxOutputComponents(lessonInputsJSON)}
+          />
+        );
+        const updatedOutputHTML = await updateUserOutputsByLessonId(
+          generatedOutputHTML,
           lessonId
         );
-        setCachedOutputs(updatedOutput);
+        setOutputHTML(updatedOutputHTML);
+        setLessonCompleted(true);
       });
-      setCachedInputs(formState.data);
-      setLessonCompleted(true);
     }
     setLoading(false);
-  }, [formState.state]);
+  }, [formState.state, lessonInputs, mdxOutputSource, lessonId]);
 
   return (
     <>
@@ -177,7 +178,11 @@ export default function LessonSections({
         className='prose flex flex-grow flex-col overflow-auto bg-white text-sm'
       >
         <div className='flex-grow overflow-auto p-4'>
-          {loading ? 'Loading playground...' : inputMdxJsx}
+          {loading ? (
+            'Loading playground...'
+          ) : (
+            <MDXRemote {...mdxInputSource} components={mdxInputComponents} />
+          )}
         </div>
         <input
           type='hidden'
@@ -202,11 +207,9 @@ export default function LessonSections({
       <div className='prose flex flex-grow flex-col overflow-auto bg-sky-50 text-sm'>
         <div className='flex-grow overflow-auto p-4 text-sm'>
           {isPendingOutputGeneration ? (
-            'Generating awesome results!'
-          ) : cachedOutput ? (
-            <div dangerouslySetInnerHTML={{ __html: cachedOutput }} />
-          ) : lessonCompleted ? (
-            outputMdxJsx
+            'Generating awesome results!!!'
+          ) : outputHTML ? (
+            <div dangerouslySetInnerHTML={{ __html: outputHTML }} />
           ) : (
             <CleanOutputMessage />
           )}
