@@ -27,7 +27,12 @@ export function getMdxInputComponents(
       localStorage.setItem(`ilayda.${fieldId}`, e.target.value);
       if (fieldRef.current) {
         const newHeight = fieldRef.current.scrollHeight + 2;
-        fieldRef.current.style.height = newHeight + 'px'; // Fit the textarea to its content
+        const currentHeight = parseInt(
+          fieldRef.current.style.height.split('px')[0]
+        );
+        if (newHeight > currentHeight) {
+          fieldRef.current.style.height = newHeight + 'px'; // Fit the textarea to its content
+        }
       }
     };
 
@@ -46,8 +51,8 @@ export function getMdxInputComponents(
         onChange={handleChange}
         defaultValue={initialValue}
         className='mt-1 block w-full rounded-md border border-slate-300 bg-white pl-2 pr-1 font-mono placeholder-zinc-400 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500'
-        placeholder={placeholder ?? name}
-        rows={1}
+        placeholder={placeholder ?? 'Type your answer here...'}
+        rows={5}
         required
       />
     );
