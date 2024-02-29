@@ -16,6 +16,7 @@ export async function updateUserInputsByLessonId(
 ): Promise<UpdateUserInputFormState> {
   const newLessonInput: JsonObject = {};
   const lessonId = formData.get('lesson_id') as string;
+  const section = parseInt(formData.get('section') as string);
 
   for (const [key, value] of formData.entries()) {
     if (
@@ -53,6 +54,8 @@ export async function updateUserInputsByLessonId(
   // Get full object or default to empty object
   let existingInputsByLessonId: JsonObject = {};
   let existingLessonInput: JsonObject = {};
+  let mergedLessonInput: JsonObject = newLessonInput;
+  let lastCompletedSection: number = section;
   if (userProgress && userProgress.inputs_by_lesson_id) {
     // Get user progress if there is one in DB
     const inputsByLessonIdFromDB = verifiedJsonObjectFromDB(
@@ -66,23 +69,40 @@ export async function updateUserInputsByLessonId(
         inputsByLessonIdFromDB[lessonId],
         `FATAL_DB_ERROR: inputs_by_lesson_id.${lessonId} is not an object for user ${user.id}!`
       );
+      // Update last completed section in DB
+      const lessonMetadataFromDB = verifiedJsonObjectFromDB(
+        lessonInputWithMetadataFromDB['metadata'],
+        `FATAL_DB_ERROR: inputs_by_lesson_id.${lessonId}.metadata is not an object for user ${user.id}!`
+      );
+      const lastCompletedSectionFromDB = (lessonMetadataFromDB[
+        'lastCompletedSection'
+      ] ?? 0) as number;
+      if (lastCompletedSectionFromDB > section) {
+        lastCompletedSection = lastCompletedSectionFromDB;
+      }
       const lessonInputFromDB = verifiedJsonObjectFromDB(
         lessonInputWithMetadataFromDB['data'],
         `FATAL_DB_ERROR: inputs_by_lesson_id.${lessonId}.data is not an object for user ${user.id}!`
       );
       existingLessonInput = lessonInputFromDB;
-    }
-    if (isSameJson(existingLessonInput, newLessonInput)) {
-      // Fast check for no change in input fields, do not update DB
-      return { state: 'noupdate', data: existingLessonInput };
+      if (isSameJson(existingLessonInput, newLessonInput)) {
+        // Fast check for no change in input fields, do not update DB
+        return {
+          state: 'noupdate',
+          data: existingLessonInput,
+          lastCompletedSection: lastCompletedSectionFromDB,
+        };
+      }
+      mergedLessonInput = { ...existingLessonInput, ...newLessonInput };
     }
   }
 
   // New object, update DB
   const lessonInputWithMetadata = {
-    data: newLessonInput,
+    data: mergedLessonInput,
     metadata: {
       modified_at: new Date().toISOString(),
+      lastCompletedSection: lastCompletedSection,
     },
   };
 
@@ -119,6 +139,7 @@ export async function updateUserInputsByLessonId(
     return {
       state: 'success',
       data: updatedData,
+      lastCompletedSection: lastCompletedSection,
     };
   } else {
     const { data: updatedUserProgress, error: insertUserProgressError } =
@@ -148,6 +169,7 @@ export async function updateUserInputsByLessonId(
     return {
       state: 'success',
       data: updatedData,
+      lastCompletedSection: lastCompletedSection,
     };
   }
 }

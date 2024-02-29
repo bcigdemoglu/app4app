@@ -30,6 +30,14 @@ export interface Lesson {
 }
 
 export type LessonMap = Record<string, Lesson>;
+export interface Course {
+  id: string;
+  title: string;
+  description: string;
+  lessonMap: LessonMap;
+}
+
+export type CourseMap = Record<string, Course>;
 
 export type MDXOutputComponent = (...props: any[]) => JSX.Element;
 export type MDXOutputComponents = { [key: string]: MDXOutputComponent };
@@ -39,4 +47,5 @@ export type UserProgressTable = Tables<'user_progress'>;
 export type UpdateUserInputFormState = {
   state: 'success' | 'error' | 'noupdate' | 'pending';
   data: JsonObject;
+  lastCompletedSection: number;
 };

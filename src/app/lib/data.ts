@@ -1,7 +1,7 @@
 import { ExtendedRecordMap, Block } from 'notion-types';
-import { LessonMap } from '@/app/lib/types';
+import { LessonMap, CourseMap } from '@/app/lib/types';
 
-export const LESSON_MAP: LessonMap = {
+export const DEMO_LESSON_MAP: LessonMap = {
   '1': {
     id: '1',
     notionId: 'b57f92a1577e48fcae50a841889968a3',
@@ -26,13 +26,22 @@ export const LESSON_MAP: LessonMap = {
     prev: '2',
     next: null,
   },
-  teachable: {
-    id: 'teachable',
+  smart: {
+    id: 'smart',
     notionId: '1271d4fa33d44955995843af0b4cda92',
     title: 'Lesson 1: SMART',
     description: 'What are your SMART goals?',
     prev: '1',
     next: '2',
+  },
+};
+
+export const COURSE_MAP: CourseMap = {
+  demo: {
+    id: 'demo',
+    title: 'Demo Course',
+    description: 'This is a demo course to impress creators',
+    lessonMap: DEMO_LESSON_MAP,
   },
 };
 
@@ -51,18 +60,38 @@ const extractMarkdownText = (block: Block): string => {
   return block.properties?.title?.[0]?.[0];
 };
 
-export const getLessonInputMDX = (recordMap: ExtendedRecordMap) => {
+const sectionToIndex = (section: number) => ({
+  inputIndex: (section - 1) * 2,
+  outputIndex: (section - 1) * 2 + 1,
+});
+
+export const getLessonTotalSections = (
+  recordMap: ExtendedRecordMap
+): number => {
   return (
-    extractMarkdownBlocks(recordMap)
-      .map((b) => extractMarkdownText(b))
-      ?.at(0) || ''
+    extractMarkdownBlocks(recordMap).map((b) => extractMarkdownText(b))
+      ?.length / 2 || 0
   );
 };
 
-export const getLessonOutputMDX = (recordMap: ExtendedRecordMap) => {
+export const getLessonInputMDX = (
+  recordMap: ExtendedRecordMap,
+  section: number
+) => {
   return (
     extractMarkdownBlocks(recordMap)
       .map((b) => extractMarkdownText(b))
-      ?.at(1) || ''
+      ?.at(sectionToIndex(section).inputIndex) || ''
+  );
+};
+
+export const getLessonOutputMDX = (
+  recordMap: ExtendedRecordMap,
+  section: number
+) => {
+  return (
+    extractMarkdownBlocks(recordMap)
+      .map((b) => extractMarkdownText(b))
+      ?.at(sectionToIndex(section).outputIndex) || ''
   );
 };

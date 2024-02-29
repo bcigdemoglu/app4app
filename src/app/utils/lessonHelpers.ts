@@ -7,19 +7,29 @@ import {
   UserProgressTable,
   verifiedJsonObjectFromDB,
 } from '@/app/lib/types';
-import { getLessonInputMDX, getLessonOutputMDX } from '@/app/lib/data';
+import {
+  getLessonInputMDX,
+  getLessonOutputMDX,
+  getLessonTotalSections,
+} from '@/app/lib/data';
 import { ExtendedRecordMap } from 'notion-types';
 import { MDXRemoteSerializeResult } from 'next-mdx-remote';
 import { serialize } from 'next-mdx-remote/serialize';
 import { User } from '@supabase/supabase-js';
 
-export async function getLessonMDX(recordMap: ExtendedRecordMap): Promise<{
+export async function getLessonMDX(
+  recordMap: ExtendedRecordMap,
+  section: number
+): Promise<{
   mdxInputSource: MDXRemoteSerializeResult;
   mdxOutputSource: MDXRemoteSerializeResult;
+  totalSections: number;
 }> {
+  const totalSections = getLessonTotalSections(recordMap);
+
   // Start both serialization operations in parallel
-  const inputMDXPromise = serialize(getLessonInputMDX(recordMap));
-  const outputMDXPromise = serialize(getLessonOutputMDX(recordMap));
+  const inputMDXPromise = serialize(getLessonInputMDX(recordMap, section));
+  const outputMDXPromise = serialize(getLessonOutputMDX(recordMap, section));
 
   // Wait for both operations to complete
   const [mdxInputSource, mdxOutputSource] = await Promise.all([
@@ -27,7 +37,7 @@ export async function getLessonMDX(recordMap: ExtendedRecordMap): Promise<{
     outputMDXPromise,
   ]);
 
-  return { mdxInputSource, mdxOutputSource };
+  return { mdxInputSource, mdxOutputSource, totalSections };
 }
 
 export async function fetchUserProgressFromDB(): Promise<UserProgressTable | null> {
@@ -56,11 +66,16 @@ export async function fetchUserProgressFromDB(): Promise<UserProgressTable | nul
   return userProgress;
 }
 
+interface LessonInput {
+  data: JsonObject | null;
+  lastCompletedSection: number;
+}
+
 export function getLessonInputs(
   userProgress: UserProgressTable | null,
   lessonId: string,
   user: User
-): JsonObject {
+): LessonInput {
   // Get full object or default to empty object
   if (userProgress && userProgress.inputs_by_lesson_id) {
     // Get user progress if there is one in DB
@@ -74,13 +89,20 @@ export function getLessonInputs(
         inputsByLessonIdFromDB[lessonId],
         `FATAL_DB_ERROR: inputs_by_lesson_id.${lessonId} is not an object for user ${user.id}!`
       );
-      return lessonInputFromDB['data'] as JsonObject;
+      const lastCompletedSection =
+        ((lessonInputFromDB['metadata'] as JsonObject)[
+          'lastCompletedSection'
+        ] as number) || 0;
+      return {
+        data: lessonInputFromDB['data'] as JsonObject,
+        lastCompletedSection,
+      };
     }
   }
   console.log(
     `no lesson input found for lesson ${lessonId} of user ${user.id}`
   );
-  return {};
+  return { data: {}, lastCompletedSection: 0 };
 }
 
 export function getLessonOutput(

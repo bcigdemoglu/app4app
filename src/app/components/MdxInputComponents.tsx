@@ -49,7 +49,6 @@ export function getMdxInputComponents(
         placeholder={placeholder ?? name}
         rows={1}
         required
-        wrap='hard'
       />
     );
   }
