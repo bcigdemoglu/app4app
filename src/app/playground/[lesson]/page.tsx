@@ -23,12 +23,7 @@ interface Props {
 }
 
 export default async function Page({ params }: Props) {
-  if (
-    typeof params.lesson !== 'string' ||
-    isNaN(parseInt(params.lesson)) ||
-    !LESSON_MAP[parseInt(params.lesson)]
-  )
-    notFound();
+  if (!LESSON_MAP[params.lesson]) notFound();
 
   const cookieStore = cookies();
   const supabase = createClient(cookieStore);
@@ -50,7 +45,7 @@ export default async function Page({ params }: Props) {
     redirect('/upgrade');
   }
 
-  const lesson = LESSON_MAP[parseInt(params.lesson)];
+  const lesson = LESSON_MAP[params.lesson];
   const { notionId, id: lessonId } = lesson;
   const userProgressFromDB = await fetchUserProgressFromDB();
   const lessonInputsFromDB = getLessonInputs(

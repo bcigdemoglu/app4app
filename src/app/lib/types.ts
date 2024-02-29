@@ -25,11 +25,11 @@ export interface Lesson {
   notionId: string;
   title: string;
   description: string;
-  prev: number | null;
-  next: number | null;
+  prev: string | null;
+  next: string | null;
 }
 
-export type LessonMap = Record<number, Lesson>;
+export type LessonMap = Record<string, Lesson>;
 
 export type MDXOutputComponent = (...props: any[]) => JSX.Element;
 export type MDXOutputComponents = { [key: string]: MDXOutputComponent };
