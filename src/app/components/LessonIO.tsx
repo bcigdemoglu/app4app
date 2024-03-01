@@ -167,7 +167,7 @@ export default function LessonIO({
     lessonOutputfromDB !== null && section <= lastCompletedSectionFromDB
   );
   const [lessonCompleted, setLessonCompleted] = useState(
-    lessonOutputfromDB !== null && section === totalSections
+    lessonOutputfromDB !== null && lastCompletedSectionFromDB === totalSections
   );
   const [formState, formAction] = useFormState(updateUserInputsByLessonId, {
     state: 'pending',
