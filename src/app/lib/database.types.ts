@@ -9,6 +9,39 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      exported_outputs: {
+        Row: {
+          course_id: string
+          created_at: string
+          id: string
+          is_public: boolean
+          lesson_id: string
+          modified_at: string
+          output: string
+          user_id: string
+        }
+        Insert: {
+          course_id: string
+          created_at?: string
+          id?: string
+          is_public?: boolean
+          lesson_id: string
+          modified_at?: string
+          output: string
+          user_id?: string
+        }
+        Update: {
+          course_id?: string
+          created_at?: string
+          id?: string
+          is_public?: boolean
+          lesson_id?: string
+          modified_at?: string
+          output?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
@@ -38,28 +71,31 @@ export type Database = {
       }
       user_progress: {
         Row: {
-          course_id: string | null
+          course_id: string
           created_at: string
           id: string
           inputs_by_lesson_id: Json | null
           modified_at: string | null
           outputs_by_lesson_id: Json | null
+          user_id: string
         }
         Insert: {
-          course_id?: string | null
+          course_id?: string
           created_at?: string
           id?: string
           inputs_by_lesson_id?: Json | null
           modified_at?: string | null
           outputs_by_lesson_id?: Json | null
+          user_id?: string
         }
         Update: {
-          course_id?: string | null
+          course_id?: string
           created_at?: string
           id?: string
           inputs_by_lesson_id?: Json | null
           modified_at?: string | null
           outputs_by_lesson_id?: Json | null
+          user_id?: string
         }
         Relationships: []
       }

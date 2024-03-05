@@ -1,4 +1,10 @@
 import { COURSE_MAP } from '@/app/lib/data';
+import {
+  fetchUserProgressFromDB,
+  getLessonInputs,
+} from '@/app/utils/lessonHelpers';
+import { createClient } from '@/app/utils/supabase/server';
+import { cookies } from 'next/headers';
 import { notFound, redirect } from 'next/navigation';
 
 interface Props {
@@ -13,5 +19,22 @@ export default async function Page({ params }: Props) {
   const { course: courseId, lesson: lessonId } = params;
   if (!isValidLesson(courseId, lessonId)) notFound();
 
-  redirect(`/playground/${courseId}/${lessonId}/1`);
+  const cookieStore = cookies();
+  const supabase = createClient(cookieStore);
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) {
+    redirect('/register');
+  }
+
+  const userProgressFromDB = await fetchUserProgressFromDB();
+  const { lastCompletedSection: lastCompletedSectionFromDB } = getLessonInputs(
+    userProgressFromDB,
+    lessonId,
+    user
+  );
+
+  redirect(`/playground/${courseId}/${lessonId}/${lastCompletedSectionFromDB}`);
 }

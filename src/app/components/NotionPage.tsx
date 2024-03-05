@@ -19,6 +19,7 @@ export default function NotionPage({
             recordMap={recordMap}
             fullPage={true}
             darkMode={false}
+            disableHeader={true}
             components={{ Code: IgnoreCode }}
           />
         ) : (

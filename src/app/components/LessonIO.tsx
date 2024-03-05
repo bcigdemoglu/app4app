@@ -1,6 +1,7 @@
 'use client';
 
 import {
+  exportUserOutput,
   updateUserInputsByLessonId,
   updateUserOutputByLessonId as updateUserOutputsByLessonId,
 } from '@/app/actions';
@@ -14,35 +15,88 @@ import { faArrowsRotate } from '@fortawesome/free-solid-svg-icons';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { getMdxInputComponents } from '@/app/components/MdxInputComponents';
 import { getMdxOutputComponents } from './MdxOutputComponents';
+import dynamic from 'next/dynamic';
+import { AI_MODAL_PARAM, CREATOR_MODAL_PARAM } from '@/app/lib/data';
+import { useRouter } from 'next/navigation';
+
+const DynamicConfetti = dynamic(() =>
+  import('@/app/components/Confetti').then((m) => m.Confetti)
+);
+
+const FeedbackButtons = ({ lessonCompleted }: { lessonCompleted: boolean }) => {
+  return (
+    <>
+      <Link href={`?${CREATOR_MODAL_PARAM}=true`}>
+        <button className='rounded bg-green-500 px-4 py-2 font-bold text-white hover:bg-green-700 disabled:bg-green-300'>
+          Share Course Feedback
+        </button>
+      </Link>
+      <Link href={`?${AI_MODAL_PARAM}=true`}>
+        <button
+          disabled={!lessonCompleted}
+          className='rounded bg-purple-500 px-4 py-2 font-bold text-white hover:bg-purple-700 disabled:bg-purple-300'
+        >
+          Get AI Help
+        </button>
+      </Link>
+    </>
+  );
+};
 
 const LessonButtons = ({
-  lessonCompleted,
+  prevSectionLink,
+  sectionCompleted,
+  nextSectionLink,
   prevLessonLink,
+  lessonCompleted,
   nextLessonLink,
+  onExportOutput,
 }: {
-  lessonCompleted: boolean;
+  prevSectionLink: string | null;
+  nextSectionLink: string | null;
+  sectionCompleted: boolean;
   prevLessonLink: string | null;
   nextLessonLink: string | null;
+  lessonCompleted: boolean;
+  onExportOutput: () => void;
 }) => {
   return (
     <>
       <button
         disabled={!lessonCompleted}
+        onClick={onExportOutput}
         className='rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700 disabled:bg-blue-300'
       >
-        Export
+        Export & Share
       </button>
-      {prevLessonLink && (
+      {prevSectionLink && (
+        <Link href={prevSectionLink}>
+          <button className='rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700 disabled:bg-blue-300'>
+            Back
+          </button>
+        </Link>
+      )}
+      {!prevSectionLink && prevLessonLink && (
         <Link href={prevLessonLink}>
           <button
             className='rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700 disabled:bg-blue-300'
             disabled={!prevLessonLink}
           >
-            Previous Lesson
+            Back
           </button>
         </Link>
       )}
-      {nextLessonLink && (
+      {nextSectionLink && (
+        <Link href={nextSectionLink}>
+          <button
+            disabled={!sectionCompleted}
+            className='rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700 disabled:bg-blue-300'
+          >
+            Next Section
+          </button>
+        </Link>
+      )}
+      {!nextSectionLink && nextLessonLink && (
         <Link href={nextLessonLink}>
           <button
             className='rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700 disabled:bg-blue-300'
@@ -67,14 +121,10 @@ const CleanOutputMessage = () => {
 };
 
 const FormButtons = ({
-  prevSectionLink,
-  nextSectionLink,
   sectionCompleted,
   isPendingOutputGeneration,
   resetForm,
 }: {
-  prevSectionLink: string | null;
-  nextSectionLink: string | null;
   sectionCompleted: boolean;
   isPendingOutputGeneration: boolean;
   resetForm: () => void;
@@ -104,37 +154,13 @@ const FormButtons = ({
         >
           <FontAwesomeIcon icon={faArrowsRotate} />
         </button>
-
-        {prevSectionLink && (
-          <Link href={prevSectionLink}>
-            <button
-              aria-disabled={status.pending}
-              disabled={status.pending || isPendingOutputGeneration}
-              className='rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700 disabled:bg-blue-300'
-            >
-              Previous Section
-            </button>
-          </Link>
-        )}
-        {nextSectionLink && (
-          <Link href={nextSectionLink}>
-            <button
-              aria-disabled={status.pending}
-              disabled={
-                status.pending || isPendingOutputGeneration || !sectionCompleted
-              }
-              className='rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700 disabled:bg-blue-300'
-            >
-              Next Section
-            </button>
-          </Link>
-        )}
       </div>
     </>
   );
 };
 
 export default function LessonIO({
+  courseId,
   lesson,
   section,
   prevSectionLink,
@@ -148,6 +174,7 @@ export default function LessonIO({
   lessonOutputfromDB,
   lastCompletedSectionFromDB,
 }: {
+  courseId: string;
   lesson: Lesson;
   section: number;
   prevSectionLink: string | null;
@@ -162,6 +189,7 @@ export default function LessonIO({
   lastCompletedSectionFromDB: number;
 }) {
   const { id: lessonId, notionId } = lesson;
+
   const [loading, setLoading] = useState(true);
   const [sectionCompleted, setSectionCompleted] = useState(
     lessonOutputfromDB !== null && section <= lastCompletedSectionFromDB
@@ -169,6 +197,7 @@ export default function LessonIO({
   const [lessonCompleted, setLessonCompleted] = useState(
     lessonOutputfromDB !== null && lastCompletedSectionFromDB === totalSections
   );
+  const [completionConfetti, setCompletionConfetti] = useState(false);
   const [formState, formAction] = useFormState(updateUserInputsByLessonId, {
     state: 'pending',
   } as UpdateUserInputFormState);
@@ -179,6 +208,36 @@ export default function LessonIO({
   const lessonInputs = JSON.stringify(
     formState.data ?? lessonInputsFromDB ?? {}
   );
+  const [isExporting, startExportTransition] = useTransition();
+  const router = useRouter();
+
+  function onExportOutput() {
+    startExportTransition(async () => {
+      if (outputHTML) {
+        console.log('Exporting output...');
+        const { id: exportedOutputId } = await exportUserOutput(
+          outputHTML,
+          courseId,
+          lessonId,
+          true
+        );
+        console.log('Exported output...', isExporting);
+        // Construct the URL
+
+        router.push(`/playground/output/${exportedOutputId}`);
+
+        // const domain = window.location.hostname;
+        // const port = window.location.port;
+        // const url = new URL(
+        //   `/playground/output/${exportedOutputId}`,
+        //   `https://${domain}:${port}`
+        // );
+        // const newWindow = window.open(url, '_blank');
+        // console.log('Opened new window...', newWindow);
+      }
+    });
+  }
+
   const mdxInputComponents = getMdxInputComponents(
     clearInputs,
     JSON.parse(lessonInputs)
@@ -205,8 +264,12 @@ export default function LessonIO({
         );
         setOutputHTML(updatedOutputHTML);
         setSectionCompleted(true);
-        // If all sections are completed, set lesson completed
-        setLessonCompleted(section === totalSections);
+        if (section === totalSections) {
+          // If all sections are completed, set lesson completed
+          setLessonCompleted(true);
+          // If first time completing lesson, set confetti
+          setCompletionConfetti(true);
+        }
       });
     }
     setLoading(false);
@@ -246,38 +309,53 @@ export default function LessonIO({
           name='notion_id'
           value={notionId}
         />
+        <input
+          type='hidden'
+          readOnly={true}
+          name='ai_feedback'
+          value={lessonInputs}
+        />
         <div className='bottom-0 left-0 flex w-full justify-start space-x-2   p-2'>
           <FormButtons
-            prevSectionLink={prevSectionLink}
-            nextSectionLink={nextSectionLink}
             sectionCompleted={sectionCompleted}
             resetForm={resetForm}
             isPendingOutputGeneration={isPendingOutputGeneration}
           />
         </div>
       </form>
-      <div className='prose flex flex-grow flex-col overflow-auto bg-sky-50 text-sm'>
+      <div className='prose relative flex flex-grow flex-col overflow-auto bg-sky-50 text-sm'>
+        {!isPendingOutputGeneration && outputHTML && completionConfetti && (
+          <DynamicConfetti />
+        )}
         <div className='flex-grow overflow-auto p-4 text-sm'>
           {isPendingOutputGeneration ? (
             'Generating awesome results!!!'
           ) : outputHTML ? (
-            <div dangerouslySetInnerHTML={{ __html: outputHTML }} />
+            <div>
+              <div dangerouslySetInnerHTML={{ __html: outputHTML }} />
+            </div>
           ) : (
             <CleanOutputMessage />
           )}
         </div>
       </div>
 
-      <footer className='col-span-3 grid grid-cols-3 p-2'>
-        <div></div>
+      <footer className='col-span-3 grid grid-cols-5 p-2'>
+        <div className='col-span-2 flex flex-grow justify-start gap-2'>
+          <FeedbackButtons lessonCompleted={lessonCompleted} />
+        </div>
         <div className='flex items-center justify-center'>
           <span>{lesson.title}</span>
         </div>
-        <div className='flex flex-grow justify-end gap-2'>
+        <div className='col-span-2 flex flex-grow justify-end gap-2'>
           <LessonButtons
+            sectionCompleted={sectionCompleted}
+            prevSectionLink={prevSectionLink}
+            nextSectionLink={nextSectionLink}
             lessonCompleted={lessonCompleted}
             prevLessonLink={prevLessonLink}
             nextLessonLink={nextLessonLink}
+            onExportOutput={onExportOutput}
           />
         </div>
       </footer>

@@ -1,5 +1,5 @@
 import { ExtendedRecordMap, Block } from 'notion-types';
-import { LessonMap, CourseMap } from '@/app/lib/types';
+import { LessonMap, CourseMap, AIFeedbackMap } from '@/app/lib/types';
 
 export const DEMO_LESSON_MAP: LessonMap = {
   '1': {
@@ -58,6 +58,26 @@ export const COURSE_MAP: CourseMap = {
     title: 'Demo Course',
     description: 'This is a demo course to impress creators',
     lessonMap: DEMO_LESSON_MAP,
+  },
+};
+
+export const CREATOR_MODAL_PARAM = 'creatormodal';
+
+export const AI_MODAL_PARAM = 'aimodal';
+
+export const DEMO_LESSON_AI_FEEDBACK: AIFeedbackMap = {
+  smart: {
+    mdx: `
+    Greetings from your AI coach! 🤖
+
+    You've done a commendable job applying the SMART goals framework to your objective of increasing newsletter leads from your blog. Your approach is well-structured, demonstrating a solid understanding of how to set effective and actionable goals. Here are a few suggestions to make your plan even more robust:
+
+    - **Specificity in Action Steps:** While you've defined what you want to achieve, consider detailing specific strategies or actions you will implement to increase newsletter subscribers. For instance, you could outline particular promotional activities or content adjustments to attract more sign-ups.
+    - **Measurable Milestones:** You've set a 10% increase as your target, which is great. To enhance this, you could establish intermediate milestones to track progress and make adjustments if needed. For example, setting monthly check-ins to evaluate your growth rate and strategy effectiveness.
+    - **Expand on Relevancy:** You've linked the goal to your course launch, which is excellent. To deepen this connection, you could explain how the newsletter's content will align with the course's themes or offer, providing value to subscribers and nurturing their interest in your upcoming launch.
+
+    These enhancements will not only refine your goal-setting process but also increase your chances of achieving your desired outcomes. Keep up the great work!
+    `,
   },
 };
 

@@ -10,6 +10,7 @@ import {
   UpdateUserInputFormState,
 } from '@/app/lib/types';
 import { revalidatePath } from 'next/cache';
+
 export async function updateUserInputsByLessonId(
   _currentState: UpdateUserInputFormState,
   formData: FormData
@@ -255,4 +256,110 @@ export async function updateUserOutputByLessonId(
     ] as JsonObject
   )['data'] as string;
   return updatedData;
+}
+
+export async function exportUserOutput(
+  outputHTML: string,
+  courseId: string,
+  lessonId: string,
+  isPublic: boolean
+): Promise<{ id: string; output: string }> {
+  const cookieStore = cookies();
+  const supabase = createClient(cookieStore);
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    redirect('/login');
+  }
+
+  const { data: existingExportedOutput, error: getExportedOutputError } =
+    await supabase
+      .from('exported_outputs')
+      .select('*')
+      .eq('course_id', courseId)
+      .eq('user_id', user.id)
+      .eq('lesson_id', lessonId)
+      .single();
+
+  if (getExportedOutputError) {
+    console.error('getExportedOutputError', getExportedOutputError);
+  }
+  if (!existingExportedOutput) {
+    const { data: insertedExportedOutput, error: insertExportedOutputError } =
+      await supabase
+        .from('exported_outputs')
+        .insert({
+          output: outputHTML,
+          course_id: courseId,
+          user_id: user.id,
+          lesson_id: lessonId,
+          is_public: isPublic,
+          modified_at: new Date().toISOString(),
+        })
+        .select()
+        .single();
+
+    if (insertExportedOutputError) {
+      console.error('insertExportedOutputError', insertExportedOutputError);
+      throw new Error(
+        `DB_ERROR: could not insert insertExportedOutputError for user ${user.id}`
+      );
+    }
+    revalidatePath('/playground');
+    const { id, output } = insertedExportedOutput;
+    return { id, output };
+  } else {
+    const { data: updatedExportedOutput, error: updateExportedOutputError } =
+      await supabase
+        .from('exported_outputs')
+        .update({
+          output: outputHTML,
+          is_public: isPublic,
+          modified_at: new Date().toISOString(),
+        })
+        .eq('id', existingExportedOutput.id)
+        .select()
+        .single();
+
+    if (updateExportedOutputError) {
+      console.error('updateExportedOutputError', updateExportedOutputError);
+      throw new Error(
+        `DB_ERROR: could not insert updateExportedOutputError for user ${user.id}`
+      );
+    }
+    revalidatePath('/playground');
+    const { id, output } = updatedExportedOutput;
+    return { id, output };
+  }
+}
+
+export async function fetchExportedOutput(
+  exportedOutputId: string
+): Promise<string | null> {
+  const cookieStore = cookies();
+  const supabase = createClient(cookieStore);
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    redirect('/login');
+  }
+
+  const { data: existingExportedOutput, error: getExportedOutputError } =
+    await supabase
+      .from('exported_outputs')
+      .select('*')
+      .eq('id', exportedOutputId)
+      .single();
+
+  if (getExportedOutputError) {
+    console.error('getExportedOutputError', getExportedOutputError);
+    return null;
+  }
+  return existingExportedOutput.output;
 }

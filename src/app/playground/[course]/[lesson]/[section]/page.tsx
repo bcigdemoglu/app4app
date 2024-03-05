@@ -1,5 +1,5 @@
 import LessonIO from '@/app/components/LessonIO';
-import { COURSE_MAP } from '@/app/lib/data';
+import { COURSE_MAP, DEMO_LESSON_AI_FEEDBACK } from '@/app/lib/data';
 import { notFound, redirect } from 'next/navigation';
 import { getRecordMap } from './actions';
 import NotionPage from '@/app/components/NotionPage';
@@ -11,13 +11,15 @@ import {
   getLessonInputs,
   getLessonMDX,
   getLessonOutput,
+  getAIFeedbackMDX,
 } from '@/app/utils/lessonHelpers';
+import AIFeedbackModal from '@/app/components/AIFeedbackModal';
+import CreatorFeedbackModal from '@/app/components/CreatorFeedbackModal';
 
 export const metadata = {
   title: "Ilayda's Playground: How to Start a Business",
   description: 'How to start a busines in 2024',
 };
-
 interface Props {
   params: { course: string; lesson: string; section: string };
 }
@@ -54,13 +56,22 @@ export default async function Page({ params }: Props) {
   const courseId = params.course;
   const lesson = COURSE_MAP[params.course].lessonMap[params.lesson];
   const { notionId, id: lessonId } = lesson;
-  const recordMap = await getRecordMap(notionId);
+
+  // Start both serialization operations in parallel
+  const recordMapPromise = getRecordMap(notionId);
+  const userProgressFromDBPromise = fetchUserProgressFromDB();
+
+  // Wait for both operations to complete
+  const [recordMap, userProgressFromDB] = await Promise.all([
+    recordMapPromise,
+    userProgressFromDBPromise,
+  ]);
+
   const { mdxInputSource, mdxOutputSource, totalSections } = await getLessonMDX(
     recordMap,
     section
   );
 
-  const userProgressFromDB = await fetchUserProgressFromDB();
   const {
     data: lessonInputsFromDB,
     lastCompletedSection: lastCompletedSectionFromDB,
@@ -81,11 +92,11 @@ export default async function Page({ params }: Props) {
     : null;
   const prevLesson = lesson.prev;
   const prevLessonLink = prevLesson
-    ? `/playground/${courseId}/${prevLesson}/1`
+    ? `/playground/${courseId}/${prevLesson}`
     : null;
   const nextLesson = lesson.next;
   const nextLessonLink = nextLesson
-    ? `/playground/${courseId}/${nextLesson}/1`
+    ? `/playground/${courseId}/${nextLesson}`
     : null;
 
   return (
@@ -93,7 +104,7 @@ export default async function Page({ params }: Props) {
       <header className='col-span-3 grid grid-cols-2 p-2'>
         <div className='flex justify-start gap-2'>
           <span className='transform rounded-lg bg-gradient-to-r from-blue-400 to-purple-600 px-4 py-1 text-xl font-bold text-white shadow-md transition-transform duration-300 ease-in-out hover:from-purple-600 hover:to-blue-400'>
-            {"ilayda's playground"}
+            {'Cloudybook'}
           </span>
         </div>
         <div className='flex justify-end gap-1'>
@@ -127,6 +138,7 @@ export default async function Page({ params }: Props) {
 
       {/* Middle Column and Right Columns */}
       <LessonIO
+        courseId={courseId}
         lesson={lesson}
         section={section}
         prevSectionLink={prevSectionLink}
@@ -139,6 +151,13 @@ export default async function Page({ params }: Props) {
         lessonInputsFromDB={lessonInputsFromDB}
         lastCompletedSectionFromDB={lastCompletedSectionFromDB}
         lessonOutputfromDB={lessonOutputfromDB}
+      />
+      <CreatorFeedbackModal />
+      <AIFeedbackModal
+        aiFeedbackSource={await getAIFeedbackMDX(
+          DEMO_LESSON_AI_FEEDBACK[lessonId]?.mdx ??
+            'Sorry, no AI feedback available.'
+        )}
       />
     </main>
   );

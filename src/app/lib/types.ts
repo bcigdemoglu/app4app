@@ -39,6 +39,8 @@ export interface Course {
 
 export type CourseMap = Record<string, Course>;
 
+export type AIFeedbackMap = Record<string, { mdx: string }>;
+
 export type MDXOutputComponent = (...props: any[]) => JSX.Element;
 export type MDXOutputComponents = { [key: string]: MDXOutputComponent };
 

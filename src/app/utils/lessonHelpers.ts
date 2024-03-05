@@ -17,6 +17,12 @@ import { MDXRemoteSerializeResult } from 'next-mdx-remote';
 import { serialize } from 'next-mdx-remote/serialize';
 import { User } from '@supabase/supabase-js';
 
+export async function getAIFeedbackMDX(
+  aifeedback: string
+): Promise<MDXRemoteSerializeResult> {
+  return serialize(aifeedback);
+}
+
 export async function getLessonMDX(
   recordMap: ExtendedRecordMap,
   section: number
