@@ -61,9 +61,9 @@ export const COURSE_MAP: CourseMap = {
   },
 };
 
-export const CREATOR_MODAL_PARAM = 'creatormodal';
+export const CREATOR_MODAL_PARAM = 'feedback';
 
-export const AI_MODAL_PARAM = 'aimodal';
+export const AI_MODAL_PARAM = 'ai';
 
 export const DEMO_LESSON_AI_FEEDBACK: AIFeedbackMap = {
   smart: {

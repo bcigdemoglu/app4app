@@ -6,7 +6,7 @@ import {
   updateUserOutputByLessonId as updateUserOutputsByLessonId,
 } from '@/app/actions';
 import { MDXRemote, MDXRemoteSerializeResult } from 'next-mdx-remote';
-import { useEffect, useRef, useState, useTransition } from 'react';
+import { useEffect, useMemo, useRef, useState, useTransition } from 'react';
 import { useFormState, useFormStatus } from 'react-dom';
 import { JsonObject, Lesson, UpdateUserInputFormState } from '@/app/lib/types';
 import Link from 'next/link';
@@ -28,7 +28,7 @@ const FeedbackButtons = ({ lessonCompleted }: { lessonCompleted: boolean }) => {
     <>
       <Link href={`?${CREATOR_MODAL_PARAM}=true`}>
         <button className='rounded bg-green-500 px-4 py-2 font-bold text-white hover:bg-green-700 disabled:bg-green-300'>
-          Share Course Feedback
+          Share Course Feedback 📣
         </button>
       </Link>
       <Link href={`?${AI_MODAL_PARAM}=true`}>
@@ -36,7 +36,7 @@ const FeedbackButtons = ({ lessonCompleted }: { lessonCompleted: boolean }) => {
           disabled={!lessonCompleted}
           className='rounded bg-purple-500 px-4 py-2 font-bold text-white hover:bg-purple-700 disabled:bg-purple-300'
         >
-          Get AI Help
+          Ask AI Coach 🤖
         </button>
       </Link>
     </>
@@ -247,22 +247,39 @@ export default function LessonIO({
     setClearInputs(true);
   };
 
+  // console.log('Rendering all: formState.state', formState.state);
+
   useEffect(() => {
     if (formState.state === 'success' || formState.state === 'noupdate') {
-      setClearInputs(false);
+      // console.log('Creating generatedOutputHTML...', formState.state);
       const lessonInputsJSON = JSON.parse(lessonInputs);
+      const generatedOutputHTML = renderToStaticMarkup(
+        <MDXRemote
+          compiledSource={mdxOutputSource.compiledSource}
+          scope={mdxOutputSource.scope}
+          frontmatter={mdxOutputSource.frontmatter}
+          components={getMdxOutputComponents(lessonInputsJSON)}
+        />
+      );
+      setOutputHTML(generatedOutputHTML);
+    }
+  }, [
+    formState.state,
+    mdxOutputSource.compiledSource,
+    mdxOutputSource.scope,
+    mdxOutputSource.frontmatter,
+    lessonInputs,
+  ]);
+
+  useEffect(() => {
+    if (
+      (formState.state === 'success' || formState.state === 'noupdate') &&
+      outputHTML
+    ) {
+      // console.log('Sending form data...');
+      setClearInputs(false);
       startTransition(async () => {
-        const generatedOutputHTML = renderToStaticMarkup(
-          <MDXRemote
-            {...mdxOutputSource}
-            components={getMdxOutputComponents(lessonInputsJSON)}
-          />
-        );
-        const updatedOutputHTML = await updateUserOutputsByLessonId(
-          generatedOutputHTML,
-          lessonId
-        );
-        setOutputHTML(updatedOutputHTML);
+        await updateUserOutputsByLessonId(outputHTML, lessonId);
         setSectionCompleted(true);
         if (section === totalSections) {
           // If all sections are completed, set lesson completed
@@ -273,23 +290,16 @@ export default function LessonIO({
       });
     }
     setLoading(false);
-  }, [
-    formState.state,
-    lessonInputs,
-    mdxOutputSource,
-    lessonId,
-    section,
-    totalSections,
-  ]);
+  }, [formState.state, outputHTML, lessonId, section, totalSections]);
 
   return (
     <>
       <form
         action={formAction}
         ref={formRef}
-        className='prose flex flex-grow flex-col overflow-auto bg-white text-sm'
+        className='flex flex-grow flex-col overflow-auto bg-white text-sm'
       >
-        <div className='flex-grow overflow-auto p-4'>
+        <div className='prose flex-grow overflow-auto p-4'>
           {loading ? (
             'Loading playground...'
           ) : (
@@ -315,7 +325,22 @@ export default function LessonIO({
           name='ai_feedback'
           value={lessonInputs}
         />
-        <div className='bottom-0 left-0 flex w-full justify-start space-x-2   p-2'>
+        {/* <Line
+          percent={(section / totalSections) * 100}
+          strokeWidth={3}
+          trailWidth={3}
+          strokeLinecap='round'
+          strokeColor='green'
+        /> */}
+        <div className='w-full rounded-full bg-gray-200'>
+          <div
+            className='rounded-full bg-green-600 p-0.5 text-center  font-medium leading-none text-white'
+            style={{ width: `${(section / totalSections) * 100}%` }}
+          >
+            {section} / {totalSections}
+          </div>
+        </div>
+        <div className='bottom-0 left-0 flex w-full justify-start space-x-2 p-2'>
           <FormButtons
             sectionCompleted={sectionCompleted}
             resetForm={resetForm}
@@ -323,7 +348,7 @@ export default function LessonIO({
           />
         </div>
       </form>
-      <div className='prose relative flex flex-grow flex-col overflow-auto bg-sky-50 text-sm'>
+      <div className='relative flex flex-grow flex-col overflow-auto bg-sky-50 text-sm'>
         {!isPendingOutputGeneration && outputHTML && completionConfetti && (
           <DynamicConfetti />
         )}
@@ -332,7 +357,10 @@ export default function LessonIO({
             'Generating awesome results!!!'
           ) : outputHTML ? (
             <div>
-              <div dangerouslySetInnerHTML={{ __html: outputHTML }} />
+              <div
+                className='prose'
+                dangerouslySetInnerHTML={{ __html: outputHTML }}
+              />
             </div>
           ) : (
             <CleanOutputMessage />
@@ -344,7 +372,8 @@ export default function LessonIO({
         <div className='col-span-2 flex flex-grow justify-start gap-2'>
           <FeedbackButtons lessonCompleted={lessonCompleted} />
         </div>
-        <div className='flex items-center justify-center'>
+        <div className='flex items-center justify-center gap-1'>
+          {lessonCompleted ? <span>✅</span> : <span>🟦</span>}
           <span>{lesson.title}</span>
         </div>
         <div className='col-span-2 flex flex-grow justify-end gap-2'>
