@@ -6,7 +6,7 @@ import {
   updateUserOutputByLessonId as updateUserOutputsByLessonId,
 } from '@/app/actions';
 import { MDXRemote, MDXRemoteSerializeResult } from 'next-mdx-remote';
-import { useEffect, useMemo, useRef, useState, useTransition } from 'react';
+import { useEffect, useRef, useState, useTransition } from 'react';
 import { useFormState, useFormStatus } from 'react-dom';
 import { JsonObject, Lesson, UpdateUserInputFormState } from '@/app/lib/types';
 import Link from 'next/link';
