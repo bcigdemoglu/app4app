@@ -36,5 +36,8 @@ export default async function Page({ params }: Props) {
     user
   );
 
-  redirect(`/playground/${courseId}/${lessonId}/${lastCompletedSectionFromDB}`);
+  const defaultSectionId = 1;
+  const sectionId = lastCompletedSectionFromDB ?? defaultSectionId;
+
+  redirect(`/playground/${courseId}/${lessonId}/${sectionId}`);
 }

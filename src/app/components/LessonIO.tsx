@@ -1,6 +1,7 @@
 'use client';
 
 import {
+  deleteUserDataByLessonId,
   exportUserOutput,
   updateUserInputsByLessonId,
   updateUserOutputByLessonId as updateUserOutputsByLessonId,
@@ -10,14 +11,14 @@ import { useEffect, useRef, useState, useTransition } from 'react';
 import { useFormState, useFormStatus } from 'react-dom';
 import { JsonObject, Lesson, UpdateUserInputFormState } from '@/app/lib/types';
 import Link from 'next/link';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faArrowsRotate } from '@fortawesome/free-solid-svg-icons';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { getMdxInputComponents } from '@/app/components/MdxInputComponents';
 import { getMdxOutputComponents } from './MdxOutputComponents';
 import dynamic from 'next/dynamic';
 import { AI_MODAL_PARAM, CREATOR_MODAL_PARAM } from '@/app/lib/data';
 import { useRouter } from 'next/navigation';
+// import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+// import { faArrowsRotate } from '@fortawesome/free-solid-svg-icons';
 
 const DynamicConfetti = dynamic(() =>
   import('@/app/components/Confetti').then((m) => m.Confetti)
@@ -121,10 +122,14 @@ const CleanOutputMessage = () => {
 };
 
 const FormButtons = ({
+  courseId,
+  lessonId,
   sectionCompleted,
   isPendingOutputGeneration,
   resetForm,
 }: {
+  courseId: string;
+  lessonId: string;
   sectionCompleted: boolean;
   isPendingOutputGeneration: boolean;
   resetForm: () => void;
@@ -146,13 +151,25 @@ const FormButtons = ({
           type='reset'
           value='reset'
           aria-disabled={status.pending}
-          disabled={
-            status.pending || isPendingOutputGeneration || !sectionCompleted
-          }
+          disabled={status.pending || isPendingOutputGeneration}
           onClick={resetForm}
           className='rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700 disabled:bg-blue-300'
         >
-          <FontAwesomeIcon icon={faArrowsRotate} />
+          Clear
+        </button>
+        <button
+          type='reset'
+          onClick={async () => {
+            resetForm();
+            return deleteUserDataByLessonId(courseId, lessonId);
+          }}
+          aria-disabled={status.pending}
+          disabled={
+            status.pending || isPendingOutputGeneration || !sectionCompleted
+          }
+          className='rounded bg-red-500 px-4 py-2 font-bold text-white hover:bg-red-700 disabled:bg-red-300'
+        >
+          Delete & Restart Lesson
         </button>
       </div>
     </>
@@ -186,13 +203,15 @@ export default function LessonIO({
   mdxOutputSource: MDXRemoteSerializeResult;
   lessonInputsFromDB: JsonObject | null;
   lessonOutputfromDB: string | null;
-  lastCompletedSectionFromDB: number;
+  lastCompletedSectionFromDB: number | null;
 }) {
   const { id: lessonId, notionId } = lesson;
 
   const [loading, setLoading] = useState(true);
   const [sectionCompleted, setSectionCompleted] = useState(
-    lessonOutputfromDB !== null && section <= lastCompletedSectionFromDB
+    lessonOutputfromDB !== null &&
+      lastCompletedSectionFromDB !== null &&
+      section <= lastCompletedSectionFromDB
   );
   const [lessonCompleted, setLessonCompleted] = useState(
     lessonOutputfromDB !== null && lastCompletedSectionFromDB === totalSections
@@ -245,6 +264,11 @@ export default function LessonIO({
 
   const resetForm = () => {
     setClearInputs(true);
+    for (const key in localStorage) {
+      if (key.startsWith('ilayda.')) {
+        localStorage.removeItem(key);
+      }
+    }
   };
 
   // console.log('Rendering all: formState.state', formState.state);
@@ -279,7 +303,7 @@ export default function LessonIO({
       // console.log('Sending form data...');
       setClearInputs(false);
       startTransition(async () => {
-        await updateUserOutputsByLessonId(outputHTML, lessonId);
+        await updateUserOutputsByLessonId(courseId, lessonId, outputHTML);
         setSectionCompleted(true);
         if (section === totalSections) {
           // If all sections are completed, set lesson completed
@@ -290,7 +314,7 @@ export default function LessonIO({
       });
     }
     setLoading(false);
-  }, [formState.state, outputHTML, lessonId, section, totalSections]);
+  }, [formState.state, outputHTML, courseId, lessonId, section, totalSections]);
 
   return (
     <>
@@ -309,32 +333,25 @@ export default function LessonIO({
         <input
           type='hidden'
           readOnly={true}
-          name='lesson_id'
-          value={lessonId}
-        />
-        <input type='hidden' readOnly={true} name='section' value={section} />
-        <input
-          type='hidden'
-          readOnly={true}
           name='notion_id'
           value={notionId}
         />
         <input
           type='hidden'
           readOnly={true}
-          name='ai_feedback'
-          value={lessonInputs}
+          name='course_id'
+          value={courseId}
         />
-        {/* <Line
-          percent={(section / totalSections) * 100}
-          strokeWidth={3}
-          trailWidth={3}
-          strokeLinecap='round'
-          strokeColor='green'
-        /> */}
-        <div className='w-full rounded-full bg-gray-200'>
+        <input
+          type='hidden'
+          readOnly={true}
+          name='lesson_id'
+          value={lessonId}
+        />
+        <input type='hidden' readOnly={true} name='section' value={section} />
+        <div className='w-full rounded-full bg-gray-200 text-center'>
           <div
-            className='rounded-full bg-green-600 p-0.5 text-center  font-medium leading-none text-white'
+            className='text-nowrap rounded-full bg-green-600 p-0.5  text-center font-medium leading-none text-white'
             style={{ width: `${(section / totalSections) * 100}%` }}
           >
             {section} / {totalSections}
@@ -342,6 +359,8 @@ export default function LessonIO({
         </div>
         <div className='bottom-0 left-0 flex w-full justify-start space-x-2 p-2'>
           <FormButtons
+            courseId={courseId}
+            lessonId={lessonId}
             sectionCompleted={sectionCompleted}
             resetForm={resetForm}
             isPendingOutputGeneration={isPendingOutputGeneration}

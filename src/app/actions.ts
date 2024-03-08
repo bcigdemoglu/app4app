@@ -16,6 +16,7 @@ export async function updateUserInputsByLessonId(
   formData: FormData
 ): Promise<UpdateUserInputFormState> {
   const newLessonInput: JsonObject = {};
+  const courseId = formData.get('course_id') as string;
   const lessonId = formData.get('lesson_id') as string;
   const section = parseInt(formData.get('section') as string);
 
@@ -44,7 +45,7 @@ export async function updateUserInputsByLessonId(
   const { data: userProgress, error: getUserProgressError } = await supabase
     .from('user_progress')
     .select('*')
-    .eq('course_id', 'demo')
+    .eq('course_id', courseId)
     .eq('user_id', user.id)
     .single();
 
@@ -147,7 +148,7 @@ export async function updateUserInputsByLessonId(
       await supabase
         .from('user_progress')
         .insert({
-          course_id: 'demo',
+          course_id: courseId,
           user_id: user.id,
           inputs_by_lesson_id: updatedInputsByLessonId,
           modified_at: new Date().toISOString(),
@@ -175,9 +176,78 @@ export async function updateUserInputsByLessonId(
   }
 }
 
-export async function updateUserOutputByLessonId(
-  outputHTML: string,
+export async function deleteUserDataByLessonId(
+  courseId: string,
   lessonId: string
+): Promise<boolean> {
+  const cookieStore = cookies();
+  const supabase = createClient(cookieStore);
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    redirect('/login');
+  }
+
+  const { data: userProgress, error: getUserProgressError } = await supabase
+    .from('user_progress')
+    .select('*')
+    .eq('course_id', courseId)
+    .eq('user_id', user.id)
+    .single();
+
+  if (getUserProgressError) {
+    console.error('getUserProgressError', getUserProgressError);
+    throw new Error(
+      `DB_ERROR: could not get user progress for user ${user.id}`
+    );
+  }
+
+  if (userProgress && userProgress.inputs_by_lesson_id) {
+    const allLessonProgress = userProgress.inputs_by_lesson_id as JsonObject;
+    const lessonProgress = allLessonProgress[lessonId] as JsonObject;
+
+    const allLessonOutput = userProgress.outputs_by_lesson_id as JsonObject;
+    const lessonOutput = allLessonOutput[lessonId] as JsonObject;
+
+    if (lessonProgress) {
+      delete allLessonProgress[lessonId];
+    }
+    if (lessonOutput) {
+      delete allLessonOutput[lessonId];
+    }
+
+    const { error: updateUserProgressError } = await supabase
+      .from('user_progress')
+      .update({
+        user_id: user.id,
+        inputs_by_lesson_id: allLessonProgress,
+        outputs_by_lesson_id: allLessonOutput,
+        modified_at: new Date().toISOString(),
+      })
+      .eq('id', userProgress.id)
+      .select()
+      .single();
+
+    if (updateUserProgressError) {
+      console.error('updateUserProgressError', updateUserProgressError);
+      throw new Error(
+        `DB_ERROR: could not update inputs_by_lesson_id for user ${user.id}`
+      );
+    }
+    revalidatePath('/playground');
+    redirect(`/playground/${courseId}/${lessonId}`);
+    return true;
+  }
+  return false;
+}
+
+export async function updateUserOutputByLessonId(
+  courseId: string,
+  lessonId: string,
+  outputHTML: string
 ): Promise<string> {
   const cookieStore = cookies();
   const supabase = createClient(cookieStore);
@@ -193,7 +263,7 @@ export async function updateUserOutputByLessonId(
   const { data: userProgress, error: getUserProgressError } = await supabase
     .from('user_progress')
     .select('*')
-    .eq('course_id', 'demo')
+    .eq('course_id', courseId)
     .eq('user_id', user.id)
     .single();
 

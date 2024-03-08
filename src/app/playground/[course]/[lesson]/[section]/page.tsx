@@ -1,5 +1,10 @@
 import LessonIO from '@/app/components/LessonIO';
-import { COURSE_MAP, DEMO_LESSON_AI_FEEDBACK } from '@/app/lib/data';
+import {
+  COURSE_MAP,
+  DEMO_LESSON_AI_FEEDBACK,
+  AI_MODAL_PARAM,
+  CREATOR_MODAL_PARAM,
+} from '@/app/lib/data';
 import { notFound, redirect } from 'next/navigation';
 import { getRecordMap } from './actions';
 import NotionPage from '@/app/components/NotionPage';
@@ -22,13 +27,14 @@ export const metadata = {
 };
 interface Props {
   params: { course: string; lesson: string; section: string };
+  searchParams: { [AI_MODAL_PARAM]: string; [CREATOR_MODAL_PARAM]: string };
 }
 
-export default async function Page({ params }: Props) {
+export default async function Page({ params, searchParams }: Props) {
   if (
     !COURSE_MAP[params.course] ||
     !COURSE_MAP[params.course].lessonMap[params.lesson] ||
-    isNaN(parseInt(params.section))
+    parseInt(params.section) < 1
   )
     notFound();
 
@@ -152,13 +158,15 @@ export default async function Page({ params }: Props) {
         lastCompletedSectionFromDB={lastCompletedSectionFromDB}
         lessonOutputfromDB={lessonOutputfromDB}
       />
-      <CreatorFeedbackModal />
-      <AIFeedbackModal
-        aiFeedbackSource={await getAIFeedbackMDX(
-          DEMO_LESSON_AI_FEEDBACK[lessonId]?.mdx ??
-            'Sorry, no AI feedback available.'
-        )}
-      />
+      {searchParams[CREATOR_MODAL_PARAM] && <CreatorFeedbackModal />}
+      {searchParams[AI_MODAL_PARAM] && (
+        <AIFeedbackModal
+          aiFeedbackSource={await getAIFeedbackMDX(
+            DEMO_LESSON_AI_FEEDBACK[lessonId]?.mdx ??
+              'Sorry, no AI feedback available.'
+          )}
+        />
+      )}
     </main>
   );
 }

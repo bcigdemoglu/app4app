@@ -16,6 +16,7 @@ import { ExtendedRecordMap } from 'notion-types';
 import { MDXRemoteSerializeResult } from 'next-mdx-remote';
 import { serialize } from 'next-mdx-remote/serialize';
 import { User } from '@supabase/supabase-js';
+import { perf } from './debug';
 
 export async function getAIFeedbackMDX(
   aifeedback: string
@@ -47,34 +48,36 @@ export async function getLessonMDX(
 }
 
 export async function fetchUserProgressFromDB(): Promise<UserProgressTable | null> {
-  const cookieStore = cookies();
-  const supabase = createClient(cookieStore);
+  return perf('fetchUserProgressFromDB', async () => {
+    const cookieStore = cookies();
+    const supabase = createClient(cookieStore);
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
 
-  if (!user) {
-    throw new Error('Unauthorized user for fetchUserProgressFromDB');
-  }
+    if (!user) {
+      throw new Error('Unauthorized user for fetchUserProgressFromDB');
+    }
 
-  const { data: userProgress, error: getUserProgressError } = await supabase
-    .from('user_progress')
-    .select('*')
-    .eq('course_id', 'demo')
-    .eq('user_id', user.id)
-    .single();
+    const { data: userProgress, error: getUserProgressError } = await supabase
+      .from('user_progress')
+      .select('*')
+      .eq('course_id', 'demo')
+      .eq('user_id', user.id)
+      .single();
 
-  if (getUserProgressError) {
-    console.error('getUserProgressError', getUserProgressError);
-  }
+    if (getUserProgressError) {
+      console.error('getUserProgressError', getUserProgressError);
+    }
 
-  return userProgress;
+    return userProgress;
+  });
 }
 
 interface LessonInput {
   data: JsonObject | null;
-  lastCompletedSection: number;
+  lastCompletedSection: number | null;
 }
 
 export function getLessonInputs(
@@ -108,7 +111,7 @@ export function getLessonInputs(
   console.log(
     `no lesson input found for lesson ${lessonId} of user ${user.id}`
   );
-  return { data: {}, lastCompletedSection: 0 };
+  return { data: {}, lastCompletedSection: null };
 }
 
 export function getLessonOutput(
