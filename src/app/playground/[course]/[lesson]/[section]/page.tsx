@@ -106,7 +106,7 @@ export default async function Page({ params, searchParams }: Props) {
     : null;
 
   return (
-    <main className='grid h-screen grid-cols-3 gap-1 bg-sky-100 text-xs md:text-base'>
+    <main className='grid h-svh grid-cols-3 gap-1 bg-sky-100 text-xs md:text-base'>
       <header className='col-span-3 grid grid-cols-2 p-2'>
         <div className='flex justify-start gap-2'>
           <span className='transform rounded-lg bg-gradient-to-r from-blue-400 to-purple-600 px-4 py-1 text-sm font-bold text-white shadow-md transition-transform duration-300 ease-in-out hover:from-purple-600 hover:to-blue-400 md:text-xl'>
