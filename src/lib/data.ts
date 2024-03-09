@@ -1,5 +1,5 @@
 import { ExtendedRecordMap, Block } from 'notion-types';
-import { LessonMap, CourseMap, AIFeedbackMap } from '@/app/lib/types';
+import { LessonMap, CourseMap, AIFeedbackMap } from '@/lib/types';
 
 export const DEMO_LESSON_MAP: LessonMap = {
   '1': {

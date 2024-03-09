@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { register } from './actions';
-import { getAuthUser } from '@/app/utils/userActions';
+import { getAuthUser } from '@/utils/userActions';
 import { redirect } from 'next/navigation';
 import { handleLogInWithGoogle } from '../login/actions';
 

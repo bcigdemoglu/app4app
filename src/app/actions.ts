@@ -1,14 +1,14 @@
 'use server';
 
 import { cookies } from 'next/headers';
-import { createClient } from '@/app/utils/supabase/actions';
+import { createClient } from '@/utils/supabase/actions';
 import { redirect } from 'next/navigation';
 import {
   JsonObject,
   verifiedJsonObjectFromDB,
   isSameJson,
   UpdateUserInputFormState,
-} from '@/app/lib/types';
+} from '@/lib/types';
 import { revalidatePath } from 'next/cache';
 
 export async function updateUserInputsByLessonId(

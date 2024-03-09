@@ -9,16 +9,19 @@ import {
 import { MDXRemote, MDXRemoteSerializeResult } from 'next-mdx-remote';
 import { useEffect, useRef, useState, useTransition } from 'react';
 import { useFormState, useFormStatus } from 'react-dom';
-import { JsonObject, Lesson, UpdateUserInputFormState } from '@/app/lib/types';
+import { JsonObject, Lesson, UpdateUserInputFormState } from '@/lib/types';
 import Link from 'next/link';
 import { renderToStaticMarkup } from 'react-dom/server';
-import { getMdxInputComponents } from '@/app/components/MdxInputComponents';
+import { getMdxInputComponents } from '@/components/MdxInputComponents';
 import { getMdxOutputComponents } from './MdxOutputComponents';
 import dynamic from 'next/dynamic';
-import { AI_MODAL_PARAM, CREATOR_MODAL_PARAM } from '@/app/lib/data';
+import { AI_MODAL_PARAM, CREATOR_MODAL_PARAM } from '@/lib/data';
 import { useRouter } from 'next/navigation';
-// import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-// import { faArrowsRotate } from '@fortawesome/free-solid-svg-icons';
+import NotionPage from './NotionPage';
+import { ExtendedRecordMap } from 'notion-types';
+import { cn } from '@/utils/cn';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faTrashCan } from '@fortawesome/free-solid-svg-icons';
 
 function hashString(str: string) {
   let hash = 0;
@@ -29,7 +32,7 @@ function hashString(str: string) {
 }
 
 const DynamicConfetti = dynamic(() =>
-  import('@/app/components/Confetti').then((m) => m.Confetti)
+  import('@/components/Confetti').then((m) => m.Confetti)
 );
 
 const FeedbackButtons = ({ lessonCompleted }: { lessonCompleted: boolean }) => {
@@ -37,7 +40,7 @@ const FeedbackButtons = ({ lessonCompleted }: { lessonCompleted: boolean }) => {
     <>
       <Link href={`?${CREATOR_MODAL_PARAM}=true`}>
         <button className='rounded bg-green-500 px-4 py-2 font-bold text-white hover:bg-green-700 disabled:bg-green-300'>
-          Share Course Feedback 📣
+          Share Feedback 📣
         </button>
       </Link>
       <Link href={`?${AI_MODAL_PARAM}=true`}>
@@ -146,49 +149,48 @@ const FormButtons = ({
 
   return (
     <>
-      <div className='bottom-0 left-0 flex w-full justify-start space-x-2   p-2'>
-        <button
-          type='submit'
-          aria-disabled={status.pending}
-          disabled={status.pending || isPendingOutputGeneration}
-          className='rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700 disabled:bg-blue-300'
-        >
-          {status.pending
-            ? 'Submitting...'
-            : isPendingOutputGeneration
-              ? 'Generating...'
-              : 'Submit'}
-        </button>
-        <button
-          type='reset'
-          value='reset'
-          aria-disabled={status.pending}
-          disabled={status.pending || isPendingOutputGeneration}
-          onClick={resetForm}
-          className='rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700 disabled:bg-blue-300'
-        >
-          Clear
-        </button>
-        <button
-          type='reset'
-          onClick={async () => {
-            resetForm();
-            return deleteUserDataByLessonId(courseId, lessonId);
-          }}
-          aria-disabled={status.pending}
-          disabled={
-            status.pending || isPendingOutputGeneration || !sectionCompleted
-          }
-          className='rounded bg-red-500 px-4 py-2 font-bold text-white hover:bg-red-700 disabled:bg-red-300'
-        >
-          Delete & Restart Lesson
-        </button>
-      </div>
+      <button
+        type='submit'
+        aria-disabled={status.pending}
+        disabled={status.pending || isPendingOutputGeneration}
+        className='rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700 disabled:bg-blue-300'
+      >
+        {status.pending
+          ? 'Submitting...'
+          : isPendingOutputGeneration
+            ? 'Generating...'
+            : 'Submit'}
+      </button>
+      <button
+        type='reset'
+        value='reset'
+        aria-disabled={status.pending}
+        disabled={status.pending || isPendingOutputGeneration}
+        onClick={resetForm}
+        className='rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700 disabled:bg-blue-300'
+      >
+        Clear
+      </button>
+      <button
+        type='reset'
+        onClick={async () => {
+          resetForm();
+          return deleteUserDataByLessonId(courseId, lessonId);
+        }}
+        aria-disabled={status.pending}
+        disabled={
+          status.pending || isPendingOutputGeneration || !sectionCompleted
+        }
+        className='rounded bg-red-500 px-4 py-2 font-bold text-white hover:bg-red-700 disabled:bg-red-300'
+      >
+        <FontAwesomeIcon icon={faTrashCan} /> Restart Lesson
+      </button>
     </>
   );
 };
 
 export default function LessonIO({
+  recordMap,
   courseId,
   lesson,
   section,
@@ -203,6 +205,7 @@ export default function LessonIO({
   lessonOutputfromDB,
   lastCompletedSectionFromDB,
 }: {
+  recordMap: ExtendedRecordMap;
   courseId: string;
   lesson: Lesson;
   section: number;
@@ -241,6 +244,7 @@ export default function LessonIO({
 
   const [isExporting, startExportTransition] = useTransition();
   const router = useRouter();
+  const [selectedTab, setSelectedTab] = useState(0);
 
   function onExportOutput() {
     startExportTransition(async () => {
@@ -323,10 +327,53 @@ export default function LessonIO({
 
   return (
     <>
+      <div className='col-span-3 flex justify-center gap-2 md:hidden'>
+        <button
+          onClick={() => setSelectedTab(0)}
+          className={cn('rounded bg-blue-300 px-4 py-1 font-bold text-white', {
+            'bg-blue-700': selectedTab === 0,
+          })}
+        >
+          Lesson
+        </button>
+        <button
+          onClick={() => setSelectedTab(1)}
+          className={cn('rounded bg-blue-300 px-4 py-1 font-bold text-white', {
+            'bg-blue-700': selectedTab === 1,
+          })}
+        >
+          Input
+        </button>
+        <button
+          onClick={() => setSelectedTab(2)}
+          className={cn('rounded bg-blue-300 px-4 py-1 font-bold text-white', {
+            'bg-blue-700': selectedTab === 2,
+          })}
+        >
+          Output
+        </button>
+      </div>
+      <div
+        className={cn(
+          'col-span-3  flex flex-col overflow-auto bg-white md:col-span-1',
+          {
+            'hidden md:flex': selectedTab !== 0,
+          }
+        )}
+      >
+        <div className='flex-grow overflow-auto '>
+          <NotionPage recordMap={recordMap}></NotionPage>
+        </div>
+      </div>
       <form
         action={formAction}
         ref={formRef}
-        className='flex flex-grow flex-col overflow-auto bg-white text-sm'
+        className={cn(
+          'col-span-3  flex flex-grow flex-col overflow-auto bg-white text-xs md:col-span-1 md:text-sm ',
+          {
+            'hidden md:flex': selectedTab !== 1,
+          }
+        )}
       >
         <div className='prose flex-grow overflow-auto p-4'>
           {loading ? (
@@ -354,15 +401,17 @@ export default function LessonIO({
           value={lessonId}
         />
         <input type='hidden' readOnly={true} name='section' value={section} />
-        <div className='w-full rounded-full bg-gray-200 text-center'>
-          <div
-            className='text-nowrap rounded-full bg-green-600 p-0.5  text-center font-medium leading-none text-white'
-            style={{ width: `${(section / totalSections) * 100}%` }}
-          >
-            {section} / {totalSections}
+        <div className='p-2 pb-0'>
+          <div className='w-full rounded-full bg-gray-200 text-center'>
+            <div
+              className='text-nowrap rounded-full bg-green-600 p-0.5  text-center font-medium leading-none text-white'
+              style={{ width: `${(section / totalSections) * 100}%` }}
+            >
+              {section} / {totalSections}
+            </div>
           </div>
         </div>
-        <div className='bottom-0 left-0 flex w-full justify-start space-x-2 p-2'>
+        <div className='bottom-0 left-0 flex w-full justify-evenly space-x-2 p-2 md:justify-start'>
           <FormButtons
             courseId={courseId}
             lessonId={lessonId}
@@ -372,11 +421,18 @@ export default function LessonIO({
           />
         </div>
       </form>
-      <div className='relative flex flex-grow flex-col overflow-auto bg-sky-50 text-sm'>
+      <div
+        className={cn(
+          'relative col-span-3 flex flex-grow flex-col overflow-auto bg-sky-50 text-xs md:col-span-1 md:text-sm',
+          {
+            'hidden md:flex': selectedTab !== 2,
+          }
+        )}
+      >
         {!isPendingOutputGeneration && outputHTML && completionConfetti && (
           <DynamicConfetti />
         )}
-        <div className='flex-grow overflow-auto p-4 text-sm'>
+        <div className='flex-grow overflow-auto p-4'>
           {isPendingOutputGeneration ? (
             'Generating awesome results!!!'
           ) : outputHTML ? (
@@ -390,15 +446,15 @@ export default function LessonIO({
         </div>
       </div>
 
-      <footer className='col-span-3 grid grid-cols-5 p-2'>
-        <div className='col-span-2 flex flex-grow justify-start gap-2'>
+      <footer className='col-span-3 grid grid-cols-3 gap-2 p-2 md:grid-cols-5'>
+        <div className='col-span-3 flex flex-grow justify-evenly gap-2 md:col-span-2 md:justify-start'>
           <FeedbackButtons lessonCompleted={lessonCompleted} />
         </div>
-        <div className='flex items-center justify-center gap-1'>
+        <div className='hidden items-center gap-1 md:flex md:justify-center'>
           {lessonCompleted ? <span>✅</span> : <span>🟦</span>}
           <span>{lesson.title}</span>
         </div>
-        <div className='col-span-2 flex flex-grow justify-end gap-2'>
+        <div className='col-span-3 flex flex-grow justify-evenly gap-2 md:col-span-2 md:justify-end'>
           <LessonButtons
             sectionCompleted={sectionCompleted}
             prevSectionLink={prevSectionLink}

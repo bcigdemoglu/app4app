@@ -1,4 +1,4 @@
-import { JsonObject, MDXOutputComponents } from '@/app/lib/types';
+import { JsonObject, MDXOutputComponents } from '@/lib/types';
 
 export const toTextFieldId = (name: string) => `I_TEXT.${name}`;
 

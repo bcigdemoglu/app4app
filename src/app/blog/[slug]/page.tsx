@@ -6,8 +6,8 @@ import { Metadata } from 'next';
 import { useMDXComponent } from 'next-contentlayer/hooks';
 import Image from 'next/image';
 import { notFound } from 'next/navigation';
-import Navbar from '@/app/components/Navbar';
-import { BlogMDXComponents } from '@/app/components/mdx';
+import Navbar from '@/components/Navbar';
+import { BlogMDXComponents } from '@/components/mdx';
 
 export function generateStaticParams(): Array<Props['params']> {
   return allPosts.map((post) => ({ slug: post.slug }));

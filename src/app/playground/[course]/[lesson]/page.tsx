@@ -1,9 +1,9 @@
-import { COURSE_MAP } from '@/app/lib/data';
+import { COURSE_MAP } from '@/lib/data';
 import {
   fetchUserProgressFromDB,
   getLessonInputs,
-} from '@/app/utils/lessonHelpers';
-import { createClient } from '@/app/utils/supabase/server';
+} from '@/utils/lessonHelpers';
+import { createClient } from '@/utils/supabase/server';
 import { cookies } from 'next/headers';
 import { notFound, redirect } from 'next/navigation';
 

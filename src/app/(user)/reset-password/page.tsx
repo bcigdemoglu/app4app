@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation';
 import { resetPassword } from './actions';
-import { getAuthUserAndProfile } from '@/app/utils/userActions';
+import { getAuthUserAndProfile } from '@/utils/userActions';
 import { logout } from '../my-account/actions';
 import Link from 'next/link';
 

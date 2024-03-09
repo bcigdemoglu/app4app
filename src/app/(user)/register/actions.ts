@@ -4,7 +4,7 @@ import { revalidatePath } from 'next/cache';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 
-import { createClient } from '@/app/utils/supabase/actions';
+import { createClient } from '@/utils/supabase/actions';
 
 export async function register(formData: FormData) {
   const cookieStore = cookies();

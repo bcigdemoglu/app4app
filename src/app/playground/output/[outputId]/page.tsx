@@ -1,5 +1,5 @@
 import { fetchExportedOutput } from '@/app/actions';
-import Printer from '@/app/components/Printer';
+import Printer from '@/components/Printer';
 import { notFound } from 'next/navigation';
 
 interface Props {

@@ -2,17 +2,17 @@
 
 import { NotionAPI } from 'notion-client';
 import { cookies } from 'next/headers';
-import { createClient } from '@/app/utils/supabase/server';
+import { createClient } from '@/utils/supabase/server';
 import {
   JsonObject,
   UserProgressTable,
   verifiedJsonObjectFromDB,
-} from '@/app/lib/types';
+} from '@/lib/types';
 import {
   getLessonInputMDX,
   getLessonOutputMDX,
   getLessonTotalSections,
-} from '@/app/lib/data';
+} from '@/lib/data';
 import { ExtendedRecordMap } from 'notion-types';
 import { MDXRemoteSerializeResult } from 'next-mdx-remote';
 import { serialize } from 'next-mdx-remote/serialize';

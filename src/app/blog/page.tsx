@@ -2,7 +2,7 @@ import { allPosts } from 'contentlayer/generated';
 import dayjs from 'dayjs';
 import Image from 'next/image';
 import Link from 'next/link';
-import Navbar from '@/app/components/Navbar';
+import Navbar from '@/components/Navbar';
 // import { BlogTag } from '~/components/BlogTag';
 
 export const metadata = {

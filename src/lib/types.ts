@@ -1,4 +1,4 @@
-import { Json, Tables } from '@/app/lib/database.types';
+import { Json, Tables } from '@/lib/database.types';
 
 export type JsonObject = { [key: string]: Json };
 

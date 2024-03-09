@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation';
 import { updateProfile, logout } from './actions';
 import Link from 'next/link';
-import { getAuthUserAndProfile } from '@/app/utils/userActions';
+import { getAuthUserAndProfile } from '@/utils/userActions';
 
 function InputField({
   name,

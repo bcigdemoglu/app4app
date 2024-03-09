@@ -2,7 +2,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { handleLogInWithGoogle, login } from './actions';
 import { redirect } from 'next/navigation';
-import { getAuthUser } from '@/app/utils/userActions';
+import { getAuthUser } from '@/utils/userActions';
 
 export default async function LoginPage() {
   const user = await getAuthUser();

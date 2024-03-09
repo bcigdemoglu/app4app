@@ -3,7 +3,7 @@
 import { cookies } from 'next/headers';
 import { createClient } from './supabase/server';
 import { User } from '@supabase/supabase-js';
-import { Tables } from '@/app/lib/database.types';
+import { Tables } from '@/lib/database.types';
 
 export async function getAuthUser(): Promise<User | null> {
   const cookieStore = cookies();

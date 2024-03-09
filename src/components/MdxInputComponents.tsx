@@ -1,6 +1,6 @@
 'use client';
 
-import { JsonObject, MDXOutputComponents } from '@/app/lib/types';
+import { JsonObject, MDXOutputComponents } from '@/lib/types';
 import { useEffect, useRef } from 'react';
 import { getMdxOutputComponents, toTextFieldId } from './MdxOutputComponents';
 

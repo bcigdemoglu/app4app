@@ -1,15 +1,14 @@
-import LessonIO from '@/app/components/LessonIO';
+import LessonIO from '@/components/LessonIO';
 import {
   COURSE_MAP,
   DEMO_LESSON_AI_FEEDBACK,
   AI_MODAL_PARAM,
   CREATOR_MODAL_PARAM,
-} from '@/app/lib/data';
+} from '@/lib/data';
 import { notFound, redirect } from 'next/navigation';
-import NotionPage from '@/app/components/NotionPage';
 import Link from 'next/link';
 import { cookies } from 'next/headers';
-import { createClient } from '@/app/utils/supabase/server';
+import { createClient } from '@/utils/supabase/server';
 import {
   getRecordMap,
   fetchUserProgressFromDB,
@@ -17,10 +16,10 @@ import {
   getLessonMDX,
   getLessonOutput,
   getAIFeedbackMDX,
-} from '@/app/utils/lessonHelpers';
-import AIFeedbackModal from '@/app/components/AIFeedbackModal';
-import CreatorFeedbackModal from '@/app/components/CreatorFeedbackModal';
-import { perf } from '@/app/utils/debug';
+} from '@/utils/lessonHelpers';
+import AIFeedbackModal from '@/components/AIFeedbackModal';
+import CreatorFeedbackModal from '@/components/CreatorFeedbackModal';
+import { perf } from '@/utils/debug';
 
 export const metadata = {
   title: "Ilayda's Playground: How to Start a Business",
@@ -107,17 +106,16 @@ export default async function Page({ params, searchParams }: Props) {
     : null;
 
   return (
-    <main className='grid h-screen grid-cols-3 gap-1 bg-sky-100'>
+    <main className='grid h-screen grid-cols-3 gap-1 bg-sky-100 text-xs md:text-base'>
       <header className='col-span-3 grid grid-cols-2 p-2'>
         <div className='flex justify-start gap-2'>
-          <span className='transform rounded-lg bg-gradient-to-r from-blue-400 to-purple-600 px-4 py-1 text-xl font-bold text-white shadow-md transition-transform duration-300 ease-in-out hover:from-purple-600 hover:to-blue-400'>
+          <span className='transform rounded-lg bg-gradient-to-r from-blue-400 to-purple-600 px-4 py-1 text-sm font-bold text-white shadow-md transition-transform duration-300 ease-in-out hover:from-purple-600 hover:to-blue-400 md:text-xl'>
             {'Cloudybook'}
           </span>
         </div>
         <div className='flex justify-end gap-1'>
           <Link href='/my-account'>
-            <button className=' '>
-              {/* <Image
+            {/* <Image
                 src='/ilayda.jpeg'
                 alt='Ilayda Buyukdogan Profile'
                 className='h-10 w-10 overflow-hidden rounded-full border object-cover'
@@ -125,11 +123,11 @@ export default async function Page({ params, searchParams }: Props) {
                 height={0}
                 sizes='100vw'
               /> */}
-              <span className='inline-flex h-10 items-center justify-center rounded-full bg-purple-500 px-2'>
-                <span className='font-bold text-white'>
-                  {profile?.full_name}
-                </span>
-              </span>
+            <button className='hidden h-10 items-center justify-center rounded-full bg-purple-500 px-2 font-bold text-white hover:bg-purple-700 md:inline-flex'>
+              {profile?.full_name}
+            </button>
+            <button className='inline-flex h-8 items-center justify-center rounded-full bg-purple-500 px-2 font-bold text-white hover:bg-purple-700 md:hidden'>
+              {profile?.full_name.charAt(0)}
             </button>
           </Link>
           <Link href='/my-account'>
@@ -140,11 +138,9 @@ export default async function Page({ params, searchParams }: Props) {
         </div>
       </header>
 
-      {/* Left Column */}
-      <NotionPage recordMap={recordMap}></NotionPage>
-
-      {/* Middle Column and Right Columns */}
+      {/* Left, Middle, Right Columns */}
       <LessonIO
+        recordMap={recordMap}
         courseId={courseId}
         lesson={lesson}
         section={section}
@@ -159,6 +155,7 @@ export default async function Page({ params, searchParams }: Props) {
         lastCompletedSectionFromDB={lastCompletedSectionFromDB}
         lessonOutputfromDB={lessonOutputfromDB}
       />
+
       {searchParams[CREATOR_MODAL_PARAM] && <CreatorFeedbackModal />}
       {searchParams[AI_MODAL_PARAM] && (
         <AIFeedbackModal
