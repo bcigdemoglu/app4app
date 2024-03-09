@@ -411,7 +411,7 @@ export default function LessonIO({
             </div>
           </div>
         </div>
-        <div className='bottom-0 left-0 flex w-full justify-evenly space-x-2 p-2 md:justify-start'>
+        <div className='bottom-0 left-0 flex w-full justify-center space-x-2 p-2 md:justify-start'>
           <FormButtons
             courseId={courseId}
             lessonId={lessonId}
@@ -447,14 +447,14 @@ export default function LessonIO({
       </div>
 
       <footer className='col-span-3 grid grid-cols-3 gap-2 p-2 md:grid-cols-5'>
-        <div className='col-span-3 flex flex-grow justify-evenly gap-2 md:col-span-2 md:justify-start'>
+        <div className='col-span-3 flex flex-grow justify-center gap-2 md:col-span-2 md:justify-start'>
           <FeedbackButtons lessonCompleted={lessonCompleted} />
         </div>
         <div className='hidden items-center gap-1 md:flex md:justify-center'>
           {lessonCompleted ? <span>✅</span> : <span>🟦</span>}
           <span>{lesson.title}</span>
         </div>
-        <div className='col-span-3 flex flex-grow justify-evenly gap-2 md:col-span-2 md:justify-end'>
+        <div className='col-span-3 flex flex-grow justify-center gap-2 md:col-span-2 md:justify-end'>
           <LessonButtons
             sectionCompleted={sectionCompleted}
             prevSectionLink={prevSectionLink}
