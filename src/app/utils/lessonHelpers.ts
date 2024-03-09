@@ -1,5 +1,6 @@
-'server only';
+'use only';
 
+import { NotionAPI } from 'notion-client';
 import { cookies } from 'next/headers';
 import { createClient } from '@/app/utils/supabase/server';
 import {
@@ -17,6 +18,15 @@ import { MDXRemoteSerializeResult } from 'next-mdx-remote';
 import { serialize } from 'next-mdx-remote/serialize';
 import { User } from '@supabase/supabase-js';
 import { perf } from './debug';
+
+export async function getRecordMap(id: string) {
+  return perf('getRecordMap', async () => {
+    const pageId = id;
+    const notion = new NotionAPI();
+    const recordMap = await notion.getPage(pageId);
+    return recordMap;
+  });
+}
 
 export async function getAIFeedbackMDX(
   aifeedback: string

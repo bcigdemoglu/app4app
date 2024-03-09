@@ -6,12 +6,12 @@ import {
   CREATOR_MODAL_PARAM,
 } from '@/app/lib/data';
 import { notFound, redirect } from 'next/navigation';
-import { getRecordMap } from './actions';
 import NotionPage from '@/app/components/NotionPage';
 import Link from 'next/link';
 import { cookies } from 'next/headers';
 import { createClient } from '@/app/utils/supabase/server';
 import {
+  getRecordMap,
   fetchUserProgressFromDB,
   getLessonInputs,
   getLessonMDX,
@@ -20,6 +20,7 @@ import {
 } from '@/app/utils/lessonHelpers';
 import AIFeedbackModal from '@/app/components/AIFeedbackModal';
 import CreatorFeedbackModal from '@/app/components/CreatorFeedbackModal';
+import { perf } from '@/app/utils/debug';
 
 export const metadata = {
   title: "Ilayda's Playground: How to Start a Business",
@@ -68,10 +69,10 @@ export default async function Page({ params, searchParams }: Props) {
   const userProgressFromDBPromise = fetchUserProgressFromDB();
 
   // Wait for both operations to complete
-  const [recordMap, userProgressFromDB] = await Promise.all([
-    recordMapPromise,
-    userProgressFromDBPromise,
-  ]);
+  const [recordMap, userProgressFromDB] = await perf(
+    'Page: recordMapAndUserProgress',
+    async () => await Promise.all([recordMapPromise, userProgressFromDBPromise])
+  );
 
   const { mdxInputSource, mdxOutputSource, totalSections } = await getLessonMDX(
     recordMap,

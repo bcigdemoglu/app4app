@@ -20,6 +20,14 @@ import { useRouter } from 'next/navigation';
 // import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 // import { faArrowsRotate } from '@fortawesome/free-solid-svg-icons';
 
+function hashString(str: string) {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    hash ^= str.charCodeAt(i);
+  }
+  return hash;
+}
+
 const DynamicConfetti = dynamic(() =>
   import('@/app/components/Confetti').then((m) => m.Confetti)
 );
@@ -145,7 +153,11 @@ const FormButtons = ({
           disabled={status.pending || isPendingOutputGeneration}
           className='rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700 disabled:bg-blue-300'
         >
-          Submit
+          {status.pending
+            ? 'Submitting...'
+            : isPendingOutputGeneration
+              ? 'Generating...'
+              : 'Submit'}
         </button>
         <button
           type='reset'
@@ -206,27 +218,27 @@ export default function LessonIO({
   lastCompletedSectionFromDB: number | null;
 }) {
   const { id: lessonId, notionId } = lesson;
+  const outputHTML = lessonOutputfromDB;
+  const sectionCompleted =
+    outputHTML !== null &&
+    lastCompletedSectionFromDB !== null &&
+    section <= lastCompletedSectionFromDB;
+  const finalSection = section === totalSections;
+  const lessonCompleted = sectionCompleted && finalSection;
+  const completionConfetti = finalSection && lessonCompleted;
 
   const [loading, setLoading] = useState(true);
-  const [sectionCompleted, setSectionCompleted] = useState(
-    lessonOutputfromDB !== null &&
-      lastCompletedSectionFromDB !== null &&
-      section <= lastCompletedSectionFromDB
-  );
-  const [lessonCompleted, setLessonCompleted] = useState(
-    lessonOutputfromDB !== null && lastCompletedSectionFromDB === totalSections
-  );
-  const [completionConfetti, setCompletionConfetti] = useState(false);
   const [formState, formAction] = useFormState(updateUserInputsByLessonId, {
     state: 'pending',
   } as UpdateUserInputFormState);
-  const formRef = useRef<HTMLFormElement>(null);
-  const [isPendingOutputGeneration, startTransition] = useTransition();
-  const [outputHTML, setOutputHTML] = useState(lessonOutputfromDB);
-  const [clearInputs, setClearInputs] = useState(false);
   const lessonInputs = JSON.stringify(
     formState.data ?? lessonInputsFromDB ?? {}
   );
+  const formRef = useRef<HTMLFormElement>(null);
+  const [isPendingOutputGeneration, startTransition] = useTransition();
+
+  const [clearInputs, setClearInputs] = useState(false);
+
   const [isExporting, startExportTransition] = useTransition();
   const router = useRouter();
 
@@ -241,18 +253,7 @@ export default function LessonIO({
           true
         );
         console.log('Exported output...', isExporting);
-        // Construct the URL
-
         router.push(`/playground/output/${exportedOutputId}`);
-
-        // const domain = window.location.hostname;
-        // const port = window.location.port;
-        // const url = new URL(
-        //   `/playground/output/${exportedOutputId}`,
-        //   `https://${domain}:${port}`
-        // );
-        // const newWindow = window.open(url, '_blank');
-        // console.log('Opened new window...', newWindow);
       }
     });
   }
@@ -263,6 +264,7 @@ export default function LessonIO({
   );
 
   const resetForm = () => {
+    formRef.current?.reset();
     setClearInputs(true);
     for (const key in localStorage) {
       if (key.startsWith('ilayda.')) {
@@ -271,50 +273,53 @@ export default function LessonIO({
     }
   };
 
-  // console.log('Rendering all: formState.state', formState.state);
+  console.log(
+    'Rendering page: formState.state',
+    formState.state,
+    'current outputHTML',
+    hashString(outputHTML ?? '')
+  );
 
   useEffect(() => {
     if (formState.state === 'success' || formState.state === 'noupdate') {
-      // console.log('Creating generatedOutputHTML...', formState.state);
-      const lessonInputsJSON = JSON.parse(lessonInputs);
-      const generatedOutputHTML = renderToStaticMarkup(
-        <MDXRemote
-          compiledSource={mdxOutputSource.compiledSource}
-          scope={mdxOutputSource.scope}
-          frontmatter={mdxOutputSource.frontmatter}
-          components={getMdxOutputComponents(lessonInputsJSON)}
-        />
-      );
-      setOutputHTML(generatedOutputHTML);
-    }
-  }, [
-    formState.state,
-    mdxOutputSource.compiledSource,
-    mdxOutputSource.scope,
-    mdxOutputSource.frontmatter,
-    lessonInputs,
-  ]);
-
-  useEffect(() => {
-    if (
-      (formState.state === 'success' || formState.state === 'noupdate') &&
-      outputHTML
-    ) {
-      // console.log('Sending form data...');
-      setClearInputs(false);
       startTransition(async () => {
-        await updateUserOutputsByLessonId(courseId, lessonId, outputHTML);
-        setSectionCompleted(true);
-        if (section === totalSections) {
-          // If all sections are completed, set lesson completed
-          setLessonCompleted(true);
-          // If first time completing lesson, set confetti
-          setCompletionConfetti(true);
-        }
+        const lessonInputsJSON = JSON.parse(lessonInputs);
+        const renderedOutputHTML = renderToStaticMarkup(
+          <MDXRemote
+            compiledSource={mdxOutputSource.compiledSource}
+            scope={null}
+            frontmatter={null}
+            components={getMdxOutputComponents(lessonInputsJSON)}
+          />
+        );
+        console.log(
+          'Sending form data... ',
+          'new outputHTML',
+          hashString(renderedOutputHTML)
+        );
+        setClearInputs(false);
+        await updateUserOutputsByLessonId(
+          courseId,
+          lessonId,
+          renderedOutputHTML
+        );
+        console.log(
+          'Sent form data! ',
+          'new outputHTML',
+          hashString(renderedOutputHTML)
+        );
       });
     }
     setLoading(false);
-  }, [formState.state, outputHTML, courseId, lessonId, section, totalSections]);
+  }, [
+    formState.state,
+    lessonInputs,
+    mdxOutputSource.compiledSource,
+    courseId,
+    lessonId,
+    section,
+    totalSections,
+  ]);
 
   return (
     <>
@@ -375,12 +380,10 @@ export default function LessonIO({
           {isPendingOutputGeneration ? (
             'Generating awesome results!!!'
           ) : outputHTML ? (
-            <div>
-              <div
-                className='prose'
-                dangerouslySetInnerHTML={{ __html: outputHTML }}
-              />
-            </div>
+            <div
+              className='prose'
+              dangerouslySetInnerHTML={{ __html: outputHTML }}
+            />
           ) : (
             <CleanOutputMessage />
           )}
