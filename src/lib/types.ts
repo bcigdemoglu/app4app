@@ -44,7 +44,8 @@ export type AIFeedbackMap = Record<string, { mdx: string }>;
 export type MDXOutputComponent = (...props: any[]) => JSX.Element;
 export type MDXOutputComponents = { [key: string]: MDXOutputComponent };
 
-export type UserProgressTable = Tables<'user_progress'>;
+export type UserProgressFromDB = Tables<'user_progress'>;
+export type ExportedOuputsFromDB = Tables<'exported_outputs'>;
 
 export type UpdateUserInputFormState = {
   state: 'success' | 'error' | 'noupdate' | 'pending';

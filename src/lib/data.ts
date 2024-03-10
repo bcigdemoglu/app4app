@@ -48,6 +48,14 @@ export const DEMO_LESSON_MAP: LessonMap = {
     title: 'Lesson Ilayda 2: AMAZING',
     description: 'Universe to impress ilayda',
     prev: 'ilayda1',
+    next: 'supershortpage',
+  },
+  supershortpage: {
+    id: 'supershortpage',
+    notionId: '371627a158454d5bbed5f2a45bc487a4',
+    title: 'Lesson: Super Short Page',
+    description: 'This is a super short page',
+    prev: 'ilayda2',
     next: null,
   },
 };

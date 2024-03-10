@@ -106,8 +106,8 @@ export default async function Page({ params, searchParams }: Props) {
     : null;
 
   return (
-    <main className='grid h-svh grid-cols-3 gap-1 bg-sky-100 text-xs md:text-base'>
-      <header className='col-span-3 grid grid-cols-2 p-2'>
+    <main className='grid h-svh grid-cols-3 gap-1 bg-sky-100 text-xs md:gap-2 md:text-base'>
+      <header className='col-span-3 grid h-min grid-cols-2 p-2 pb-0'>
         <div className='flex justify-start gap-2'>
           <span className='transform rounded-lg bg-gradient-to-r from-blue-400 to-purple-600 px-4 py-1 text-sm font-bold text-white shadow-md transition-transform duration-300 ease-in-out hover:from-purple-600 hover:to-blue-400 md:text-xl'>
             {'Cloudybook'}
@@ -126,7 +126,7 @@ export default async function Page({ params, searchParams }: Props) {
             <button className='hidden h-10 items-center justify-center rounded-full bg-purple-500 px-2 font-bold text-white hover:bg-purple-700 md:inline-flex'>
               {profile?.full_name}
             </button>
-            <button className='inline-flex h-8 items-center justify-center rounded-full bg-purple-500 px-2 font-bold text-white hover:bg-purple-700 md:hidden'>
+            <button className='inline-flex h-8 w-8 items-center justify-center rounded-full bg-purple-500 font-bold text-white hover:bg-purple-700 md:hidden'>
               {profile?.full_name.charAt(0)}
             </button>
           </Link>

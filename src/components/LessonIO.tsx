@@ -35,6 +35,25 @@ const DynamicConfetti = dynamic(() =>
   import('@/components/Confetti').then((m) => m.Confetti)
 );
 
+const ProgressBar = ({
+  section,
+  totalSections,
+}: {
+  section: number;
+  totalSections: number;
+}) => {
+  return (
+    <div className='w-full bg-sky-200 text-center'>
+      <div
+        className='text-nowrap bg-green-600 p-0.5 text-center font-medium leading-none text-white'
+        style={{ width: `${(section / totalSections) * 100}%` }}
+      >
+        {section} / {totalSections}
+      </div>
+    </div>
+  );
+};
+
 const FeedbackButtons = ({ lessonCompleted }: { lessonCompleted: boolean }) => {
   return (
     <>
@@ -63,6 +82,7 @@ const LessonButtons = ({
   lessonCompleted,
   nextLessonLink,
   onExportOutput,
+  isExporting,
 }: {
   prevSectionLink: string | null;
   nextSectionLink: string | null;
@@ -71,15 +91,16 @@ const LessonButtons = ({
   nextLessonLink: string | null;
   lessonCompleted: boolean;
   onExportOutput: () => void;
+  isExporting: boolean;
 }) => {
   return (
     <>
       <button
-        disabled={!lessonCompleted}
+        disabled={!lessonCompleted || isExporting}
         onClick={onExportOutput}
         className='rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700 disabled:bg-blue-300'
       >
-        Export & Share
+        {!isExporting ? 'Export & Share' : 'Exporting...'}
       </button>
       {prevSectionLink && (
         <Link href={prevSectionLink}>
@@ -136,36 +157,35 @@ const FormButtons = ({
   courseId,
   lessonId,
   sectionCompleted,
-  isPendingOutputGeneration,
+  isGeneratingOutput,
   resetForm,
 }: {
   courseId: string;
   lessonId: string;
   sectionCompleted: boolean;
-  isPendingOutputGeneration: boolean;
+  isGeneratingOutput: boolean;
   resetForm: () => void;
 }) => {
   const status = useFormStatus();
+  const [isRestatingLesson, startRestarting] = useTransition();
+  const formButtonsDisabled =
+    status.pending || isGeneratingOutput || isRestatingLesson;
 
   return (
     <>
       <button
         type='submit'
-        aria-disabled={status.pending}
-        disabled={status.pending || isPendingOutputGeneration}
+        aria-disabled={formButtonsDisabled}
+        disabled={formButtonsDisabled}
         className='rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700 disabled:bg-blue-300'
       >
-        {status.pending
-          ? 'Submitting...'
-          : isPendingOutputGeneration
-            ? 'Generating...'
-            : 'Submit'}
+        {status.pending ? 'Submitting...' : 'Submit'}
       </button>
       <button
         type='reset'
         value='reset'
-        aria-disabled={status.pending}
-        disabled={status.pending || isPendingOutputGeneration}
+        aria-disabled={formButtonsDisabled}
+        disabled={formButtonsDisabled}
         onClick={resetForm}
         className='rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700 disabled:bg-blue-300'
       >
@@ -173,17 +193,23 @@ const FormButtons = ({
       </button>
       <button
         type='reset'
-        onClick={async () => {
-          resetForm();
-          return deleteUserDataByLessonId(courseId, lessonId);
-        }}
-        aria-disabled={status.pending}
-        disabled={
-          status.pending || isPendingOutputGeneration || !sectionCompleted
+        onClick={() =>
+          startRestarting(async () => {
+            resetForm();
+            await deleteUserDataByLessonId(courseId, lessonId);
+          })
         }
+        aria-disabled={status.pending}
+        disabled={formButtonsDisabled || !sectionCompleted}
         className='rounded bg-red-500 px-4 py-2 font-bold text-white hover:bg-red-700 disabled:bg-red-300'
       >
-        <FontAwesomeIcon icon={faTrashCan} /> Restart Lesson
+        {isRestatingLesson ? (
+          'Restarting...'
+        ) : (
+          <>
+            <FontAwesomeIcon icon={faTrashCan} /> Restart Lesson
+          </>
+        )}
       </button>
     </>
   );
@@ -238,16 +264,22 @@ export default function LessonIO({
     formState.data ?? lessonInputsFromDB ?? {}
   );
   const formRef = useRef<HTMLFormElement>(null);
-  const [isPendingOutputGeneration, startTransition] = useTransition();
+  const [isGeneratingOutput, startGeneratingOutput] = useTransition();
 
   const [clearInputs, setClearInputs] = useState(false);
 
-  const [isExporting, startExportTransition] = useTransition();
+  const [isExporting, startExporting] = useTransition();
   const router = useRouter();
-  const [selectedTab, setSelectedTab] = useState(0);
+  const [selectedTab, setSelectedTab] = useState(
+    finalSection && sectionCompleted
+      ? 2 // Completed final section displays output
+      : section > 1
+        ? 1 // Section greater than 1 displays input
+        : 0 // First section displays lesson
+  );
 
   function onExportOutput() {
-    startExportTransition(async () => {
+    startExporting(async () => {
       if (outputHTML) {
         console.log('Exporting output...');
         const { id: exportedOutputId } = await exportUserOutput(
@@ -261,11 +293,6 @@ export default function LessonIO({
       }
     });
   }
-
-  const mdxInputComponents = getMdxInputComponents(
-    clearInputs,
-    JSON.parse(lessonInputs)
-  );
 
   const resetForm = () => {
     formRef.current?.reset();
@@ -286,7 +313,7 @@ export default function LessonIO({
 
   useEffect(() => {
     if (formState.state === 'success' || formState.state === 'noupdate') {
-      startTransition(async () => {
+      startGeneratingOutput(async () => {
         const lessonInputsJSON = JSON.parse(lessonInputs);
         const renderedOutputHTML = renderToStaticMarkup(
           <MDXRemote
@@ -307,6 +334,8 @@ export default function LessonIO({
           lessonId,
           renderedOutputHTML
         );
+        // Select output tab after successful form submission
+        setSelectedTab(2);
         console.log(
           'Sent form data! ',
           'new outputHTML',
@@ -327,7 +356,7 @@ export default function LessonIO({
 
   return (
     <>
-      <div className='col-span-3 flex justify-center gap-2 md:hidden'>
+      <div className='z-50 col-span-3 mt-[-1rem] flex h-min translate-y-4 justify-center gap-2 md:hidden'>
         <button
           onClick={() => setSelectedTab(0)}
           className={cn('rounded bg-blue-300 px-4 py-1 font-bold text-white', {
@@ -355,13 +384,13 @@ export default function LessonIO({
       </div>
       <div
         className={cn(
-          'col-span-3  flex flex-col overflow-auto bg-white md:col-span-1',
+          'col-span-3 flex flex-col overflow-auto bg-white md:col-span-1',
           {
             'hidden md:flex': selectedTab !== 0,
           }
         )}
       >
-        <div className='flex-grow overflow-auto '>
+        <div className='h-screen flex-grow overflow-auto'>
           <NotionPage recordMap={recordMap}></NotionPage>
         </div>
       </div>
@@ -369,17 +398,23 @@ export default function LessonIO({
         action={formAction}
         ref={formRef}
         className={cn(
-          'col-span-3  flex flex-grow flex-col overflow-auto bg-white text-xs md:col-span-1 md:text-sm ',
+          'col-span-3 flex flex-grow flex-col overflow-auto bg-white text-xs md:col-span-1 md:text-sm ',
           {
             'hidden md:flex': selectedTab !== 1,
           }
         )}
       >
-        <div className='prose flex-grow overflow-auto p-4'>
+        <div className='prose h-screen flex-grow overflow-auto p-4'>
           {loading ? (
             'Loading playground...'
           ) : (
-            <MDXRemote {...mdxInputSource} components={mdxInputComponents} />
+            <MDXRemote
+              {...mdxInputSource}
+              components={getMdxInputComponents(
+                clearInputs,
+                JSON.parse(lessonInputs)
+              )}
+            />
           )}
         </div>
         <input
@@ -401,39 +436,32 @@ export default function LessonIO({
           value={lessonId}
         />
         <input type='hidden' readOnly={true} name='section' value={section} />
-        <div className='p-2 pb-0'>
-          <div className='w-full rounded-full bg-gray-200 text-center'>
-            <div
-              className='text-nowrap rounded-full bg-green-600 p-0.5  text-center font-medium leading-none text-white'
-              style={{ width: `${(section / totalSections) * 100}%` }}
-            >
-              {section} / {totalSections}
-            </div>
-          </div>
+        <div className=''>
+          <ProgressBar section={section} totalSections={totalSections} />
         </div>
-        <div className='bottom-0 left-0 flex w-full justify-center space-x-2 p-2 md:justify-start'>
+        <div className='bottom-0 left-0 flex w-full justify-center space-x-2 bg-sky-100 pt-1 md:justify-start md:pt-2'>
           <FormButtons
             courseId={courseId}
             lessonId={lessonId}
             sectionCompleted={sectionCompleted}
             resetForm={resetForm}
-            isPendingOutputGeneration={isPendingOutputGeneration}
+            isGeneratingOutput={isGeneratingOutput}
           />
         </div>
       </form>
       <div
         className={cn(
-          'relative col-span-3 flex flex-grow flex-col overflow-auto bg-sky-50 text-xs md:col-span-1 md:text-sm',
+          'relative col-span-3 flex flex-grow flex-col overflow-auto bg-sky-50 text-sm md:col-span-1',
           {
             'hidden md:flex': selectedTab !== 2,
           }
         )}
       >
-        {!isPendingOutputGeneration && outputHTML && completionConfetti && (
+        {!isGeneratingOutput && outputHTML && completionConfetti && (
           <DynamicConfetti />
         )}
-        <div className='flex-grow overflow-auto p-4'>
-          {isPendingOutputGeneration ? (
+        <div className='h-screen flex-grow overflow-auto p-4'>
+          {isGeneratingOutput ? (
             'Generating awesome results!!!'
           ) : outputHTML ? (
             <div
@@ -446,8 +474,15 @@ export default function LessonIO({
         </div>
       </div>
 
-      <footer className='col-span-3 grid grid-cols-3 gap-2 p-2 md:grid-cols-5'>
-        <div className='col-span-3 flex flex-grow justify-center gap-2 md:col-span-2 md:justify-start'>
+      <footer className='col-span-3 grid grid-cols-3 gap-1 p-2 pt-0 md:grid-cols-5 md:gap-2'>
+        <div
+          className={cn(
+            'col-span-3 flex flex-grow justify-center gap-2 md:col-span-2 md:justify-start',
+            {
+              'hidden md:flex': selectedTab === 1, // Hide feedback buttons when input tab is selected
+            }
+          )}
+        >
           <FeedbackButtons lessonCompleted={lessonCompleted} />
         </div>
         <div className='hidden items-center gap-1 md:flex md:justify-center'>
@@ -463,6 +498,7 @@ export default function LessonIO({
             prevLessonLink={prevLessonLink}
             nextLessonLink={nextLessonLink}
             onExportOutput={onExportOutput}
+            isExporting={isExporting}
           />
         </div>
       </footer>

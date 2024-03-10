@@ -32,7 +32,16 @@ export default function RootLayout({
   return (
     <html lang='en'>
       <body className={inter.className}>
-        <Suspense fallback={<div>Loading Awesomeness...</div>}>
+        <Suspense
+          fallback={
+            <div className='flex h-svh items-center justify-center'>
+              <div className='h-32 w-32 animate-spin rounded-full border-b-2 border-blue-700'></div>
+              <div className='absolute text-xl font-semibold'>
+                Loading Awesomeness...
+              </div>
+            </div>
+          }
+        >
           {children}
         </Suspense>
         <VercelAnalytics />

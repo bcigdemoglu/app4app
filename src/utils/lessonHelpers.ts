@@ -5,7 +5,7 @@ import { cookies } from 'next/headers';
 import { createClient } from '@/utils/supabase/server';
 import {
   JsonObject,
-  UserProgressTable,
+  UserProgressFromDB,
   verifiedJsonObjectFromDB,
 } from '@/lib/types';
 import {
@@ -57,7 +57,7 @@ export async function getLessonMDX(
   return { mdxInputSource, mdxOutputSource, totalSections };
 }
 
-export async function fetchUserProgressFromDB(): Promise<UserProgressTable | null> {
+export async function fetchUserProgressFromDB(): Promise<UserProgressFromDB | null> {
   return perf('fetchUserProgressFromDB', async () => {
     const cookieStore = cookies();
     const supabase = createClient(cookieStore);
@@ -91,7 +91,7 @@ interface LessonInput {
 }
 
 export function getLessonInputs(
-  userProgress: UserProgressTable | null,
+  userProgress: UserProgressFromDB | null,
   lessonId: string,
   user: User
 ): LessonInput {
@@ -125,7 +125,7 @@ export function getLessonInputs(
 }
 
 export function getLessonOutput(
-  userProgress: UserProgressTable | null,
+  userProgress: UserProgressFromDB | null,
   lessonId: string,
   user: User
 ): string | null {

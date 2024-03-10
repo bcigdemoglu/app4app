@@ -8,6 +8,7 @@ import {
   verifiedJsonObjectFromDB,
   isSameJson,
   UpdateUserInputFormState,
+  ExportedOuputsFromDB,
 } from '@/lib/types';
 import { revalidatePath } from 'next/cache';
 
@@ -57,7 +58,6 @@ export async function updateUserInputsByLessonId(
   let existingInputsByLessonId: JsonObject = {};
   let existingLessonInput: JsonObject = {};
   let mergedLessonInput: JsonObject = newLessonInput;
-  let lastCompletedSection: number = section;
   if (userProgress && userProgress.inputs_by_lesson_id) {
     // Get user progress if there is one in DB
     const inputsByLessonIdFromDB = verifiedJsonObjectFromDB(
@@ -79,9 +79,6 @@ export async function updateUserInputsByLessonId(
       const lastCompletedSectionFromDB = (lessonMetadataFromDB[
         'lastCompletedSection'
       ] ?? 0) as number;
-      if (lastCompletedSectionFromDB > section) {
-        lastCompletedSection = lastCompletedSectionFromDB;
-      }
       const lessonInputFromDB = verifiedJsonObjectFromDB(
         lessonInputWithMetadataFromDB['data'],
         `FATAL_DB_ERROR: inputs_by_lesson_id.${lessonId}.data is not an object for user ${user.id}!`
@@ -104,7 +101,7 @@ export async function updateUserInputsByLessonId(
     data: mergedLessonInput,
     metadata: {
       modified_at: new Date().toISOString(),
-      lastCompletedSection: lastCompletedSection,
+      lastCompletedSection: section,
     },
   };
 
@@ -141,7 +138,7 @@ export async function updateUserInputsByLessonId(
     return {
       state: 'success',
       data: updatedData,
-      lastCompletedSection: lastCompletedSection,
+      lastCompletedSection: section,
     };
   } else {
     const { data: updatedUserProgress, error: insertUserProgressError } =
@@ -171,7 +168,7 @@ export async function updateUserInputsByLessonId(
     return {
       state: 'success',
       data: updatedData,
-      lastCompletedSection: lastCompletedSection,
+      lastCompletedSection: section,
     };
   }
 }
@@ -345,6 +342,15 @@ export async function exportUserOutput(
     redirect('/login');
   }
 
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('*')
+    .single();
+
+  if (!profile) {
+    redirect('/my-account');
+  }
+
   const { data: existingExportedOutput, error: getExportedOutputError } =
     await supabase
       .from('exported_outputs')
@@ -365,6 +371,7 @@ export async function exportUserOutput(
           output: outputHTML,
           course_id: courseId,
           user_id: user.id,
+          full_name: profile?.full_name,
           lesson_id: lessonId,
           is_public: isPublic,
           modified_at: new Date().toISOString(),
@@ -408,7 +415,7 @@ export async function exportUserOutput(
 
 export async function fetchExportedOutput(
   exportedOutputId: string
-): Promise<string | null> {
+): Promise<ExportedOuputsFromDB | null> {
   const cookieStore = cookies();
   const supabase = createClient(cookieStore);
 
@@ -431,5 +438,21 @@ export async function fetchExportedOutput(
     console.error('getExportedOutputError', getExportedOutputError);
     return null;
   }
-  return existingExportedOutput.output;
+
+  const { data: updatedExportedOutput, error: getUpdatedOutputError } =
+    await supabase
+      .from('exported_outputs')
+      .update({
+        view_count: existingExportedOutput.view_count + 1,
+      })
+      .eq('id', exportedOutputId)
+      .select()
+      .single();
+
+  if (getUpdatedOutputError) {
+    console.error('getUpdatedOutputError', getUpdatedOutputError);
+    return null;
+  }
+
+  return updatedExportedOutput;
 }

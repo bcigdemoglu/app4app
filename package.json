@@ -6,7 +6,7 @@
     "node": "^20"
   },
   "scripts": {
-    "gen": "echo 'Generating supabase types...' && supabase gen types typescript --project-id fehegdrzmwuqmeutkptb > ./src/app/lib/database.types.ts",
+    "gen": "echo 'Generating supabase types...' && supabase gen types typescript --project-id fehegdrzmwuqmeutkptb > $PWD/src/lib/database.types.ts",
     "dev": "NODE_OPTIONS='--inspect' next dev",
     "prod": "next build && next start",
     "build": "next build",

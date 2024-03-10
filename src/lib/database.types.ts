@@ -13,32 +13,38 @@ export type Database = {
         Row: {
           course_id: string
           created_at: string
+          full_name: string
           id: string
           is_public: boolean
           lesson_id: string
           modified_at: string
           output: string
           user_id: string
+          view_count: number
         }
         Insert: {
           course_id: string
           created_at?: string
+          full_name: string
           id?: string
           is_public?: boolean
           lesson_id: string
           modified_at?: string
           output: string
           user_id?: string
+          view_count?: number
         }
         Update: {
           course_id?: string
           created_at?: string
+          full_name?: string
           id?: string
           is_public?: boolean
           lesson_id?: string
           modified_at?: string
           output?: string
           user_id?: string
+          view_count?: number
         }
         Relationships: []
       }
