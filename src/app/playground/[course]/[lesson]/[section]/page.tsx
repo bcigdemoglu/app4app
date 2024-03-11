@@ -16,10 +16,13 @@ import {
   getLessonMDX,
   getLessonOutput,
   getAIFeedbackMDX,
+  serializeLessonMDX,
 } from '@/utils/lessonHelpers';
 import AIFeedbackModal from '@/components/AIFeedbackModal';
 import CreatorFeedbackModal from '@/components/CreatorFeedbackModal';
 import { perf } from '@/utils/debug';
+import { MDXRemote } from 'next-mdx-remote/rsc';
+import { getMdxOutputComponents } from '@/components/MdxOutputComponents';
 
 export const metadata = {
   title: "Ilayda's Playground: How to Start a Business",
@@ -73,20 +76,19 @@ export default async function Page({ params, searchParams }: Props) {
     async () => await Promise.all([recordMapPromise, userProgressFromDBPromise])
   );
 
-  const { mdxInputSource, mdxOutputSource, totalSections } = await getLessonMDX(
+  const { mdxInput, mdxOutput, totalSections } = getLessonMDX(
     recordMap,
     section
   );
+  const { mdxInputSource } = await serializeLessonMDX(mdxInput, mdxOutput);
 
   const {
     data: lessonInputsFromDB,
     lastCompletedSection: lastCompletedSectionFromDB,
+    modifiedAt: inputModifiedAt,
   } = getLessonInputs(userProgressFromDB, lessonId, user);
-  const lessonOutputfromDB = getLessonOutput(
-    userProgressFromDB,
-    lessonId,
-    user
-  );
+  const { data: lessonOutputfromDB, modifiedAt: outputModifiedAt } =
+    getLessonOutput(userProgressFromDB, lessonId, user);
 
   const prevSection = section - 1 > 0 ? section - 1 : null;
   const prevSectionLink = prevSection
@@ -104,6 +106,18 @@ export default async function Page({ params, searchParams }: Props) {
   const nextLessonLink = nextLesson
     ? `/playground/${courseId}/${nextLesson}`
     : null;
+
+  const genNewOutput =
+    inputModifiedAt &&
+    (!outputModifiedAt ||
+      (outputModifiedAt && inputModifiedAt > outputModifiedAt));
+
+  const MdxOutput = genNewOutput ? (
+    <MDXRemote
+      source={mdxOutput}
+      components={getMdxOutputComponents(lessonInputsFromDB)}
+    />
+  ) : null;
 
   return (
     <main className='grid h-svh grid-cols-3 gap-1 bg-sky-100 text-xs md:gap-2 md:text-base'>
@@ -150,10 +164,10 @@ export default async function Page({ params, searchParams }: Props) {
         nextLessonLink={nextLessonLink}
         totalSections={totalSections}
         mdxInputSource={mdxInputSource}
-        mdxOutputSource={mdxOutputSource}
         lessonInputsFromDB={lessonInputsFromDB}
         lastCompletedSectionFromDB={lastCompletedSectionFromDB}
         lessonOutputfromDB={lessonOutputfromDB}
+        MdxOutput={MdxOutput}
       />
 
       {searchParams[CREATOR_MODAL_PARAM] && <CreatorFeedbackModal />}

@@ -456,3 +456,32 @@ export async function fetchExportedOutput(
 
   return updatedExportedOutput;
 }
+
+export async function fetchAiResponse(
+  input: string,
+  prompt: string
+): Promise<string> {
+  const response = await fetch(
+    'https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.2',
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${process.env.HUGGINGFACE_API_KEY}`,
+      },
+      body: JSON.stringify({ inputs: `<s>[INST] ${prompt} ${input} [/INST]` }),
+    }
+  );
+  const aiResponse = (await response.json()) as [{ generated_text: string }];
+  if (
+    aiResponse &&
+    aiResponse.length > 0 &&
+    typeof aiResponse[0] === 'object' &&
+    aiResponse[0].generated_text &&
+    aiResponse[0].generated_text.split('[/INST]').length > 1
+  ) {
+    return aiResponse[0].generated_text.split('[/INST]')[1].trim();
+  } else {
+    return `ERROR AI Response: ${aiResponse}`;
+  }
+}

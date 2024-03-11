@@ -34,19 +34,31 @@ export async function getAIFeedbackMDX(
   return serialize(aifeedback);
 }
 
-export async function getLessonMDX(
+export function getLessonMDX(
   recordMap: ExtendedRecordMap,
   section: number
+): {
+  mdxInput: string;
+  mdxOutput: string;
+  totalSections: number;
+} {
+  return {
+    totalSections: getLessonTotalSections(recordMap),
+    mdxInput: getLessonInputMDX(recordMap, section),
+    mdxOutput: getLessonOutputMDX(recordMap, section),
+  };
+}
+
+export async function serializeLessonMDX(
+  mdxInput: string,
+  mdxOutput: string
 ): Promise<{
   mdxInputSource: MDXRemoteSerializeResult;
   mdxOutputSource: MDXRemoteSerializeResult;
-  totalSections: number;
 }> {
-  const totalSections = getLessonTotalSections(recordMap);
-
   // Start both serialization operations in parallel
-  const inputMDXPromise = serialize(getLessonInputMDX(recordMap, section));
-  const outputMDXPromise = serialize(getLessonOutputMDX(recordMap, section));
+  const inputMDXPromise = serialize(mdxInput);
+  const outputMDXPromise = serialize(mdxOutput);
 
   // Wait for both operations to complete
   const [mdxInputSource, mdxOutputSource] = await Promise.all([
@@ -54,7 +66,7 @@ export async function getLessonMDX(
     outputMDXPromise,
   ]);
 
-  return { mdxInputSource, mdxOutputSource, totalSections };
+  return { mdxInputSource, mdxOutputSource };
 }
 
 export async function fetchUserProgressFromDB(): Promise<UserProgressFromDB | null> {
@@ -88,6 +100,7 @@ export async function fetchUserProgressFromDB(): Promise<UserProgressFromDB | nu
 interface LessonInput {
   data: JsonObject | null;
   lastCompletedSection: number | null;
+  modifiedAt: string | null;
 }
 
 export function getLessonInputs(
@@ -108,27 +121,27 @@ export function getLessonInputs(
         inputsByLessonIdFromDB[lessonId],
         `FATAL_DB_ERROR: inputs_by_lesson_id.${lessonId} is not an object for user ${user.id}!`
       );
-      const lastCompletedSection =
-        ((lessonInputFromDB['metadata'] as JsonObject)[
-          'lastCompletedSection'
-        ] as number) || 0;
+      const metadata = lessonInputFromDB['metadata'] as JsonObject;
+      const lastCompletedSection = metadata['lastCompletedSection'] as number;
+      const modifiedAt = metadata['modified_at'] as string;
       return {
         data: lessonInputFromDB['data'] as JsonObject,
         lastCompletedSection,
+        modifiedAt,
       };
     }
   }
   console.log(
     `no lesson input found for lesson ${lessonId} of user ${user.id}`
   );
-  return { data: {}, lastCompletedSection: null };
+  return { data: null, lastCompletedSection: null, modifiedAt: null };
 }
 
 export function getLessonOutput(
   userProgress: UserProgressFromDB | null,
   lessonId: string,
   user: User
-): string | null {
+): { data: string | null; modifiedAt: string | null } {
   // Get full object or default to null object
   if (userProgress && userProgress.outputs_by_lesson_id) {
     // Get user progress if there is one in DB
@@ -142,11 +155,14 @@ export function getLessonOutput(
         outputsByLessonIdFromDB[lessonId],
         `FATAL_DB_ERROR: outputs_by_lesson_id.${lessonId} is not an object for user ${user.id}!`
       );
-      return lessonOutputsFromDB['data'] as string;
+      const data = lessonOutputsFromDB['data'] as string;
+      const metadata = lessonOutputsFromDB['metadata'] as JsonObject;
+      const modifiedAt = metadata['modified_at'] as string;
+      return { data, modifiedAt };
     }
   }
   console.log(
     `no lesson output found for lesson ${lessonId} of user ${user.id}`
   );
-  return null;
+  return { data: null, modifiedAt: null };
 }

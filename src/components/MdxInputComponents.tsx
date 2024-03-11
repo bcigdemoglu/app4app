@@ -1,13 +1,14 @@
 'use client';
 
-import { JsonObject, MDXOutputComponents } from '@/lib/types';
+import { JsonObject } from '@/lib/types';
 import { useEffect, useRef } from 'react';
-import { getMdxOutputComponents, toTextFieldId } from './MdxOutputComponents';
+import { toTextFieldId } from './MdxOutputComponents';
+import { MDXComponents } from 'mdx/types';
 
 export function getMdxInputComponents(
   clearInputs: boolean,
   lessonInputsFromDB: JsonObject | null
-): MDXOutputComponents {
+): MDXComponents {
   function I_TEXT({
     name,
     placeholder,
@@ -60,7 +61,6 @@ export function getMdxInputComponents(
   }
 
   return {
-    ...getMdxOutputComponents(lessonInputsFromDB),
     I_TEXT,
   };
 }

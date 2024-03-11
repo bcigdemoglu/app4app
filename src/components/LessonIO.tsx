@@ -13,7 +13,6 @@ import { JsonObject, Lesson, UpdateUserInputFormState } from '@/lib/types';
 import Link from 'next/link';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { getMdxInputComponents } from '@/components/MdxInputComponents';
-import { getMdxOutputComponents } from './MdxOutputComponents';
 import dynamic from 'next/dynamic';
 import { AI_MODAL_PARAM, CREATOR_MODAL_PARAM } from '@/lib/data';
 import { useRouter } from 'next/navigation';
@@ -226,10 +225,10 @@ export default function LessonIO({
   nextLessonLink,
   totalSections,
   mdxInputSource,
-  mdxOutputSource,
   lessonInputsFromDB,
   lessonOutputfromDB,
   lastCompletedSectionFromDB,
+  MdxOutput,
 }: {
   recordMap: ExtendedRecordMap;
   courseId: string;
@@ -241,10 +240,10 @@ export default function LessonIO({
   nextLessonLink: string | null;
   totalSections: number;
   mdxInputSource: MDXRemoteSerializeResult;
-  mdxOutputSource: MDXRemoteSerializeResult;
   lessonInputsFromDB: JsonObject | null;
   lessonOutputfromDB: string | null;
   lastCompletedSectionFromDB: number | null;
+  MdxOutput: JSX.Element | null;
 }) {
   const { id: lessonId, notionId } = lesson;
   const outputHTML = lessonOutputfromDB;
@@ -312,17 +311,12 @@ export default function LessonIO({
   );
 
   useEffect(() => {
-    if (formState.state === 'success' || formState.state === 'noupdate') {
+    if (
+      (formState.state === 'success' || formState.state === 'noupdate') &&
+      MdxOutput !== null
+    ) {
       startGeneratingOutput(async () => {
-        const lessonInputsJSON = JSON.parse(lessonInputs);
-        const renderedOutputHTML = renderToStaticMarkup(
-          <MDXRemote
-            compiledSource={mdxOutputSource.compiledSource}
-            scope={null}
-            frontmatter={null}
-            components={getMdxOutputComponents(lessonInputsJSON)}
-          />
-        );
+        const renderedOutputHTML = renderToStaticMarkup(MdxOutput);
         console.log(
           'Sending form data... ',
           'new outputHTML',
@@ -347,7 +341,7 @@ export default function LessonIO({
   }, [
     formState.state,
     lessonInputs,
-    mdxOutputSource.compiledSource,
+    MdxOutput,
     courseId,
     lessonId,
     section,
@@ -457,9 +451,10 @@ export default function LessonIO({
           }
         )}
       >
-        {!isGeneratingOutput && outputHTML && completionConfetti && (
+        {!isGeneratingOutput && outputHTML && completionConfetti ? (
           <DynamicConfetti />
-        )}
+        ) : null}
+        <div className='hidden'>{MdxOutput}</div>
         <div className='h-screen flex-grow overflow-auto p-4'>
           {isGeneratingOutput ? (
             'Generating awesome results!!!'
