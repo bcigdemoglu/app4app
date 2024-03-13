@@ -1,6 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import Link from 'next/link';
+import { redirect } from 'next/navigation';
+import { ChangeEvent, Dispatch, SetStateAction, useState } from 'react';
 
 export default function IncomeCalculator() {
   const [step, setStep] = useState(0);
@@ -9,9 +11,10 @@ export default function IncomeCalculator() {
   const [potentialEarnings, setPotentialEarnings] = useState(0);
 
   const handleInputChange =
-    (setter: React.Dispatch<React.SetStateAction<number>>) =>
-    (e: React.ChangeEvent<HTMLInputElement>) =>
-      setter(Number(e.target.value));
+    <T extends number>(setter: Dispatch<SetStateAction<T>>) =>
+    (e: ChangeEvent<HTMLInputElement>) => {
+      setter(Number(e.target.value) as T);
+    };
 
   const calculateEarnings = () => {
     const cloudybookPrice = averageCoursePrice * 0.25;
@@ -77,9 +80,11 @@ export default function IncomeCalculator() {
       )}
 
       {step > 3 && (
-        <button className='btn rounded bg-green-500 px-4 py-2 font-bold text-white hover:bg-green-700'>
-          Boost my Earnings!
-        </button>
+        <Link href='/my-account'>
+          <button className='btn rounded bg-green-500 px-4 py-2 font-bold text-white hover:bg-green-700'>
+            Boost my Earnings!
+          </button>
+        </Link>
       )}
     </div>
   );
