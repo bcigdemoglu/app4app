@@ -1,52 +1,86 @@
-export default function Widget() {
+'use client';
+
+import { useState } from 'react';
+
+export default function IncomeCalculator() {
+  const [step, setStep] = useState(0);
+  const [averageCoursePrice, setAverageCoursePrice] = useState(0);
+  const [expectedSales, setExpectedSales] = useState(0);
+  const [potentialEarnings, setPotentialEarnings] = useState(0);
+
+  const handleInputChange =
+    (setter: React.Dispatch<React.SetStateAction<number>>) =>
+    (e: React.ChangeEvent<HTMLInputElement>) =>
+      setter(Number(e.target.value));
+
+  const calculateEarnings = () => {
+    const cloudybookPrice = averageCoursePrice * 0.25;
+    const earnings = expectedSales * cloudybookPrice * 0.25;
+    setPotentialEarnings(earnings);
+  };
+
+  const nextStep = async () => {
+    if (step === 3) {
+      calculateEarnings();
+    }
+    setStep(step + 1);
+  };
+
   return (
     <div className='flex flex-col items-center gap-4 p-4'>
-      <input
-        type='number'
-        id='numberCourses'
-        placeholder="What's your total number of courses?"
-        className='input w-full rounded-lg border border-gray-300 p-2'
-      />
-      <input
-        type='number'
-        id='averageCoursePrice'
-        placeholder='On average, how much do you charge per course (USD)?'
-        className='input hidden w-full rounded-lg border border-gray-300 p-2'
-      />
-      <input
-        type='number'
-        id='digitalDownloads'
-        placeholder='How many courses include digital downloads?'
-        className='input hidden w-full rounded-lg border border-gray-300 p-2'
-      />
-      <input
-        type='number'
-        id='expectedSales'
-        placeholder='How many course sales do you expect in 2024?'
-        className='input hidden w-full rounded-lg border border-gray-300 p-2'
-      />
-      <input
-        type='number'
-        id='expectedStudents'
-        placeholder='How many students do you expect in 2024?'
-        className='input hidden w-3/4 rounded-lg border border-gray-300 p-2'
-      />
+      {step === 0 && (
+        <input
+          type='number'
+          placeholder="What's your total number of courses?"
+          className='input w-full rounded-lg border border-gray-300 p-2'
+        />
+      )}
+      {step === 1 && (
+        <input
+          type='number'
+          onChange={handleInputChange(setAverageCoursePrice)}
+          placeholder='On average, how much do you charge per course (USD)?'
+          className='input w-full rounded-lg border border-gray-300 p-2'
+        />
+      )}
+      {step === 2 && (
+        <input
+          type='number'
+          placeholder='How many courses include digital downloads?'
+          className='input w-full rounded-lg border border-gray-300 p-2'
+        />
+      )}
+      {step === 3 && (
+        <input
+          type='number'
+          onChange={handleInputChange(setExpectedSales)}
+          placeholder='How many course sales do you expect in 2024?'
+          className='input w-full rounded-lg border border-gray-300 p-2'
+        />
+      )}
+
       <button
-        id='calculateIncome'
+        onClick={nextStep}
         className='btn rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700'
       >
-        Calculate my Potential Passive Income with Cloudybook
+        {step < 3
+          ? 'Next'
+          : 'Calculate my Potential Passive Income with Cloudybook'}
       </button>
-      <div id='outputBox' className='mt-4 hidden text-lg text-gray-800'>
-        Potential annual passive income with 1 hour of content prep:{' '}
-        <span className='text-green-700' id='potentialEarningsOut'></span> USD!
-      </div>
-      <button
-        id='unlockOffer'
-        className='btn hidden rounded bg-green-500 px-4 py-2 font-bold text-white hover:bg-green-700'
-      >
-        Boost my Earnings!
-      </button>
+
+      {step > 3 && (
+        <div className='mt-4 text-lg text-gray-800'>
+          Potential annual passive income with 1 hour of content prep:{' '}
+          <span className='text-green-700'>{potentialEarnings.toFixed(2)}</span>{' '}
+          USD!
+        </div>
+      )}
+
+      {step > 3 && (
+        <button className='btn rounded bg-green-500 px-4 py-2 font-bold text-white hover:bg-green-700'>
+          Boost my Earnings!
+        </button>
+      )}
     </div>
   );
 }
