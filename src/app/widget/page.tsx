@@ -3,6 +3,10 @@
 import Link from 'next/link';
 import { ChangeEvent, Dispatch, SetStateAction, useState } from 'react';
 
+const openInNewTab = (url: string) => {
+  window.open(url, '_blank', 'noopener,noreferrer');
+};
+
 export default function IncomeCalculator() {
   const [step, setStep] = useState(0);
   const [averageCoursePrice, setAverageCoursePrice] = useState(0);
@@ -79,11 +83,12 @@ export default function IncomeCalculator() {
       )}
 
       {step > 3 && (
-        <Link href='/my-account'>
-          <button className='btn rounded bg-green-500 px-4 py-2 font-bold text-white hover:bg-green-700'>
-            Boost my Earnings!
-          </button>
-        </Link>
+        <button
+          onClick={() => openInNewTab('https://ilayda.vercel.app/playground')}
+          className='btn rounded bg-green-500 px-4 py-2 font-bold text-white hover:bg-green-700'
+        >
+          Boost my Earnings!
+        </button>
       )}
     </div>
   );
