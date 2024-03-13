@@ -85,7 +85,7 @@ dependencies:
     version: 6.2.0
   react-notion-x:
     specifier: ^6.16.0
-    version: 6.16.0(@babel/runtime@7.23.6)(@types/react@18.2.45)(react-dom@18.2.0)(react@18.2.0)(webpack@5.89.0)
+    version: 6.16.0(@babel/runtime@7.24.0)(@types/react@18.2.45)(react-dom@18.2.0)(react@18.2.0)(webpack@5.89.0)
   reading-time:
     specifier: ^1.5.0
     version: 1.5.0
@@ -124,6 +124,9 @@ devDependencies:
   eslint-plugin-import:
     specifier: ^2
     version: 2.29.1(@typescript-eslint/parser@7.0.1)(eslint@8.56.0)
+  husky:
+    specifier: ^9.0.11
+    version: 9.0.11
   postcss:
     specifier: ^8
     version: 8.4.32
@@ -3702,6 +3705,12 @@ packages:
       resolve-alpn: 1.2.1
     dev: false
 
+  /husky@9.0.11:
+    resolution: {integrity: sha512-AB6lFlbwwyIqMdHYhwPe+kjOC3Oc5P3nThEoW/AaO2BX3vJDjWPFxYLxokUZOo6RNX20He3AaT8sESs9NJcmEw==}
+    engines: {node: '>=18'}
+    hasBin: true
+    dev: true
+
   /hyphenate-style-name@1.0.4:
     resolution: {integrity: sha512-ygGZLjmXfPHj+ZWh6LwbC37l43MhfztxetbFCoYTM2VjkIUpeHgSNn7QIyVFj7YQ1Wl9Cbw5sholVJPzWvC2MQ==}
     dev: false
@@ -5946,14 +5955,14 @@ packages:
       react-dom: 18.2.0(react@18.2.0)
     dev: false
 
-  /react-image@4.1.0(@babel/runtime@7.23.6)(react-dom@18.2.0)(react@18.2.0):
+  /react-image@4.1.0(@babel/runtime@7.24.0)(react-dom@18.2.0)(react@18.2.0):
     resolution: {integrity: sha512-qwPNlelQe9Zy14K2pGWSwoL+vHsAwmJKS6gkotekDgRpcnRuzXNap00GfibD3eEPYu3WCPlyIUUNzcyHOrLHjw==}
     peerDependencies:
       '@babel/runtime': '>=7'
       react: '>=16.8'
       react-dom: '>=16.8'
     dependencies:
-      '@babel/runtime': 7.23.6
+      '@babel/runtime': 7.24.0
       react: 18.2.0
       react-dom: 18.2.0(react@18.2.0)
     dev: false
@@ -6002,7 +6011,7 @@ packages:
       warning: 4.0.3
     dev: false
 
-  /react-notion-x@6.16.0(@babel/runtime@7.23.6)(@types/react@18.2.45)(react-dom@18.2.0)(react@18.2.0)(webpack@5.89.0):
+  /react-notion-x@6.16.0(@babel/runtime@7.24.0)(@types/react@18.2.45)(react-dom@18.2.0)(react@18.2.0)(webpack@5.89.0):
     resolution: {integrity: sha512-YdJikX38YNX5eIKAO9diw/tEhsc0ypnaqOqcdXEr7zFf0h/+eoppEzlLdzYJktnZy4n2q0z5ooXWAQi4QLi8Zw==}
     engines: {node: '>=12'}
     peerDependencies:
@@ -6019,7 +6028,7 @@ packages:
       react-dom: 18.2.0(react@18.2.0)
       react-fast-compare: 3.2.2
       react-hotkeys-hook: 3.4.7(react-dom@18.2.0)(react@18.2.0)
-      react-image: 4.1.0(@babel/runtime@7.23.6)(react-dom@18.2.0)(react@18.2.0)
+      react-image: 4.1.0(@babel/runtime@7.24.0)(react-dom@18.2.0)(react@18.2.0)
       react-lazy-images: 1.1.0(react-dom@18.2.0)(react@18.2.0)
       react-modal: 3.16.1(react-dom@18.2.0)(react@18.2.0)
       react-pdf: 5.7.2(@types/react@18.2.45)(react-dom@18.2.0)(react@18.2.0)(webpack@5.89.0)

@@ -1,6 +1,5 @@
 'use client';
 
-import Link from 'next/link';
 import { ChangeEvent, Dispatch, SetStateAction, useState } from 'react';
 
 const openInNewTab = (url: string) => {
@@ -42,12 +41,15 @@ export default function IncomeCalculator() {
         />
       )}
       {step === 1 && (
-        <input
-          type='number'
-          onChange={handleInputChange(setAverageCoursePrice)}
-          placeholder='On average, how much do you charge per course (USD)?'
-          className='input w-full rounded-lg border border-gray-300 p-2'
-        />
+        <>
+          <span>On average, how much do you charge per course (USD)?</span>
+          <input
+            type='number'
+            onChange={handleInputChange(setAverageCoursePrice)}
+            placeholder='On average, how much do you charge per course (USD)?'
+            className='input w-full rounded-lg border border-gray-300 p-2'
+          />
+        </>
       )}
       {step === 2 && (
         <input
