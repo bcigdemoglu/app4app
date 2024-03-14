@@ -142,7 +142,7 @@ export default function IncomeCalculator() {
   }
 
   return (
-    <div className='flex flex-col items-center gap-4 p-4 text-center'>
+    <div className='flex flex-col items-center gap-4 p-4 text-center font-semibold text-white'>
       <ProgressBar section={step} totalSections={8} />
       {step === 0 ? (
         <>
