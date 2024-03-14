@@ -19,6 +19,7 @@ export async function updateProfile(formData: FormData) {
   const userProfile = {
     full_name: formData.get('full_name') as string,
     email: formData.get('email') as string,
+    plan: 'Free',
     updated_at: new Date().toISOString(),
   };
 

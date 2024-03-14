@@ -15,7 +15,7 @@ export default async function RegisterPage() {
     <div>
       <div className='space-y-5'>
         <h2 className='text-3xl font-extrabold text-zinc-900'>Sign up</h2>
-        <p className='text-zinc-500'>Create your free Playground account</p>
+        <p className='text-zinc-500'>Create your Cloudybook account</p>
 
         <form>
           <button

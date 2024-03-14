@@ -36,8 +36,8 @@ export default async function Page({ params }: Props) {
     user
   );
 
-  const defaultSectionId = 1;
-  const sectionId = lastCompletedSectionFromDB ?? defaultSectionId;
+  const startingSection = 1;
+  const sectionId = lastCompletedSectionFromDB ?? startingSection;
 
   redirect(`/playground/${courseId}/${lessonId}/${sectionId}`);
 }

@@ -38,6 +38,7 @@ export default async function Page({ params, searchParams }: Props) {
   if (
     !COURSE_MAP[params.course] ||
     !COURSE_MAP[params.course].lessonMap[params.lesson] ||
+    isNaN(parseInt(params.section)) ||
     parseInt(params.section) < 1
   )
     notFound();
@@ -58,8 +59,6 @@ export default async function Page({ params, searchParams }: Props) {
     .single();
   if (!profile) {
     redirect('/my-account');
-  } else if (!profile.plan) {
-    redirect('/upgrade');
   }
 
   const section = parseInt(params.section);
@@ -81,6 +80,10 @@ export default async function Page({ params, searchParams }: Props) {
     recordMap,
     section
   );
+
+  // Section cannot be greater than totalSections, redirect to the last section
+  if (section > totalSections) redirect(`/playground/${courseId}/${lessonId}`);
+
   const { mdxInputSource } = await serializeLessonMDX(mdxInput, mdxOutput);
 
   const {
