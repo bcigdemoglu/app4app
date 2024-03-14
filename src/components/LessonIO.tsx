@@ -20,7 +20,16 @@ import NotionPage from './NotionPage';
 import { ExtendedRecordMap } from 'notion-types';
 import { cn } from '@/utils/cn';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faTrashCan } from '@fortawesome/free-solid-svg-icons';
+import {
+  faAngleLeft,
+  faAngleRight,
+  faAnglesLeft,
+  faAnglesRight,
+  faChalkboardUser,
+  faCloudArrowDown,
+  faCommentDots,
+  faTrashCan,
+} from '@fortawesome/free-solid-svg-icons';
 
 function hashString(str: string) {
   let hash = 0;
@@ -53,20 +62,21 @@ const ProgressBar = ({
   );
 };
 
-const FeedbackButtons = ({ lessonCompleted }: { lessonCompleted: boolean }) => {
+const FeedbackButtons = () => {
   return (
     <>
       <Link href={`?${CREATOR_MODAL_PARAM}=true`}>
         <button className='rounded bg-green-500 px-4 py-2 font-bold text-white hover:bg-green-700 disabled:bg-green-300'>
-          Share Feedback 📣
+          <>
+            Give Feedback <FontAwesomeIcon icon={faCommentDots} />
+          </>
         </button>
       </Link>
       <Link href={`?${AI_MODAL_PARAM}=true`}>
-        <button
-          disabled={!lessonCompleted}
-          className='rounded bg-purple-500 px-4 py-2 font-bold text-white hover:bg-purple-700 disabled:bg-purple-300'
-        >
-          Ask AI Coach 🤖
+        <button className='rounded bg-orange-600 px-4 py-2 font-bold text-white hover:bg-orange-800 disabled:bg-orange-400'>
+          <>
+            Ask AI <FontAwesomeIcon icon={faChalkboardUser} />
+          </>
         </button>
       </Link>
     </>
@@ -99,12 +109,16 @@ const LessonButtons = ({
         onClick={onExportOutput}
         className='rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700 disabled:bg-blue-300'
       >
-        {!isExporting ? 'Export & Share' : 'Exporting...'}
+        {!isExporting ? (
+          <FontAwesomeIcon icon={faCloudArrowDown} />
+        ) : (
+          'Exporting...'
+        )}
       </button>
       {prevSectionLink && (
         <Link href={prevSectionLink}>
           <button className='rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700 disabled:bg-blue-300'>
-            Back
+            <FontAwesomeIcon icon={faAngleLeft} />
           </button>
         </Link>
       )}
@@ -114,7 +128,7 @@ const LessonButtons = ({
             className='rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700 disabled:bg-blue-300'
             disabled={!prevLessonLink}
           >
-            Back
+            <FontAwesomeIcon icon={faAnglesLeft} />
           </button>
         </Link>
       )}
@@ -124,7 +138,7 @@ const LessonButtons = ({
             disabled={!sectionCompleted}
             className='rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700 disabled:bg-blue-300'
           >
-            Next Section
+            <FontAwesomeIcon icon={faAngleRight} />
           </button>
         </Link>
       )}
@@ -134,7 +148,7 @@ const LessonButtons = ({
             className='rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700 disabled:bg-blue-300'
             disabled={!lessonCompleted}
           >
-            Next Lesson
+            <FontAwesomeIcon icon={faAnglesRight} />
           </button>
         </Link>
       )}
@@ -206,7 +220,7 @@ const FormButtons = ({
           'Restarting...'
         ) : (
           <>
-            <FontAwesomeIcon icon={faTrashCan} /> Restart Lesson
+            <FontAwesomeIcon icon={faTrashCan} />
           </>
         )}
       </button>
@@ -478,7 +492,7 @@ export default function LessonIO({
             }
           )}
         >
-          <FeedbackButtons lessonCompleted={lessonCompleted} />
+          <FeedbackButtons />
         </div>
         <div className='hidden items-center gap-1 md:flex md:justify-center'>
           {lessonCompleted ? <span>✅</span> : <span>🟦</span>}

@@ -23,6 +23,7 @@ import CreatorFeedbackModal from '@/components/CreatorFeedbackModal';
 import { perf } from '@/utils/debug';
 import { MDXRemote } from 'next-mdx-remote/rsc';
 import { getMdxOutputComponents } from '@/components/MdxOutputComponents';
+import Image from 'next/image';
 
 export const metadata = {
   title: "Ilayda's Playground: How to Start a Business",
@@ -123,27 +124,33 @@ export default async function Page({ params, searchParams }: Props) {
     <main className='grid h-svh grid-cols-3 gap-1 bg-sky-100 text-xs md:gap-2 md:text-base'>
       <header className='col-span-3 grid h-min grid-cols-2 p-2 pb-0'>
         <div className='flex justify-start gap-2'>
-          <span className='transform rounded-lg bg-gradient-to-r from-blue-400 to-purple-600 px-4 py-1 text-sm font-bold text-white shadow-md transition-transform duration-300 ease-in-out hover:from-purple-600 hover:to-blue-400 md:text-xl'>
-            {'Cloudybook'}
+          <span className='flex transform rounded-lg text-sm font-bold text-white md:text-xl'>
+            <Image
+              src='/cloudybook2.png'
+              alt='Cloudy Book'
+              width={165}
+              height={34}
+              className='self-center'
+            />
           </span>
         </div>
         <div className='flex justify-end gap-1'>
-          <Link href='/my-account'>
-            {/* <Image
+          {/* <Link href='/my-account'>
+            <Image
                 src='/ilayda.jpeg'
                 alt='Ilayda Buyukdogan Profile'
                 className='h-10 w-10 overflow-hidden rounded-full border object-cover'
                 width={100}
                 height={0}
                 sizes='100vw'
-              /> */}
+              />
             <button className='hidden h-10 items-center justify-center rounded-full bg-purple-500 px-2 font-bold text-white hover:bg-purple-700 md:inline-flex'>
               {profile?.full_name}
             </button>
             <button className='inline-flex h-8 w-8 items-center justify-center rounded-full bg-purple-500 font-bold text-white hover:bg-purple-700 md:hidden'>
               {profile?.full_name.charAt(0)}
             </button>
-          </Link>
+          </Link> */}
           <Link href='/my-account'>
             <button className='rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700 disabled:bg-blue-300'>
               My account

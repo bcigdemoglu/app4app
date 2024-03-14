@@ -29,17 +29,25 @@ export const DEMO_LESSON_MAP: LessonMap = {
   smart: {
     id: 'smart',
     notionId: '1271d4fa33d44955995843af0b4cda92',
-    title: 'Lesson 1: SMART',
+    title: 'Lesson 1: SMART Goals',
     description: 'What are your SMART goals?',
     prev: null,
-    next: 'ilayda1',
+    next: 'action',
+  },
+  action: {
+    id: 'action',
+    notionId: '46cc313dbbe0497f88dbcf9d2c700a43',
+    title: 'Lesson 2: Action Plan',
+    description: 'What is your action plan?',
+    prev: 'smart',
+    next: null,
   },
   ilayda1: {
     id: 'ilayda1',
     notionId: '605044ae6a9d4c42afc7ddb6b4a6cced',
     title: 'Lesson Ilayda 1: GENIUS',
     description: 'Ilayda to impress',
-    prev: 'smart',
+    prev: null,
     next: 'ilayda2',
   },
   ilayda2: {
