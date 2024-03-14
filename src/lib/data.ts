@@ -95,6 +95,23 @@ export const DEMO_LESSON_AI_FEEDBACK: AIFeedbackMap = {
     These enhancements will not only refine your goal-setting process but also increase your chances of achieving your desired outcomes. Keep up the great work!
     `,
   },
+  action: {
+    mdx: `
+    Greetings from your AI coach!
+
+    You've done a commendable job applying the SMART goals framework to your objective.
+
+    ### Action Plan:
+
+    * Conduct market research to identify effective marketing strategies and areas for new product development.
+    * Develop a detailed marketing plan, including online advertising, partnerships, and social media campaigns, to increase course visibility.
+    * Plan and create two new digital products, such as eBooks or online toolkits, that provide additional value to your course attendees.
+    * Set up a timeline for each milestone, including marketing campaign launches, product development phases, and final product releases.
+    * Regularly review progress against goals, making adjustments as necessary to ensure success within the set timeframe.
+
+    By following this structured approach, the course creator will have a clear path toward increasing their course signups and expanding their digital product offerings, ultimately boosting their passive income.
+    `,
+  },
 };
 
 const extractMarkdownBlocks = (recordMap: ExtendedRecordMap): Block[] => {

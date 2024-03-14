@@ -105,7 +105,7 @@ const LessonButtons = ({
   return (
     <>
       <button
-        disabled={!lessonCompleted || isExporting}
+        disabled={!sectionCompleted || isExporting}
         onClick={onExportOutput}
         className='rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700 disabled:bg-blue-300'
       >
@@ -495,7 +495,7 @@ export default function LessonIO({
           <FeedbackButtons />
         </div>
         <div className='hidden items-center gap-1 md:flex md:justify-center'>
-          {lessonCompleted ? <span>✅</span> : <span>🟦</span>}
+          {/* {lessonCompleted ? <span>✅</span> : <span>🟦</span>} */}
           <span>{lesson.title}</span>
         </div>
         <div className='col-span-3 flex flex-grow justify-center gap-2 md:col-span-2 md:justify-end'>

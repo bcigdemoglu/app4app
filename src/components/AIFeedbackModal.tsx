@@ -13,9 +13,11 @@ export default function AIFeedbackModal({
   return (
     <dialog className='fixed left-0 top-0 z-50 flex h-full w-full items-center justify-center overflow-auto bg-black bg-opacity-50 backdrop-blur'>
       <div className='m-auto bg-white p-8'>
-        <div className='prose flex flex-col items-center'>
+        <div className='prose flex flex-col'>
           {aiFeedbackSource ? (
-            <MDXRemote {...aiFeedbackSource} />
+            <>
+              <MDXRemote {...aiFeedbackSource} />
+            </>
           ) : (
             'Generating AI Feedback...'
           )}
