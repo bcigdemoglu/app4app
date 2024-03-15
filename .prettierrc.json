@@ -12,5 +12,19 @@
   "endOfLine": "lf",
   "htmlWhitespaceSensitivity": "css",
   "quoteProps": "as-needed",
-  "plugins": ["prettier-plugin-tailwindcss"]
+  "plugins": ["prettier-plugin-tailwindcss"],
+  "overrides": [
+    {
+      "files": "*/privacy-policy/page.tsx",
+      "options": {
+        "printWidth": 1000000
+      }
+    },
+    {
+      "files": "*/terms-and-conditions/page.tsx",
+      "options": {
+        "printWidth": 1000000
+      }
+    }
+  ]
 }
