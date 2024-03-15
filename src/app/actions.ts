@@ -485,3 +485,25 @@ export async function fetchAiResponse(
     return `ERROR AI Response: ${aiResponse}`;
   }
 }
+
+export async function collectWidgetStat(
+  inputJson: JsonObject,
+  medataJson: JsonObject
+): Promise<boolean> {
+  const cookieStore = cookies();
+  const supabase = createClient(cookieStore);
+
+  const { error: insertDataError } = await supabase
+    .from('calculator_widget')
+    .insert({
+      inputs: inputJson,
+      metadata: medataJson,
+    })
+    .single();
+
+  if (insertDataError) {
+    console.error('insertDataError', insertDataError);
+  }
+
+  return true;
+}

@@ -9,6 +9,27 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      calculator_widget: {
+        Row: {
+          created_at: string
+          id: number
+          inputs: Json | null
+          metadata: Json | null
+        }
+        Insert: {
+          created_at?: string
+          id?: number
+          inputs?: Json | null
+          metadata?: Json | null
+        }
+        Update: {
+          created_at?: string
+          id?: number
+          inputs?: Json | null
+          metadata?: Json | null
+        }
+        Relationships: []
+      }
       exported_outputs: {
         Row: {
           course_id: string

@@ -2,7 +2,8 @@
 
 import { cn } from '@/utils/cn';
 import dynamic from 'next/dynamic';
-import { useState } from 'react';
+import { useState, useTransition } from 'react';
+import { collectWidgetStat } from '../actions';
 
 const openInNewTab = (url: string) => {
   window.open(url, '_blank', 'noopener,noreferrer');
@@ -60,8 +61,17 @@ export default function IncomeCalculator() {
   const [averageCoursePrice, setAverageCoursePrice] = useState(0);
   const [hasDigitalDownloads, setHasDigitalDownloads] = useState(0);
   const [expectedSales, setExpectedSales] = useState(0);
-  const [potentialEarnings, setPotentialEarnings] = useState(0);
   const [calculating, setCalculating] = useState(false);
+  const saleEarnings =
+    expectedSales < 100 ? 6240 : expectedSales < 500 ? 15600 : 31200;
+  const potentialEarnings =
+    averageCoursePrice < 20
+      ? saleEarnings / 3
+      : averageCoursePrice > 100
+        ? saleEarnings * 1.5
+        : saleEarnings;
+
+  const [isCollectingStats, startCollectingStats] = useTransition();
 
   const wait = (ms: number) =>
     new Promise((resolve) => setTimeout(resolve, ms));
@@ -69,14 +79,26 @@ export default function IncomeCalculator() {
   const calculateEarnings = async () => {
     if (calculating) return;
     setCalculating(true);
-    const cloudybookPrice = averageCoursePrice * 0.25;
-    const earnings =
-      expectedSales *
-      cloudybookPrice *
-      0.25 *
-      (hasDigitalDownloads + 0.5) *
-      (numCourse / 5);
-    setPotentialEarnings(earnings);
+    startCollectingStats(async () => {
+      collectWidgetStat(
+        {
+          numCourse,
+          averageCoursePrice,
+          hasDigitalDownloads,
+          expectedSales,
+          potentialEarnings,
+        },
+        {
+          // Device and browser information
+          browser: navigator.userAgent,
+          screenResolution: `${window.screen.width}x${window.screen.height}`,
+          // Referral Data
+          referrer: document.referrer,
+          // Other potentially useful data
+          timestamp: new Date().toISOString(),
+        }
+      );
+    });
     await wait(3000);
     nextStep();
   };
@@ -130,7 +152,7 @@ export default function IncomeCalculator() {
   }) {
     return (
       <>
-        <span>{info}</span>
+        <span className='font-light'>{info}</span>
         <button
           onClick={nextStep}
           className='btn w-full rounded-full bg-blue-500 px-4 py-2 font-semibold text-white hover:bg-blue-700 md:w-1/2'
@@ -160,8 +182,10 @@ export default function IncomeCalculator() {
       ) : null}
       {step === 1 ? (
         <InfoAndNext
-          info={'...Valuable information about number of courses...'}
-          nextButtonText={"Let's talk about earnings"}
+          info={
+            'Did you know? Six-figure creators typically have at least five different revenue streams, while those pulling in over $150k juggle up to seven!'
+          }
+          nextButtonText={'Let’s talk about pricing!'}
         />
       ) : null}
       {step === 2 ? (
@@ -170,28 +194,30 @@ export default function IncomeCalculator() {
           <InputButtons
             fn={setAverageCoursePrice}
             choises={[
-              { text: 'Less than $20', value: 20 },
-              { text: '$20 to $40', value: 40 },
-              { text: '$40 to $80', value: 80 },
-              { text: 'More than $100', value: 150 },
+              { text: 'Less than $20', value: 19 },
+              { text: '$20 to $50', value: 50 },
+              { text: '$50 to $100', value: 100 },
+              { text: 'More than $100', value: 101 },
             ]}
           />
         </>
       ) : null}
       {step === 3 ? (
         <InfoAndNext
-          info={'...Valuable information about prices of courses...'}
-          nextButtonText={"Let's talk about digital downloads"}
+          info={
+            '“Creating interactive content is one good way to differentiate yourself” — something that 88% of marketers agree with.'
+          }
+          nextButtonText={'More about interactive content!'}
         />
       ) : null}
       {step === 4 ? (
         <>
-          <span>Do you make money from digital downloads?</span>
+          <span>Do you currently offer interactive content?</span>
           <InputButtons
             fn={setHasDigitalDownloads}
             choises={[
               { text: 'Of course!', value: 1 },
-              { text: 'I sure want to...', value: 0.5 },
+              { text: 'I want to...', value: 0.5 },
               { text: 'Nope', value: 0 },
             ]}
           />
@@ -199,39 +225,41 @@ export default function IncomeCalculator() {
       ) : null}
       {step === 5 ? (
         <InfoAndNext
-          info={'...Valuable information about digital downloads...'}
-          nextButtonText={"Final question: Let's talk about sales!"}
+          info={
+            'Looking ahead: 2024 is shaping up to be a pivotal year for creators ready to take the reins of their content and carve out a path to financial independence and success.'
+          }
+          nextButtonText={'Finally, let’s talk about 2024 forecast!'}
         />
       ) : null}
       {step === 6 ? (
         <>
-          <span>How many courses do you typically sell in a month?</span>
+          <span>Around how many courses do you sell per month?</span>
           <InputButtons
             fn={setExpectedSales}
             choises={[
-              { text: 'Less than 100', value: 100 },
-              { text: '200 to 500', value: 500 },
-              { text: 'More than 500', value: 1000 },
+              { text: 'Less than 100', value: 99 },
+              { text: '100 to 500', value: 500 },
+              { text: 'More than 500', value: 501 },
             ]}
           />
         </>
       ) : null}
       {step === 7 ? (
         <>
-          <div className='text-gray-800'>
-            Ready to make money in your sleep?
+          <div className='font-light'>
+            {'Are you ready to create once, earn forever with Cloudybook?'}
           </div>
           <button
             onClick={calculateEarnings}
             className='btn w-full rounded-full bg-blue-500 px-4 py-2 font-semibold text-white hover:bg-blue-700 md:w-1/2'
           >
-            {calculating ? (
+            {calculating || isCollectingStats ? (
               <>
                 <span className=''>Calculating</span>
                 <LoadingSpinner />
               </>
             ) : (
-              'Calculate my passive income with Cloudybook'
+              'Calculate my potential passive income'
             )}
           </button>
         </>
@@ -239,8 +267,8 @@ export default function IncomeCalculator() {
       {step >= 8 ? (
         <>
           <DynamicConfetti />
-          <div className='text-lg text-gray-800'>
-            Potential annual passive income with 1 hour of content prep:{' '}
+          <div className='text-lg '>
+            Potential annual passive income with an hour of content prep:{' '}
             <span className='font-semibold text-green-700'>
               ${potentialEarnings.toFixed(2)}
             </span>
@@ -248,11 +276,13 @@ export default function IncomeCalculator() {
           </div>
           <button
             onClick={() =>
-              openInNewTab('https://app.cloudybook.com/playground')
+              openInNewTab(
+                'https://calendly.com/ilaydacloudy/beta-user-introduction'
+              )
             }
             className='btn rounded bg-green-500 px-4 py-2 font-semibold text-white hover:bg-green-700'
           >
-            Book a Call & Boost my Earnings!
+            Book a call and learn how it works!
           </button>
         </>
       ) : null}
