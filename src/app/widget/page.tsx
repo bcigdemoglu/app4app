@@ -150,10 +150,10 @@ export default function IncomeCalculator() {
           <InputButtons
             fn={setNumCourse}
             choises={[
-              { text: 'More than 10', value: 20 },
-              { text: '5 to 10', value: 10 },
-              { text: '2 to 5', value: 5 },
               { text: '1', value: 1 },
+              { text: '2 to 3', value: 3 },
+              { text: '4 to 10', value: 10 },
+              { text: 'More than 10', value: 15 },
             ]}
           />
         </>
@@ -170,10 +170,10 @@ export default function IncomeCalculator() {
           <InputButtons
             fn={setAverageCoursePrice}
             choises={[
-              { text: 'More than $100', value: 150 },
-              { text: '$40 to $80', value: 80 },
-              { text: '$20 to $40', value: 40 },
               { text: 'Less than $20', value: 20 },
+              { text: '$20 to $40', value: 40 },
+              { text: '$40 to $80', value: 80 },
+              { text: 'More than $100', value: 150 },
             ]}
           />
         </>
@@ -205,13 +205,13 @@ export default function IncomeCalculator() {
       ) : null}
       {step === 6 ? (
         <>
-          <span>How many course sales do you expect in 2024?</span>
+          <span>How many courses do you typically sell in a month?</span>
           <InputButtons
             fn={setExpectedSales}
             choises={[
-              { text: 'More than 500', value: 1000 },
+              { text: 'Less than 100', value: 100 },
               { text: '200 to 500', value: 500 },
-              { text: 'Up to 100', value: 100 },
+              { text: 'More than 500', value: 1000 },
             ]}
           />
         </>
