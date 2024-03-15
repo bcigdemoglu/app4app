@@ -269,8 +269,8 @@ export default function IncomeCalculator() {
           <DynamicConfetti />
           <div className='text-lg '>
             Potential annual passive income with an hour of content prep:{' '}
-            <span className='font-semibold text-green-700'>
-              ${potentialEarnings.toFixed(2)}
+            <span className='font-semibold text-green-600'>
+              ${potentialEarnings.toFixed(0)}
             </span>
             !
           </div>
