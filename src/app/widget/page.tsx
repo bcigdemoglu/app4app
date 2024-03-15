@@ -44,7 +44,7 @@ const ProgressBar = ({
     <div className='w-full rounded-full bg-sky-200 text-center'>
       <div
         className={cn(
-          'text-nowrap rounded-full bg-green-600 p-0.5 text-center font-medium leading-none text-white',
+          'text-nowrap rounded-full bg-green-600 p-0.5 text-center font-normal leading-none text-white',
           { hidden: section === 0 }
         )}
         style={{ width: `${(section / totalSections) * 100}%` }}
