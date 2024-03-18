@@ -15,15 +15,9 @@
   "plugins": ["prettier-plugin-tailwindcss"],
   "overrides": [
     {
-      "files": "*/privacy-policy/page.tsx",
+      "files": ["**/privacy-policy/**", "**/terms-and-conditions/**"],
       "options": {
-        "printWidth": 1000000
-      }
-    },
-    {
-      "files": "*/terms-and-conditions/page.tsx",
-      "options": {
-        "printWidth": 1000000
+        "printWidth": 10000
       }
     }
   ]
