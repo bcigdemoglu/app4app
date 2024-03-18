@@ -69,7 +69,10 @@ export async function serializeLessonMDX(
   return { mdxInputSource, mdxOutputSource };
 }
 
-export async function fetchUserProgressFromDB(): Promise<UserProgressFromDB | null> {
+export async function fetchUserProgressFromDB(
+  lessonId: string,
+  courseId: string
+): Promise<UserProgressFromDB | null> {
   return perf('fetchUserProgressFromDB', async () => {
     const cookieStore = cookies();
     const supabase = createClient(cookieStore);
@@ -85,9 +88,10 @@ export async function fetchUserProgressFromDB(): Promise<UserProgressFromDB | nu
     const { data: userProgress, error: getUserProgressError } = await supabase
       .from('user_progress')
       .select('*')
-      .eq('course_id', 'demo')
       .eq('user_id', user.id)
-      .single();
+      .eq('lesson_id', lessonId)
+      .eq('course_id', courseId)
+      .maybeSingle();
 
     if (getUserProgressError) {
       console.error('getUserProgressError', getUserProgressError);
@@ -109,27 +113,20 @@ export function getLessonInputs(
   user: User
 ): LessonInput {
   // Get full object or default to empty object
-  if (userProgress && userProgress.inputs_by_lesson_id) {
+  if (userProgress && userProgress.inputs_json) {
     // Get user progress if there is one in DB
-    const inputsByLessonIdFromDB = verifiedJsonObjectFromDB(
-      userProgress.inputs_by_lesson_id,
-      `FATAL_DB_ERROR: inputs_by_lesson_id is not an object for user ${user.id}!`
+    const inputsFromDB = verifiedJsonObjectFromDB(
+      userProgress.inputs_json,
+      `FATAL_DB_ERROR: inputs_json is not an object for user ${user.id} of lesson ${lessonId}!`
     );
-    if (inputsByLessonIdFromDB[lessonId]) {
-      // Get lesson input if there is one in the DB
-      const lessonInputFromDB = verifiedJsonObjectFromDB(
-        inputsByLessonIdFromDB[lessonId],
-        `FATAL_DB_ERROR: inputs_by_lesson_id.${lessonId} is not an object for user ${user.id}!`
-      );
-      const metadata = lessonInputFromDB['metadata'] as JsonObject;
-      const lastCompletedSection = metadata['lastCompletedSection'] as number;
-      const modifiedAt = metadata['modified_at'] as string;
-      return {
-        data: lessonInputFromDB['data'] as JsonObject,
-        lastCompletedSection,
-        modifiedAt,
-      };
-    }
+    const metadata = inputsFromDB['metadata'] as JsonObject;
+    const lastCompletedSection = metadata['lastCompletedSection'] as number;
+    const modifiedAt = metadata['modified_at'] as string;
+    return {
+      data: inputsFromDB['data'] as JsonObject,
+      lastCompletedSection,
+      modifiedAt,
+    };
   }
   console.log(
     `no lesson input found for lesson ${lessonId} of user ${user.id}`
@@ -143,23 +140,16 @@ export function getLessonOutput(
   user: User
 ): { data: string | null; modifiedAt: string | null } {
   // Get full object or default to null object
-  if (userProgress && userProgress.outputs_by_lesson_id) {
+  if (userProgress && userProgress.outputs_json) {
     // Get user progress if there is one in DB
-    const outputsByLessonIdFromDB = verifiedJsonObjectFromDB(
-      userProgress.outputs_by_lesson_id,
-      `FATAL_DB_ERROR: output_by_lesson_id is not an object for user ${user.id}!`
+    const outputsFromDB = verifiedJsonObjectFromDB(
+      userProgress.outputs_json,
+      `FATAL_DB_ERROR: outputs_json is not an object for user ${user.id} of lesson ${lessonId}!`
     );
-    if (outputsByLessonIdFromDB[lessonId]) {
-      // Get lesson input if there is one in the DB
-      const lessonOutputsFromDB = verifiedJsonObjectFromDB(
-        outputsByLessonIdFromDB[lessonId],
-        `FATAL_DB_ERROR: outputs_by_lesson_id.${lessonId} is not an object for user ${user.id}!`
-      );
-      const data = lessonOutputsFromDB['data'] as string;
-      const metadata = lessonOutputsFromDB['metadata'] as JsonObject;
-      const modifiedAt = metadata['modified_at'] as string;
-      return { data, modifiedAt };
-    }
+    const data = outputsFromDB['data'] as string;
+    const metadata = outputsFromDB['metadata'] as JsonObject;
+    const modifiedAt = metadata['modified_at'] as string;
+    return { data, modifiedAt };
   }
   console.log(
     `no lesson output found for lesson ${lessonId} of user ${user.id}`

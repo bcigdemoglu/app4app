@@ -29,9 +29,10 @@ export default async function Page({ params }: Props) {
     redirect('/register');
   }
 
-  const userProgressFromDB = await fetchUserProgressFromDB();
+  const userProgressFromDB = await fetchUserProgressFromDB(lessonId, courseId);
   const { lastCompletedSection: lastCompletedSectionFromDB } = getLessonInputs(
     userProgressFromDB,
+
     lessonId,
     user
   );

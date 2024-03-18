@@ -68,7 +68,7 @@ export default async function Page({ params, searchParams }: Props) {
 
   // Start both serialization operations in parallel
   const recordMapPromise = getRecordMap(notionId);
-  const userProgressFromDBPromise = fetchUserProgressFromDB();
+  const userProgressFromDBPromise = fetchUserProgressFromDB(lessonId, courseId);
 
   // Wait for both operations to complete
   const [recordMap, userProgressFromDB] = await perf(

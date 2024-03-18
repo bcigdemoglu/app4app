@@ -43,133 +43,87 @@ export async function updateUserInputsByLessonId(
     redirect('/login');
   }
 
-  const { data: userProgress, error: getUserProgressError } = await supabase
-    .from('user_progress')
-    .select('*')
-    .eq('course_id', courseId)
-    .eq('user_id', user.id)
-    .single();
+  try {
+    // Fetch user progress with error handling
+    const { data: userProgress, error: getUserProgressError } = await supabase
+      .from('user_progress')
+      .select('*')
+      .eq('user_id', user.id)
+      .eq('lesson_id', lessonId)
+      .eq('course_id', courseId)
+      .maybeSingle();
 
-  if (getUserProgressError) {
-    console.error('getUserProgressError', getUserProgressError);
-  }
+    if (getUserProgressError) {
+      throw getUserProgressError; // Re-throw for centralized error handling
+    }
 
-  // Get full object or default to empty object
-  let existingInputsByLessonId: JsonObject = {};
-  let existingLessonInput: JsonObject = {};
-  let mergedLessonInput: JsonObject = newLessonInput;
-  if (userProgress && userProgress.inputs_by_lesson_id) {
-    // Get user progress if there is one in DB
-    const inputsByLessonIdFromDB = verifiedJsonObjectFromDB(
-      userProgress.inputs_by_lesson_id,
-      `FATAL_DB_ERROR: inputs_by_lesson_id is not an object for user ${user.id}!`
-    );
-    existingInputsByLessonId = inputsByLessonIdFromDB;
-    if (inputsByLessonIdFromDB[lessonId]) {
-      // Get lesson input if there is one in the DB
-      const lessonInputWithMetadataFromDB = verifiedJsonObjectFromDB(
-        inputsByLessonIdFromDB[lessonId],
-        `FATAL_DB_ERROR: inputs_by_lesson_id.${lessonId} is not an object for user ${user.id}!`
-      );
-      // Update last completed section in DB
-      const lessonMetadataFromDB = verifiedJsonObjectFromDB(
-        lessonInputWithMetadataFromDB['metadata'],
-        `FATAL_DB_ERROR: inputs_by_lesson_id.${lessonId}.metadata is not an object for user ${user.id}!`
-      );
-      const lastCompletedSectionFromDB = (lessonMetadataFromDB[
-        'lastCompletedSection'
-      ] ?? 0) as number;
-      const lessonInputFromDB = verifiedJsonObjectFromDB(
-        lessonInputWithMetadataFromDB['data'],
-        `FATAL_DB_ERROR: inputs_by_lesson_id.${lessonId}.data is not an object for user ${user.id}!`
-      );
-      existingLessonInput = lessonInputFromDB;
-      if (isSameJson(existingLessonInput, newLessonInput)) {
-        // Fast check for no change in input fields, do not update DB
+    // Early return if data is unchanged
+    if (userProgress && userProgress.inputs_json) {
+      const existingInputs = verifiedJsonObjectFromDB(
+        userProgress.inputs_json,
+        // More specific error message
+        `FATAL_DB_ERROR: inputs_json corrupt for user ${user.id}, lesson ${lessonId}`
+      ) as JsonObject;
+
+      const lastCompletedSection =
+        ((existingInputs.metadata as JsonObject)
+          ?.lastCompletedSection as number) ?? 0;
+
+      if (isSameJson(existingInputs.data, newLessonInput)) {
         return {
           state: 'noupdate',
-          data: existingLessonInput,
-          lastCompletedSection: lastCompletedSectionFromDB,
+          data: existingInputs.data as JsonObject,
+          lastCompletedSection,
         };
       }
-      mergedLessonInput = { ...existingLessonInput, ...newLessonInput };
     }
-  }
 
-  // New object, update DB
-  const lessonInputWithMetadata = {
-    data: mergedLessonInput,
-    metadata: {
-      modified_at: new Date().toISOString(),
-      lastCompletedSection: section,
-    },
-  };
+    // Data to be saved (consolidated)
+    const lessonInputWithMetadata = {
+      data:
+        userProgress && userProgress.inputs_json
+          ? {
+              ...((userProgress.inputs_json as JsonObject).data as JsonObject),
+              ...newLessonInput,
+            }
+          : newLessonInput,
+      metadata: {
+        modified_at: new Date().toISOString(),
+        lastCompletedSection: section,
+      },
+    };
 
-  const updatedInputsByLessonId = {
-    ...existingInputsByLessonId,
-    ...{ [lessonId]: lessonInputWithMetadata },
-  };
+    // Update or insert based on userProgress
+    const { data: updatedUserProgress, error } = await supabase
+      .from('user_progress')
+      .upsert({
+        // Upsert for cleaner logic
+        user_id: user.id,
+        lesson_id: lessonId,
+        course_id: courseId,
+        inputs_json: lessonInputWithMetadata,
+        modified_at: new Date().toISOString(),
+      })
+      .select()
+      .single();
 
-  if (userProgress) {
-    const { data: updatedUserProgress, error: updateUserProgressError } =
-      await supabase
-        .from('user_progress')
-        .update({
-          user_id: user.id,
-          inputs_by_lesson_id: updatedInputsByLessonId,
-          modified_at: new Date().toISOString(),
-        })
-        .eq('id', userProgress.id)
-        .select()
-        .single();
-
-    if (updateUserProgressError) {
-      console.error('updateUserProgressError', updateUserProgressError);
+    if (error) {
       throw new Error(
-        `DB_ERROR: could not update inputs_by_lesson_id for user ${user.id}`
+        `DB_ERROR: Failed to update/insert progress for user ${user.id}`
       );
     }
-    revalidatePath('/playground');
-    const updatedData = (
-      (updatedUserProgress.inputs_by_lesson_id as JsonObject)[
-        lessonId
-      ] as JsonObject
-    )['data'] as JsonObject;
-    return {
-      state: 'success',
-      data: updatedData,
-      lastCompletedSection: section,
-    };
-  } else {
-    const { data: updatedUserProgress, error: insertUserProgressError } =
-      await supabase
-        .from('user_progress')
-        .insert({
-          course_id: courseId,
-          user_id: user.id,
-          inputs_by_lesson_id: updatedInputsByLessonId,
-          modified_at: new Date().toISOString(),
-        })
-        .select()
-        .single();
 
-    if (insertUserProgressError) {
-      console.error('insertUserProgressError', insertUserProgressError);
-      throw new Error(
-        `DB_ERROR: could not insert inputs_by_lesson_id for user ${user.id}`
-      );
-    }
-    revalidatePath('/playground');
-    const updatedData = (
-      (updatedUserProgress.inputs_by_lesson_id as JsonObject)[
-        lessonId
-      ] as JsonObject
-    )['data'] as JsonObject;
+    revalidatePath('/playground'); // Assuming you have a helper for this
+
     return {
       state: 'success',
-      data: updatedData,
+      data: (updatedUserProgress.inputs_json as JsonObject).data as JsonObject,
       lastCompletedSection: section,
     };
+  } catch (error) {
+    console.error('Error updating user progress:', error);
+    // Consider returning an error state instead of throwing directly from here
+    throw error; // ...or re-throw if you want it handled elsewhere
   }
 }
 
@@ -188,57 +142,22 @@ export async function deleteUserDataByLessonId(
     redirect('/login');
   }
 
-  const { data: userProgress, error: getUserProgressError } = await supabase
+  const { error: deleteUserProgressError } = await supabase
     .from('user_progress')
-    .select('*')
-    .eq('course_id', courseId)
+    .delete()
     .eq('user_id', user.id)
-    .single();
+    .eq('lesson_id', lessonId)
+    .eq('course_id', courseId);
 
-  if (getUserProgressError) {
-    console.error('getUserProgressError', getUserProgressError);
+  if (deleteUserProgressError) {
+    console.error('deleteUserProgressError', deleteUserProgressError);
     throw new Error(
-      `DB_ERROR: could not get user progress for user ${user.id}`
+      `DB_ERROR: could not delete user progress for user ${user.id} lesson ${lessonId} course ${courseId}!`
     );
   }
 
-  if (userProgress && userProgress.inputs_by_lesson_id) {
-    const allLessonProgress = userProgress.inputs_by_lesson_id as JsonObject;
-    const lessonProgress = allLessonProgress[lessonId] as JsonObject;
-
-    const allLessonOutput = userProgress.outputs_by_lesson_id as JsonObject;
-    const lessonOutput = allLessonOutput[lessonId] as JsonObject;
-
-    if (lessonProgress) {
-      delete allLessonProgress[lessonId];
-    }
-    if (lessonOutput) {
-      delete allLessonOutput[lessonId];
-    }
-
-    const { error: updateUserProgressError } = await supabase
-      .from('user_progress')
-      .update({
-        user_id: user.id,
-        inputs_by_lesson_id: allLessonProgress,
-        outputs_by_lesson_id: allLessonOutput,
-        modified_at: new Date().toISOString(),
-      })
-      .eq('id', userProgress.id)
-      .select()
-      .single();
-
-    if (updateUserProgressError) {
-      console.error('updateUserProgressError', updateUserProgressError);
-      throw new Error(
-        `DB_ERROR: could not update inputs_by_lesson_id for user ${user.id}`
-      );
-    }
-    revalidatePath('/playground');
-    redirect(`/playground/${courseId}/${lessonId}`);
-    return true;
-  }
-  return false;
+  revalidatePath('/playground');
+  redirect(`/playground/${courseId}/${lessonId}`);
 }
 
 export async function updateUserOutputByLessonId(
@@ -260,8 +179,9 @@ export async function updateUserOutputByLessonId(
   const { data: userProgress, error: getUserProgressError } = await supabase
     .from('user_progress')
     .select('*')
-    .eq('course_id', courseId)
     .eq('user_id', user.id)
+    .eq('lesson_id', lessonId)
+    .eq('course_id', courseId)
     .single();
 
   if (getUserProgressError) {
@@ -269,16 +189,13 @@ export async function updateUserOutputByLessonId(
   }
   if (!userProgress) {
     throw new Error(
-      `FATAL_DB_ERROR: no user_progress found for user ${user.id} to update output!`
+      `FATAL_DB_ERROR: no user_progress found for user ${user.id} of lesson ${lessonId} to update output!`
     );
   }
 
-  const outputsByLessonIdFromDB =
-    (userProgress.outputs_by_lesson_id as JsonObject) || {};
+  const outputsFromDB = (userProgress.outputs_json as JsonObject) || {};
 
-  const lessonOutputFromDB = (
-    outputsByLessonIdFromDB[lessonId] as JsonObject
-  )?.['data'] as string;
+  const lessonOutputFromDB = outputsFromDB['data'] as string;
 
   if (lessonOutputFromDB === outputHTML) {
     // Fast check for no change in output, do not update DB
@@ -291,37 +208,29 @@ export async function updateUserOutputByLessonId(
       modified_at: new Date().toISOString(),
     },
   };
-
-  const updatedOutputsByLessonId = {
-    ...outputsByLessonIdFromDB,
-    ...{ [lessonId]: lessonOutputWithMetadata },
-  };
-
   const { data: updatedUserProgress, error: updateUserProgressError } =
     await supabase
       .from('user_progress')
       .update({
-        id: userProgress.id,
-        user_id: user.id,
-        outputs_by_lesson_id: updatedOutputsByLessonId,
+        outputs_json: lessonOutputWithMetadata,
         modified_at: new Date().toISOString(),
       })
-      .eq('id', userProgress.id)
+      .eq('user_id', user.id)
+      .eq('lesson_id', lessonId)
+      .eq('course_id', courseId)
       .select()
       .single();
 
   if (updateUserProgressError) {
     console.error('updateUserProgressError', updateUserProgressError);
     throw new Error(
-      `DB_ERROR: could not update outputs_by_lesson_id for user ${user.id}`
+      `DB_ERROR: could not update outputs_json for user ${user.id} of lesson ${lessonId}`
     );
   }
   revalidatePath('/playground');
-  const updatedData = (
-    (updatedUserProgress.outputs_by_lesson_id as JsonObject)[
-      lessonId
-    ] as JsonObject
-  )['data'] as string;
+  const updatedData = (updatedUserProgress.outputs_json as JsonObject)[
+    'data'
+  ] as string;
   return updatedData;
 }
 
@@ -370,9 +279,9 @@ export async function exportUserOutput(
         .insert({
           output: outputHTML,
           course_id: courseId,
+          lesson_id: lessonId,
           user_id: user.id,
           full_name: profile?.full_name,
-          lesson_id: lessonId,
           is_public: isPublic,
           modified_at: new Date().toISOString(),
         })

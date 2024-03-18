@@ -105,6 +105,7 @@ const LessonButtons = ({
   return (
     <>
       <button
+        id='export-output'
         disabled={!sectionCompleted || isExporting}
         onClick={onExportOutput}
         className='rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700 disabled:bg-blue-300'
@@ -117,7 +118,10 @@ const LessonButtons = ({
       </button>
       {prevSectionLink && (
         <Link href={prevSectionLink}>
-          <button className='rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700 disabled:bg-blue-300'>
+          <button
+            id='prev-section'
+            className='rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700 disabled:bg-blue-300'
+          >
             <FontAwesomeIcon icon={faAngleLeft} />
           </button>
         </Link>
@@ -125,6 +129,7 @@ const LessonButtons = ({
       {!prevSectionLink && prevLessonLink && (
         <Link href={prevLessonLink}>
           <button
+            id='prev-lesson'
             className='rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700 disabled:bg-blue-300'
             disabled={!prevLessonLink}
           >
@@ -135,6 +140,7 @@ const LessonButtons = ({
       {nextSectionLink && (
         <Link href={nextSectionLink}>
           <button
+            id='next-section'
             disabled={!sectionCompleted}
             className='rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700 disabled:bg-blue-300'
           >
@@ -145,6 +151,7 @@ const LessonButtons = ({
       {!nextSectionLink && nextLessonLink && (
         <Link href={nextLessonLink}>
           <button
+            id='next-lesson'
             className='rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700 disabled:bg-blue-300'
             disabled={!lessonCompleted}
           >
