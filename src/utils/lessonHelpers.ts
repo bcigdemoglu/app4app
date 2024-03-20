@@ -1,5 +1,3 @@
-'use only';
-
 import {
   getLessonInputMDX,
   getLessonOutputMDX,
