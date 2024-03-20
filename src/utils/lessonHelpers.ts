@@ -1,22 +1,22 @@
 'use only';
 
-import { NotionAPI } from 'notion-client';
-import { cookies } from 'next/headers';
-import { createClient } from '@/utils/supabase/server';
-import {
-  JsonObject,
-  UserProgressFromDB,
-  verifiedJsonObjectFromDB,
-} from '@/lib/types';
 import {
   getLessonInputMDX,
   getLessonOutputMDX,
   getLessonTotalSections,
 } from '@/lib/data';
-import { ExtendedRecordMap } from 'notion-types';
+import {
+  JsonObject,
+  UserProgressFromDB,
+  verifiedJsonObjectFromDB,
+} from '@/lib/types';
+import { createClient } from '@/utils/supabase/server';
+import { User } from '@supabase/supabase-js';
 import { MDXRemoteSerializeResult } from 'next-mdx-remote';
 import { serialize } from 'next-mdx-remote/serialize';
-import { User } from '@supabase/supabase-js';
+import { cookies } from 'next/headers';
+import { NotionAPI } from 'notion-client';
+import { ExtendedRecordMap } from 'notion-types';
 import { perf } from './debug';
 
 export async function getRecordMap(id: string) {
