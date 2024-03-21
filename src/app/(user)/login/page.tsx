@@ -1,8 +1,8 @@
-import Link from 'next/link';
-import Image from 'next/image';
-import { handleLogInWithGoogle, login } from './actions';
-import { redirect } from 'next/navigation';
 import { getAuthUser } from '@/utils/userActions';
+import Image from 'next/image';
+import Link from 'next/link';
+import { redirect } from 'next/navigation';
+import { handleLogInWithGoogle, login } from './actions';
 
 export default async function LoginPage() {
   const user = await getAuthUser();
@@ -91,7 +91,7 @@ export default async function LoginPage() {
 
       <div className='mt-4 text-sm'>
         <Link
-          href='/recovery'
+          href='/send-reset-password'
           className='font-medium text-indigo-600 hover:text-indigo-500'
         >
           Forgot password?
