@@ -36,7 +36,7 @@ export const DEMO_LESSON_MAP: LessonMap = {
     description: 'What are your SMART goals?',
     prev: null,
     next: 'action',
-    order: 3,
+    order: 0,
   },
   action: {
     id: 'action',
@@ -45,7 +45,7 @@ export const DEMO_LESSON_MAP: LessonMap = {
     description: 'What is your action plan?',
     prev: 'smart',
     next: null,
-    order: 4,
+    order: 1,
   },
   ilayda1: {
     id: 'ilayda1',
@@ -54,7 +54,7 @@ export const DEMO_LESSON_MAP: LessonMap = {
     description: 'Ilayda to impress',
     prev: null,
     next: 'ilayda2',
-    order: 5,
+    order: 0,
   },
   ilayda2: {
     id: 'ilayda2',
@@ -63,7 +63,7 @@ export const DEMO_LESSON_MAP: LessonMap = {
     description: 'Universe to impress ilayda',
     prev: 'ilayda1',
     next: 'supershortpage',
-    order: 6,
+    order: 1,
   },
   supershortpage: {
     id: 'supershortpage',
@@ -117,12 +117,14 @@ export const COURSE_MAP: CourseMap = {
     id: 'demo',
     title: 'Demo Course',
     description: 'This is a demo course to impress creators',
+    access: 'preview',
     lessonMap: DEMO_LESSON_MAP,
   },
   businessimprovementplan: {
     id: 'businessimprovementplan',
     title: 'Business Improvement Plan',
     description: 'This is a super short page',
+    access: 'private',
     lessonMap: BIP_LESSON_MAP,
   },
 };

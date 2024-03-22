@@ -85,8 +85,13 @@ export async function serializeLessonMDX(
 
 export async function fetchLessonUserProgress(
   lessonId: string,
-  courseId: string
+  courseId: string,
+  user: User | null
 ): Promise<UserProgressFromDB | null> {
+  if (!user) {
+    return null;
+  }
+
   return perf('fetchUserProgressFromDB', async () => {
     const cookieStore = cookies();
     const supabase = createClient(cookieStore);
@@ -124,10 +129,10 @@ interface LessonInput {
 export function getLessonInputs(
   userProgress: UserProgressFromDB | null,
   lessonId: string,
-  user: User
+  user: User | null
 ): LessonInput {
   // Get full object or default to empty object
-  if (userProgress && userProgress.inputs_json) {
+  if (user && userProgress && userProgress.inputs_json) {
     // Get user progress if there is one in DB
     const inputsFromDB = verifiedJsonObjectFromDB(
       userProgress.inputs_json,
@@ -143,7 +148,9 @@ export function getLessonInputs(
     };
   }
   console.log(
-    `no lesson input found for lesson ${lessonId} of user ${user.id}`
+    `no lesson input found for lesson ${lessonId} of user ${
+      user ? user.id : 'NOT LOGGED IN'
+    }`
   );
   return { data: null, lastCompletedSection: null, modifiedAt: null };
 }
@@ -151,10 +158,10 @@ export function getLessonInputs(
 export function getLessonOutput(
   userProgress: UserProgressFromDB | null,
   lessonId: string,
-  user: User
+  user: User | null
 ): { data: string | null; modifiedAt: string | null } {
   // Get full object or default to null object
-  if (userProgress && userProgress.outputs_json) {
+  if (user && userProgress && userProgress.outputs_json) {
     // Get user progress if there is one in DB
     const outputsFromDB = verifiedJsonObjectFromDB(
       userProgress.outputs_json,
@@ -166,7 +173,9 @@ export function getLessonOutput(
     return { data, modifiedAt };
   }
   console.log(
-    `no lesson output found for lesson ${lessonId} of user ${user.id}`
+    `no lesson output found for lesson ${lessonId} of user ${
+      user ? user.id : 'NOT LOGGED IN'
+    }`
   );
   return { data: null, modifiedAt: null };
 }

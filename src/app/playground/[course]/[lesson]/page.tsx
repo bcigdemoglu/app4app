@@ -18,27 +18,36 @@ function isValidLesson(courseId: string, lessonId: string) {
 export default async function Page({ params }: Props) {
   const { course: courseId, lesson: lessonId } = params;
   if (!isValidLesson(courseId, lessonId)) notFound();
+  const { access } = COURSE_MAP[courseId];
 
   const cookieStore = cookies();
   const supabase = createClient(cookieStore);
-
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) {
+
+  if (access === 'private' && !user) {
     redirect('/register');
   }
 
-  const userProgressFromDB = await fetchLessonUserProgress(lessonId, courseId);
-  const { lastCompletedSection: lastCompletedSectionFromDB } = getLessonInputs(
-    userProgressFromDB,
+  const STARTING_SECTION = 1;
+  let sectionId = STARTING_SECTION;
 
-    lessonId,
-    user
-  );
-
-  const startingSection = 1;
-  const sectionId = lastCompletedSectionFromDB ?? startingSection;
+  if (user) {
+    const userProgressFromDB = await fetchLessonUserProgress(
+      lessonId,
+      courseId,
+      user
+    );
+    const { lastCompletedSection } = getLessonInputs(
+      userProgressFromDB,
+      lessonId,
+      user
+    );
+    if (lastCompletedSection) {
+      sectionId = lastCompletedSection;
+    }
+  }
 
   redirect(`/playground/${courseId}/${lessonId}/${sectionId}`);
 }

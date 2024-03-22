@@ -14,14 +14,15 @@ function isValidCourse(courseId: string) {
 export default async function Page({ params }: Props) {
   const { course: courseId } = params;
   if (!isValidCourse(courseId)) notFound();
+  const { access } = COURSE_MAP[courseId];
 
   const cookieStore = cookies();
   const supabase = createClient(cookieStore);
-
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) {
+
+  if (access === 'private' && !user) {
     redirect('/register');
   }
 

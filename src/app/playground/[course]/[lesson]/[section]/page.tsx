@@ -45,14 +45,15 @@ export default async function Page({ params, searchParams }: Props) {
     parseInt(params.section) < 1
   )
     notFound();
+  const { access } = COURSE_MAP[params.course];
 
   const cookieStore = cookies();
   const supabase = createClient(cookieStore);
 
   const {
     data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) {
+  } = await perf('getUser', () => supabase.auth.getUser());
+  if (access === 'private' && !user) {
     redirect('/register');
   }
 
@@ -60,7 +61,7 @@ export default async function Page({ params, searchParams }: Props) {
     .from('profiles')
     .select('*')
     .single();
-  if (!profile) {
+  if (access === 'private' && !profile) {
     redirect('/my-account');
   }
 
@@ -71,7 +72,9 @@ export default async function Page({ params, searchParams }: Props) {
 
   // Start both serialization operations in parallel
   const recordMapPromise = getRecordMap(notionId);
-  const userProgressFromDBPromise = fetchLessonUserProgress(lessonId, courseId);
+  const userProgressFromDBPromise = user
+    ? fetchLessonUserProgress(lessonId, courseId, user)
+    : Promise.resolve(null);
 
   // Wait for both operations to complete
   const [recordMap, userProgressFromDB] = await perf(
