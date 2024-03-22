@@ -1,6 +1,6 @@
 import { COURSE_MAP } from '@/lib/data';
 import {
-  fetchUserProgressFromDB,
+  fetchLessonUserProgress,
   getLessonInputs,
 } from '@/utils/lessonHelpers';
 import { createClient } from '@/utils/supabase/server';
@@ -29,7 +29,7 @@ export default async function Page({ params }: Props) {
     redirect('/register');
   }
 
-  const userProgressFromDB = await fetchUserProgressFromDB(lessonId, courseId);
+  const userProgressFromDB = await fetchLessonUserProgress(lessonId, courseId);
   const { lastCompletedSection: lastCompletedSectionFromDB } = getLessonInputs(
     userProgressFromDB,
 

@@ -1,16 +1,16 @@
 'use server';
 
-import { cookies } from 'next/headers';
-import { createClient } from '@/utils/supabase/actions';
-import { redirect } from 'next/navigation';
 import {
-  JsonObject,
-  verifiedJsonObjectFromDB,
-  isSameJson,
-  UpdateUserInputFormState,
   ExportedOuputsFromDB,
+  JsonObject,
+  UpdateUserInputFormState,
+  isSameJson,
+  verifiedJsonObjectFromDB,
 } from '@/lib/types';
+import { createClient } from '@/utils/supabase/actions';
 import { revalidatePath } from 'next/cache';
+import { cookies } from 'next/headers';
+import { redirect } from 'next/navigation';
 
 export async function updateUserInputsByLessonId(
   _currentState: UpdateUserInputFormState,
@@ -364,35 +364,6 @@ export async function fetchExportedOutput(
   }
 
   return updatedExportedOutput;
-}
-
-export async function fetchAiResponse(
-  input: string,
-  prompt: string
-): Promise<string> {
-  const response = await fetch(
-    'https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.2',
-    {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${process.env.HUGGINGFACE_API_KEY}`,
-      },
-      body: JSON.stringify({ inputs: `<s>[INST] ${prompt} ${input} [/INST]` }),
-    }
-  );
-  const aiResponse = (await response.json()) as [{ generated_text: string }];
-  if (
-    aiResponse &&
-    aiResponse.length > 0 &&
-    typeof aiResponse[0] === 'object' &&
-    aiResponse[0].generated_text &&
-    aiResponse[0].generated_text.split('[/INST]').length > 1
-  ) {
-    return aiResponse[0].generated_text.split('[/INST]')[1].trim();
-  } else {
-    return `ERROR AI Response: ${aiResponse}`;
-  }
 }
 
 export async function collectWidgetStat(

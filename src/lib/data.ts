@@ -1,5 +1,5 @@
-import { ExtendedRecordMap, Block } from 'notion-types';
-import { LessonMap, CourseMap, AIFeedbackMap } from '@/lib/types';
+import { AIFeedbackMap, CourseMap, LessonMap } from '@/lib/types';
+import { Block, ExtendedRecordMap } from 'notion-types';
 
 export const DEMO_LESSON_MAP: LessonMap = {
   '1': {
@@ -9,6 +9,7 @@ export const DEMO_LESSON_MAP: LessonMap = {
     description: 'How to commit to your idea?',
     prev: null,
     next: '2',
+    order: 0,
   },
   '2': {
     id: '2',
@@ -17,6 +18,7 @@ export const DEMO_LESSON_MAP: LessonMap = {
     description: 'How to commit to your idea?',
     prev: null,
     next: '3',
+    order: 1,
   },
   '3': {
     id: '3',
@@ -25,6 +27,7 @@ export const DEMO_LESSON_MAP: LessonMap = {
     description: "What's the reality of your idea?",
     prev: '2',
     next: null,
+    order: 2,
   },
   smart: {
     id: 'smart',
@@ -33,6 +36,7 @@ export const DEMO_LESSON_MAP: LessonMap = {
     description: 'What are your SMART goals?',
     prev: null,
     next: 'action',
+    order: 3,
   },
   action: {
     id: 'action',
@@ -41,6 +45,7 @@ export const DEMO_LESSON_MAP: LessonMap = {
     description: 'What is your action plan?',
     prev: 'smart',
     next: null,
+    order: 4,
   },
   ilayda1: {
     id: 'ilayda1',
@@ -49,6 +54,7 @@ export const DEMO_LESSON_MAP: LessonMap = {
     description: 'Ilayda to impress',
     prev: null,
     next: 'ilayda2',
+    order: 5,
   },
   ilayda2: {
     id: 'ilayda2',
@@ -57,6 +63,7 @@ export const DEMO_LESSON_MAP: LessonMap = {
     description: 'Universe to impress ilayda',
     prev: 'ilayda1',
     next: 'supershortpage',
+    order: 6,
   },
   supershortpage: {
     id: 'supershortpage',
@@ -65,6 +72,43 @@ export const DEMO_LESSON_MAP: LessonMap = {
     description: 'This is a super short page',
     prev: 'ilayda2',
     next: null,
+    order: 7,
+  },
+  businessimprovementplan: {
+    id: 'businessimprovementplan',
+    notionId: '18a54ccc0e8945caac723b32c5746a70',
+    title: 'Lesson: Improvement Plan',
+    description: 'This is a super short page',
+    prev: 'ilayda2',
+    next: null,
+    order: 8,
+  },
+};
+
+export const BIP_LESSON_MAP: LessonMap = {
+  frontpage: {
+    id: 'frontpage',
+    notionId: '1e2c9647574643e4a9e16d205521fb1e',
+    title: 'Front Page',
+    prev: null,
+    next: 'foreword',
+    order: 0,
+  },
+  foreword: {
+    id: 'foreword',
+    notionId: '1ba74abf28444ca78efabb562ac8bb73',
+    title: 'Foreword',
+    prev: 'frontpage',
+    next: 'currentstate',
+    order: 1,
+  },
+  currentstate: {
+    id: 'currentstate',
+    notionId: '4a840b6f793848569701085af2bdf2d8',
+    title: 'Current State',
+    prev: 'foreword',
+    next: null,
+    order: 2,
   },
 };
 
@@ -74,6 +118,12 @@ export const COURSE_MAP: CourseMap = {
     title: 'Demo Course',
     description: 'This is a demo course to impress creators',
     lessonMap: DEMO_LESSON_MAP,
+  },
+  businessimprovementplan: {
+    id: 'businessimprovementplan',
+    title: 'Business Improvement Plan',
+    description: 'This is a super short page',
+    lessonMap: BIP_LESSON_MAP,
   },
 };
 
@@ -137,9 +187,12 @@ const sectionToIndex = (section: number) => ({
 export const getLessonTotalSections = (
   recordMap: ExtendedRecordMap
 ): number => {
-  return (
-    extractMarkdownBlocks(recordMap).map((b) => extractMarkdownText(b))
-      ?.length / 2 || 0
+  return Math.max(
+    Math.ceil(
+      extractMarkdownBlocks(recordMap).map((b) => extractMarkdownText(b))
+        ?.length / 2
+    ),
+    1
   );
 };
 
@@ -163,4 +216,21 @@ export const getLessonOutputMDX = (
       .map((b) => extractMarkdownText(b))
       ?.at(sectionToIndex(section).outputIndex) || ''
   );
+};
+
+export const getLSPrefix = (
+  courseId: string,
+  lessonId: string,
+  sectionId: number
+) => {
+  return `cloudybook-${courseId}-${lessonId}-${sectionId}`;
+};
+
+export const getLSKey = (
+  courseId: string,
+  lessonId: string,
+  sectionId: number,
+  fieldId: string
+) => {
+  return `${getLSPrefix(courseId, lessonId, sectionId)}-${fieldId}`;
 };

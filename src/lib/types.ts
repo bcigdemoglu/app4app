@@ -10,6 +10,14 @@ export function isSameJson(obj1: Json, obj2: Json): boolean {
   return JSON.stringify(obj1) === JSON.stringify(obj2);
 }
 
+export function toInputTextId(name: string) {
+  return `I_TEXT.${name}`;
+}
+
+export function toInputTableId(name: string) {
+  return `I_TABLE.${name}`;
+}
+
 export function verifiedJsonObjectFromDB(
   obj: Json | undefined,
   errMsg: string
@@ -24,9 +32,10 @@ export interface Lesson {
   id: string;
   notionId: string;
   title: string;
-  description: string;
+  description?: string;
   prev: string | null;
   next: string | null;
+  order: number;
 }
 
 export type LessonMap = Record<string, Lesson>;

@@ -2,4 +2,4 @@ User-agent: *
 Allow: /
 Disallow: /playground
 
-Sitemap: https://app.ilayda.com/sitemap.xml
+Sitemap: https://app.cloudybook.com/sitemap.xml

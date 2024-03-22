@@ -1,16 +1,49 @@
 'server-only';
 
-import { fetchAiResponse } from '@/app/actions';
-import { JsonObject } from '@/lib/types';
+import { JsonObject, toInputTableId, toInputTextId } from '@/lib/types';
+import {
+  fetchAiResponse,
+  fetchUserProgressForCourseUpToLesson,
+} from '@/utils/lessonHelpers';
 import { MDXComponents } from 'mdx/types';
+import { Fragment } from 'react';
 
-export const toTextFieldId = (name: string) => `I_TEXT.${name}`;
+export async function PreviousLessonOutputs({
+  courseId,
+  lessonId,
+}: {
+  courseId: string;
+  lessonId: string;
+}) {
+  const userProgressForCourseUpToLesson =
+    await fetchUserProgressForCourseUpToLesson(courseId, lessonId);
+
+  if (!userProgressForCourseUpToLesson) {
+    return <></>;
+  }
+
+  return (
+    <>
+      {userProgressForCourseUpToLesson.map((userProgress) => (
+        <Fragment key={userProgress.id}>
+          <div
+            className='prose'
+            dangerouslySetInnerHTML={{
+              __html: (userProgress.outputs_json as JsonObject).data as string,
+            }}
+          />
+          <br></br>
+        </Fragment>
+      ))}
+    </>
+  );
+}
 
 export function getMdxOutputComponents(
   lessonInputsFromDB: JsonObject | null
 ): MDXComponents {
   function O_TEXT({ name }: { name: string }) {
-    const fieldId = toTextFieldId(name);
+    const fieldId = toInputTextId(name);
     const value = lessonInputsFromDB
       ? (lessonInputsFromDB[fieldId] as string)
       : 'ERROR';
@@ -21,8 +54,53 @@ export function getMdxOutputComponents(
       </span>
     );
   }
+  type TableRow = string[];
+  type TableData = TableRow[];
+  const O_TABLE = ({ name }: { name: string }) => {
+    const fieldId = toInputTableId(name);
+    const inputFromDB = lessonInputsFromDB?.[fieldId] as string;
+    const parsedInputFromDB = inputFromDB
+      ? (JSON.parse(inputFromDB) as TableData)
+      : null;
+    const tableData = parsedInputFromDB;
+
+    if (!tableData) {
+      return <div>ERROR: No table data found</div>;
+    }
+
+    return (
+      <div>
+        <table className='table-auto items-start'>
+          <thead>
+            <tr>
+              {tableData[0]?.map((header, colIndex) => (
+                <th key={colIndex}>{header}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {tableData.map((row, rowIndex) =>
+              rowIndex === 0 ? null : (
+                <tr key={rowIndex}>
+                  {row.map((cell, colIndex) => {
+                    if (colIndex === 0) {
+                      // First column, use `th` for header
+                      return <th key={colIndex}>{cell}</th>;
+                    } else {
+                      // Use `td` for other columns
+                      return <td key={colIndex}>{cell}</td>;
+                    }
+                  })}
+                </tr>
+              )
+            )}
+          </tbody>
+        </table>
+      </div>
+    );
+  };
   async function O_TEXT_AI({ name, prompt }: { name: string; prompt: string }) {
-    const fieldId = toTextFieldId(name);
+    const fieldId = toInputTextId(name);
     const inputValue = lessonInputsFromDB
       ? (lessonInputsFromDB[fieldId] as string)
       : 'ERROR';
@@ -37,8 +115,16 @@ export function getMdxOutputComponents(
       </span>
     );
   }
+  function O_PAGE() {
+    return (
+      // Respect the newlines in the value
+      <div className='break-after-page' />
+    );
+  }
   return {
     O_TEXT,
     O_TEXT_AI,
+    O_TABLE,
+    O_PAGE,
   };
 }

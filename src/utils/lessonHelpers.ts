@@ -1,4 +1,7 @@
+'server-only';
+
 import {
+  COURSE_MAP,
   getLessonInputMDX,
   getLessonOutputMDX,
   getLessonTotalSections,
@@ -15,6 +18,9 @@ import { serialize } from 'next-mdx-remote/serialize';
 import { cookies } from 'next/headers';
 import { NotionAPI } from 'notion-client';
 import { ExtendedRecordMap } from 'notion-types';
+import rehypeAutolinkHeadings from 'rehype-autolink-headings';
+import rehypeSlug from 'rehype-slug';
+import remarkGfm from 'remark-gfm';
 import { perf } from './debug';
 
 export async function getRecordMap(id: string) {
@@ -55,8 +61,18 @@ export async function serializeLessonMDX(
   mdxOutputSource: MDXRemoteSerializeResult;
 }> {
   // Start both serialization operations in parallel
-  const inputMDXPromise = serialize(mdxInput);
-  const outputMDXPromise = serialize(mdxOutput);
+  const inputMDXPromise = serialize(mdxInput, {
+    mdxOptions: {
+      remarkPlugins: [remarkGfm],
+      rehypePlugins: [rehypeSlug, rehypeAutolinkHeadings],
+    },
+  });
+  const outputMDXPromise = serialize(mdxOutput, {
+    mdxOptions: {
+      remarkPlugins: [remarkGfm],
+      rehypePlugins: [rehypeSlug, rehypeAutolinkHeadings],
+    },
+  });
 
   // Wait for both operations to complete
   const [mdxInputSource, mdxOutputSource] = await Promise.all([
@@ -67,7 +83,7 @@ export async function serializeLessonMDX(
   return { mdxInputSource, mdxOutputSource };
 }
 
-export async function fetchUserProgressFromDB(
+export async function fetchLessonUserProgress(
   lessonId: string,
   courseId: string
 ): Promise<UserProgressFromDB | null> {
@@ -153,4 +169,95 @@ export function getLessonOutput(
     `no lesson output found for lesson ${lessonId} of user ${user.id}`
   );
   return { data: null, modifiedAt: null };
+}
+
+export function getLessonOrder(courseId: string, lessonId: string): number {
+  return COURSE_MAP[courseId].lessonMap[lessonId].order;
+}
+
+export function getLessonOrderFromUserProgress(
+  userProgress: UserProgressFromDB
+): number {
+  return getLessonOrder(userProgress.course_id, userProgress.lesson_id);
+}
+
+export async function fetchUserProgressForCourse(
+  courseId: string
+): Promise<UserProgressFromDB[] | null> {
+  return perf('fetchUserProgressForCourse', async () => {
+    const cookieStore = cookies();
+    const supabase = createClient(cookieStore);
+
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      throw new Error('Unauthorized user for fetchUserProgressForCourse');
+    }
+
+    const { data: userProgressList, error: getUserProgressError } =
+      await supabase
+        .from('user_progress')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('course_id', courseId);
+
+    if (getUserProgressError) {
+      console.error('getUserProgressError', getUserProgressError);
+    }
+
+    // Order the outputs by Lesson Order
+    userProgressList?.sort((a: UserProgressFromDB, b: UserProgressFromDB) => {
+      return (
+        getLessonOrderFromUserProgress(a) - getLessonOrderFromUserProgress(b)
+      );
+    });
+
+    return userProgressList;
+  });
+}
+
+export async function fetchUserProgressForCourseUpToLesson(
+  courseId: string,
+  lessonId: string
+): Promise<UserProgressFromDB[] | null> {
+  const allUserProgress = await fetchUserProgressForCourse(courseId);
+  if (!allUserProgress) return null;
+
+  const maxLessonOrder = COURSE_MAP[courseId].lessonMap[lessonId].order;
+
+  return allUserProgress.filter(
+    (userProgress) =>
+      getLessonOrderFromUserProgress(userProgress) < maxLessonOrder
+  );
+}
+
+export async function fetchAiResponse(
+  input: string,
+  prompt: string
+): Promise<string> {
+  const response = await fetch(
+    'https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.2',
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${process.env.HUGGINGFACE_API_KEY}`,
+      },
+      body: JSON.stringify({ inputs: `<s>[INST] ${prompt} ${input} [/INST]` }),
+    }
+  );
+  const aiResponse = (await response.json()) as [{ generated_text: string }];
+  if (
+    aiResponse &&
+    aiResponse.length > 0 &&
+    typeof aiResponse[0] === 'object' &&
+    aiResponse[0].generated_text &&
+    aiResponse[0].generated_text.split('[/INST]').length > 1
+  ) {
+    return aiResponse[0].generated_text.split('[/INST]')[1].trim();
+  } else {
+    return `ERROR AI Response: ${aiResponse}`;
+  }
 }

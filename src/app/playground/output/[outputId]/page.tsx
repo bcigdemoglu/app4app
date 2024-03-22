@@ -31,15 +31,17 @@ export default async function Page({ params }: Props) {
   return (
     <div className='container prose m-auto mb-20 flex max-w-4xl flex-col p-4 prose-a:no-underline md:pt-20'>
       <div className='pb-2 text-sm italic'>
-        <p>
-          Created by <b>{fullName}</b> on <b>{formattedDate(createdAt)}</b>
-        </p>
-        <p>
-          Last updated on <b>{formattedDate(modifiedAt)}</b>
-        </p>
-        <p>
-          👁️👁️ Viewed by <b>{viewCount}</b> people 👁️👁️
-        </p>
+        <div className='print:hidden'>
+          <p>
+            Created by <b>{fullName}</b> on <b>{formattedDate(createdAt)}</b>
+          </p>
+          <p>
+            Last updated on <b>{formattedDate(modifiedAt)}</b>
+          </p>
+          <p>
+            👁️👁️ Viewed by <b>{viewCount}</b> people 👁️👁️
+          </p>
+        </div>
       </div>
       <div dangerouslySetInnerHTML={{ __html: outputHtml }} />
       <Printer />

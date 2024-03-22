@@ -35,7 +35,8 @@ export default async function UpgradePage() {
           Hi {full_name}, you are currently on Free Tier.
         </p>
         <p className='text-zinc-500'>
-          Please contact info@ilayda.com to purchase or confirm your upgrade.
+          Please contact boogie@cloudybook.com to purchase or confirm your
+          upgrade.
         </p>
       </div>
 

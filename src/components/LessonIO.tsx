@@ -6,20 +6,10 @@ import {
   updateUserInputsByLessonId,
   updateUserOutputByLessonId as updateUserOutputsByLessonId,
 } from '@/app/actions';
-import { MDXRemote, MDXRemoteSerializeResult } from 'next-mdx-remote';
-import { useEffect, useRef, useState, useTransition } from 'react';
-import { useFormState, useFormStatus } from 'react-dom';
-import { JsonObject, Lesson, UpdateUserInputFormState } from '@/lib/types';
-import Link from 'next/link';
-import { renderToStaticMarkup } from 'react-dom/server';
 import { getMdxInputComponents } from '@/components/MdxInputComponents';
-import dynamic from 'next/dynamic';
-import { AI_MODAL_PARAM, CREATOR_MODAL_PARAM } from '@/lib/data';
-import { useRouter } from 'next/navigation';
-import NotionPage from './NotionPage';
-import { ExtendedRecordMap } from 'notion-types';
+import { AI_MODAL_PARAM, CREATOR_MODAL_PARAM, getLSPrefix } from '@/lib/data';
+import { JsonObject, Lesson, UpdateUserInputFormState } from '@/lib/types';
 import { cn } from '@/utils/cn';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faAngleLeft,
   faAngleRight,
@@ -30,6 +20,16 @@ import {
   faCommentDots,
   faTrashCan,
 } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { MDXRemote, MDXRemoteSerializeResult } from 'next-mdx-remote';
+import dynamic from 'next/dynamic';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { ExtendedRecordMap } from 'notion-types';
+import { useEffect, useRef, useState, useTransition } from 'react';
+import { useFormState, useFormStatus } from 'react-dom';
+import { renderToStaticMarkup } from 'react-dom/server';
+import NotionPage from './NotionPage';
 
 function hashString(str: string) {
   let hash = 0;
@@ -167,9 +167,28 @@ const CleanOutputMessage = () => {
   return (
     <span>
       {
-        'Please fill out all fields in playground, then click "SUBMIT" button to see the outputs'
+        'Please fill out all fields in playground, then click "SUBMIT" button to see the outputs!'
       }
     </span>
+  );
+};
+
+const GeneratingMessage = () => {
+  return <span>{'Generating your awesome document...'}</span>;
+};
+
+const OutputJsx = ({
+  PreviousLessonOutputs,
+  outputHTML,
+}: {
+  PreviousLessonOutputs: JSX.Element | null;
+  outputHTML: string;
+}) => {
+  return (
+    <>
+      {PreviousLessonOutputs}
+      <div className='prose' dangerouslySetInnerHTML={{ __html: outputHTML }} />
+    </>
   );
 };
 
@@ -239,7 +258,7 @@ export default function LessonIO({
   recordMap,
   courseId,
   lesson,
-  section,
+  sectionId,
   prevSectionLink,
   nextSectionLink,
   prevLessonLink,
@@ -250,11 +269,12 @@ export default function LessonIO({
   lessonOutputfromDB,
   lastCompletedSectionFromDB,
   MdxOutput,
+  PreviousLessonOutputs,
 }: {
   recordMap: ExtendedRecordMap;
   courseId: string;
   lesson: Lesson;
-  section: number;
+  sectionId: number;
   prevSectionLink: string | null;
   nextSectionLink: string | null;
   prevLessonLink: string | null;
@@ -265,14 +285,15 @@ export default function LessonIO({
   lessonOutputfromDB: string | null;
   lastCompletedSectionFromDB: number | null;
   MdxOutput: JSX.Element | null;
+  PreviousLessonOutputs: JSX.Element | null;
 }) {
   const { id: lessonId, notionId } = lesson;
   const outputHTML = lessonOutputfromDB;
   const sectionCompleted =
     outputHTML !== null &&
     lastCompletedSectionFromDB !== null &&
-    section <= lastCompletedSectionFromDB;
-  const finalSection = section === totalSections;
+    sectionId <= lastCompletedSectionFromDB;
+  const finalSection = sectionId === totalSections;
   const lessonCompleted = sectionCompleted && finalSection;
   const completionConfetti = finalSection && lessonCompleted;
 
@@ -293,7 +314,7 @@ export default function LessonIO({
   const [selectedTab, setSelectedTab] = useState(
     finalSection && sectionCompleted
       ? 2 // Completed final section displays output
-      : section > 1
+      : sectionId > 1
         ? 1 // Section greater than 1 displays input
         : 0 // First section displays lesson
   );
@@ -303,7 +324,9 @@ export default function LessonIO({
       if (outputHTML) {
         console.log('Exporting output...');
         const { id: exportedOutputId } = await exportUserOutput(
-          outputHTML,
+          renderToStaticMarkup(PreviousLessonOutputs || <></>).concat(
+            outputHTML
+          ),
           courseId,
           lessonId,
           true
@@ -318,7 +341,7 @@ export default function LessonIO({
     formRef.current?.reset();
     setClearInputs(true);
     for (const key in localStorage) {
-      if (key.startsWith('ilayda.')) {
+      if (key.startsWith(getLSPrefix(courseId, lessonId, sectionId))) {
         localStorage.removeItem(key);
       }
     }
@@ -365,7 +388,7 @@ export default function LessonIO({
     MdxOutput,
     courseId,
     lessonId,
-    section,
+    sectionId,
     totalSections,
   ]);
 
@@ -427,6 +450,10 @@ export default function LessonIO({
               {...mdxInputSource}
               components={getMdxInputComponents(
                 clearInputs,
+                setClearInputs,
+                courseId,
+                lessonId,
+                sectionId,
                 JSON.parse(lessonInputs)
               )}
             />
@@ -450,9 +477,9 @@ export default function LessonIO({
           name='lesson_id'
           value={lessonId}
         />
-        <input type='hidden' readOnly={true} name='section' value={section} />
+        <input type='hidden' readOnly={true} name='section' value={sectionId} />
         <div className=''>
-          <ProgressBar section={section} totalSections={totalSections} />
+          <ProgressBar section={sectionId} totalSections={totalSections} />
         </div>
         <div className='bottom-0 left-0 flex w-full justify-center space-x-2 bg-sky-100 pt-1 md:justify-start md:pt-2'>
           <FormButtons
@@ -478,11 +505,11 @@ export default function LessonIO({
         <div className='hidden'>{MdxOutput}</div>
         <div className='h-screen flex-grow overflow-auto p-4'>
           {isGeneratingOutput ? (
-            'Generating awesome results!!!'
+            <GeneratingMessage />
           ) : outputHTML ? (
-            <div
-              className='prose'
-              dangerouslySetInnerHTML={{ __html: outputHTML }}
+            <OutputJsx
+              PreviousLessonOutputs={PreviousLessonOutputs}
+              outputHTML={outputHTML}
             />
           ) : (
             <CleanOutputMessage />

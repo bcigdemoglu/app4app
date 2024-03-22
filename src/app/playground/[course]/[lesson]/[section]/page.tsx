@@ -1,29 +1,32 @@
+import AIFeedbackModal from '@/components/AIFeedbackModal';
+import CreatorFeedbackModal from '@/components/CreatorFeedbackModal';
 import LessonIO from '@/components/LessonIO';
 import {
-  COURSE_MAP,
-  DEMO_LESSON_AI_FEEDBACK,
-  AI_MODAL_PARAM,
-  CREATOR_MODAL_PARAM,
-} from '@/lib/data';
-import { notFound, redirect } from 'next/navigation';
-import Link from 'next/link';
-import { cookies } from 'next/headers';
-import { createClient } from '@/utils/supabase/server';
+  PreviousLessonOutputs,
+  getMdxOutputComponents,
+} from '@/components/MdxOutputComponents';
 import {
-  getRecordMap,
-  fetchUserProgressFromDB,
+  AI_MODAL_PARAM,
+  COURSE_MAP,
+  CREATOR_MODAL_PARAM,
+  DEMO_LESSON_AI_FEEDBACK,
+} from '@/lib/data';
+import { perf } from '@/utils/debug';
+import {
+  fetchLessonUserProgress,
+  getAIFeedbackMDX,
   getLessonInputs,
   getLessonMDX,
   getLessonOutput,
-  getAIFeedbackMDX,
+  getRecordMap,
   serializeLessonMDX,
 } from '@/utils/lessonHelpers';
-import AIFeedbackModal from '@/components/AIFeedbackModal';
-import CreatorFeedbackModal from '@/components/CreatorFeedbackModal';
-import { perf } from '@/utils/debug';
+import { createClient } from '@/utils/supabase/server';
 import { MDXRemote } from 'next-mdx-remote/rsc';
-import { getMdxOutputComponents } from '@/components/MdxOutputComponents';
+import { cookies } from 'next/headers';
 import Image from 'next/image';
+import Link from 'next/link';
+import { notFound, redirect } from 'next/navigation';
 
 export const metadata = {
   title: "Ilayda's Playground: How to Start a Business",
@@ -61,14 +64,14 @@ export default async function Page({ params, searchParams }: Props) {
     redirect('/my-account');
   }
 
-  const section = parseInt(params.section);
+  const sectionId = parseInt(params.section);
   const courseId = params.course;
   const lesson = COURSE_MAP[params.course].lessonMap[params.lesson];
   const { notionId, id: lessonId } = lesson;
 
   // Start both serialization operations in parallel
   const recordMapPromise = getRecordMap(notionId);
-  const userProgressFromDBPromise = fetchUserProgressFromDB(lessonId, courseId);
+  const userProgressFromDBPromise = fetchLessonUserProgress(lessonId, courseId);
 
   // Wait for both operations to complete
   const [recordMap, userProgressFromDB] = await perf(
@@ -78,11 +81,12 @@ export default async function Page({ params, searchParams }: Props) {
 
   const { mdxInput, mdxOutput, totalSections } = getLessonMDX(
     recordMap,
-    section
+    sectionId
   );
 
   // Section cannot be greater than totalSections, redirect to the last section
-  if (section > totalSections) redirect(`/playground/${courseId}/${lessonId}`);
+  if (sectionId > 1 && sectionId > totalSections)
+    redirect(`/playground/${courseId}/${lessonId}`);
 
   const { mdxInputSource } = await serializeLessonMDX(mdxInput, mdxOutput);
 
@@ -94,11 +98,11 @@ export default async function Page({ params, searchParams }: Props) {
   const { data: lessonOutputfromDB, modifiedAt: outputModifiedAt } =
     getLessonOutput(userProgressFromDB, lessonId, user);
 
-  const prevSection = section - 1 > 0 ? section - 1 : null;
+  const prevSection = sectionId - 1 > 0 ? sectionId - 1 : null;
   const prevSectionLink = prevSection
     ? `/playground/${courseId}/${params.lesson}/${prevSection}`
     : null;
-  const nextSection = section + 1 <= totalSections ? section + 1 : null;
+  const nextSection = sectionId + 1 <= totalSections ? sectionId + 1 : null;
   const nextSectionLink = nextSection
     ? `/playground/${courseId}/${params.lesson}/${nextSection}`
     : null;
@@ -118,6 +122,7 @@ export default async function Page({ params, searchParams }: Props) {
 
   const MdxOutput = genNewOutput ? (
     <MDXRemote
+      key={inputModifiedAt}
       source={mdxOutput}
       components={getMdxOutputComponents(lessonInputsFromDB)}
     />
@@ -167,7 +172,7 @@ export default async function Page({ params, searchParams }: Props) {
         recordMap={recordMap}
         courseId={courseId}
         lesson={lesson}
-        section={section}
+        sectionId={sectionId}
         prevSectionLink={prevSectionLink}
         nextSectionLink={nextSectionLink}
         prevLessonLink={prevLessonLink}
@@ -178,6 +183,9 @@ export default async function Page({ params, searchParams }: Props) {
         lastCompletedSectionFromDB={lastCompletedSectionFromDB}
         lessonOutputfromDB={lessonOutputfromDB}
         MdxOutput={MdxOutput}
+        PreviousLessonOutputs={
+          <PreviousLessonOutputs courseId={courseId} lessonId={lessonId} />
+        }
       />
 
       {searchParams[CREATOR_MODAL_PARAM] && <CreatorFeedbackModal />}
