@@ -1,5 +1,6 @@
 'use client';
 
+import { CALENDLY_BETA_CALL_URL } from '@/lib/data';
 import { cn } from '@/utils/cn';
 import dynamic from 'next/dynamic';
 import { useState, useTransition } from 'react';
@@ -275,11 +276,7 @@ export default function IncomeCalculator() {
             !
           </div>
           <button
-            onClick={() =>
-              openInNewTab(
-                'https://calendly.com/ilaydacloudy/beta-user-introduction'
-              )
-            }
+            onClick={() => openInNewTab(CALENDLY_BETA_CALL_URL)}
             className='btn rounded bg-green-500 px-4 py-2 font-semibold text-white hover:bg-green-700'
           >
             Book a call and learn how it works!

@@ -7,7 +7,12 @@ import {
   updateUserOutputByLessonId as updateUserOutputsByLessonId,
 } from '@/app/actions';
 import { getMdxInputComponents } from '@/components/MdxInputComponents';
-import { AI_MODAL_PARAM, CREATOR_MODAL_PARAM, getLSPrefix } from '@/lib/data';
+import {
+  AI_MODAL_PARAM,
+  CREATOR_MODAL_PARAM,
+  getLSPrefix,
+  isDemoCourse,
+} from '@/lib/data';
 import { JsonObject, Lesson, UpdateUserInputFormState } from '@/lib/types';
 import { cn } from '@/utils/cn';
 import {
@@ -322,16 +327,18 @@ export default function LessonIO({
   function onExportOutput() {
     startExporting(async () => {
       if (outputHTML) {
-        console.log('Exporting output...');
+        console.debug('Exporting output...');
+        const previousLessonOutputsHTML =
+          !isDemoCourse(courseId) && PreviousLessonOutputs
+            ? renderToStaticMarkup(PreviousLessonOutputs)
+            : '';
         const { id: exportedOutputId } = await exportUserOutput(
-          renderToStaticMarkup(PreviousLessonOutputs || <></>).concat(
-            outputHTML
-          ),
+          previousLessonOutputsHTML.concat(outputHTML),
           courseId,
           lessonId,
           true
         );
-        console.log('Exported output...', isExporting);
+        console.debug('Exported output...', isExporting);
         router.push(`/playground/output/${exportedOutputId}`);
       }
     });
@@ -347,7 +354,7 @@ export default function LessonIO({
     }
   };
 
-  console.log(
+  console.debug(
     'Rendering page: formState.state',
     formState.state,
     'current outputHTML',
@@ -361,7 +368,7 @@ export default function LessonIO({
     ) {
       startGeneratingOutput(async () => {
         const renderedOutputHTML = renderToStaticMarkup(MdxOutput);
-        console.log(
+        console.debug(
           'Sending form data... ',
           'new outputHTML',
           hashString(renderedOutputHTML)
@@ -374,7 +381,7 @@ export default function LessonIO({
         );
         // Select output tab after successful form submission
         setSelectedTab(2);
-        console.log(
+        console.debug(
           'Sent form data! ',
           'new outputHTML',
           hashString(renderedOutputHTML)
