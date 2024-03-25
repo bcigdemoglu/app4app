@@ -23,12 +23,19 @@ import rehypeSlug from 'rehype-slug';
 import remarkGfm from 'remark-gfm';
 import { perf } from './debug';
 
-export async function getRecordMap(id: string) {
+export async function getRecordMap(
+  id: string
+): Promise<ExtendedRecordMap | null> {
   return perf('getRecordMap', async () => {
     const pageId = id;
     const notion = new NotionAPI();
-    const recordMap = await notion.getPage(pageId);
-    return recordMap;
+    try {
+      const recordMap = await notion.getPage(pageId);
+      return recordMap;
+    } catch (error) {
+      console.error('getRecordMap error', error);
+      return null;
+    }
   });
 }
 
@@ -39,13 +46,20 @@ export async function getAIFeedbackMDX(
 }
 
 export function getLessonMDX(
-  recordMap: ExtendedRecordMap,
+  recordMap: ExtendedRecordMap | null,
   section: number
 ): {
-  mdxInput: string;
-  mdxOutput: string;
+  mdxInput: string | null;
+  mdxOutput: string | null;
   totalSections: number;
 } {
+  if (!recordMap) {
+    return {
+      totalSections: 0,
+      mdxInput: null,
+      mdxOutput: null,
+    };
+  }
   return {
     totalSections: getLessonTotalSections(recordMap),
     mdxInput: getLessonInputMDX(recordMap, section),
@@ -54,12 +68,19 @@ export function getLessonMDX(
 }
 
 export async function serializeLessonMDX(
-  mdxInput: string,
-  mdxOutput: string
+  mdxInput: string | null,
+  mdxOutput: string | null
 ): Promise<{
-  mdxInputSource: MDXRemoteSerializeResult;
-  mdxOutputSource: MDXRemoteSerializeResult;
+  mdxInputSource: MDXRemoteSerializeResult | null;
+  mdxOutputSource: MDXRemoteSerializeResult | null;
 }> {
+  if (!mdxInput || !mdxOutput) {
+    return {
+      mdxInputSource: null,
+      mdxOutputSource: null,
+    };
+  }
+
   // Start both serialization operations in parallel
   const inputMDXPromise = serialize(mdxInput, {
     mdxOptions: {
@@ -191,8 +212,13 @@ export function getLessonOrderFromUserProgress(
 }
 
 export async function fetchUserProgressForCourse(
-  courseId: string
+  courseId: string,
+  user: User | null
 ): Promise<UserProgressFromDB[] | null> {
+  if (!user) {
+    return null;
+  }
+
   return perf('fetchUserProgressForCourse', async () => {
     const cookieStore = cookies();
     const supabase = createClient(cookieStore);
@@ -229,9 +255,10 @@ export async function fetchUserProgressForCourse(
 
 export async function fetchUserProgressForCourseUpToLesson(
   courseId: string,
-  lessonId: string
+  lessonId: string,
+  user: User | null
 ): Promise<UserProgressFromDB[] | null> {
-  const allUserProgress = await fetchUserProgressForCourse(courseId);
+  const allUserProgress = await fetchUserProgressForCourse(courseId, user);
   if (!allUserProgress) return null;
 
   const maxLessonOrder = COURSE_MAP[courseId].lessonMap[lessonId].order;

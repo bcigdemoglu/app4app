@@ -203,17 +203,22 @@ const FormButtons = ({
   sectionCompleted,
   isGeneratingOutput,
   resetForm,
+  invalidRecordMap,
 }: {
   courseId: string;
   lessonId: string;
   sectionCompleted: boolean;
   isGeneratingOutput: boolean;
   resetForm: () => void;
+  invalidRecordMap: boolean;
 }) => {
   const status = useFormStatus();
   const [isRestatingLesson, startRestarting] = useTransition();
   const formButtonsDisabled =
-    status.pending || isGeneratingOutput || isRestatingLesson;
+    status.pending ||
+    isGeneratingOutput ||
+    isRestatingLesson ||
+    invalidRecordMap;
 
   return (
     <>
@@ -276,7 +281,7 @@ export default function LessonIO({
   MdxOutput,
   PreviousLessonOutputs,
 }: {
-  recordMap: ExtendedRecordMap;
+  recordMap: ExtendedRecordMap | null;
   courseId: string;
   lesson: Lesson;
   sectionId: number;
@@ -285,7 +290,7 @@ export default function LessonIO({
   prevLessonLink: string | null;
   nextLessonLink: string | null;
   totalSections: number;
-  mdxInputSource: MDXRemoteSerializeResult;
+  mdxInputSource: MDXRemoteSerializeResult | null;
   lessonInputsFromDB: JsonObject | null;
   lessonOutputfromDB: string | null;
   lastCompletedSectionFromDB: number | null;
@@ -450,7 +455,9 @@ export default function LessonIO({
         )}
       >
         <div className='prose h-screen flex-grow overflow-auto p-4'>
-          {loading ? (
+          {!mdxInputSource ? (
+            ''
+          ) : loading ? (
             'Loading playground...'
           ) : (
             <MDXRemote
@@ -495,6 +502,7 @@ export default function LessonIO({
             sectionCompleted={sectionCompleted}
             resetForm={resetForm}
             isGeneratingOutput={isGeneratingOutput}
+            invalidRecordMap={!recordMap}
           />
         </div>
       </form>

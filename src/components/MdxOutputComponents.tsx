@@ -5,18 +5,21 @@ import {
   fetchAiResponse,
   fetchUserProgressForCourseUpToLesson,
 } from '@/utils/lessonHelpers';
+import { User } from '@supabase/supabase-js';
 import { MDXComponents } from 'mdx/types';
 import { Fragment } from 'react';
 
 export async function PreviousLessonOutputs({
   courseId,
   lessonId,
+  user,
 }: {
   courseId: string;
   lessonId: string;
+  user: User | null;
 }) {
   const userProgressForCourseUpToLesson =
-    await fetchUserProgressForCourseUpToLesson(courseId, lessonId);
+    await fetchUserProgressForCourseUpToLesson(courseId, lessonId, user);
 
   if (!userProgressForCourseUpToLesson) {
     return <></>;

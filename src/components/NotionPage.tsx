@@ -1,7 +1,7 @@
 'use client';
 
-import { NotionRenderer } from 'react-notion-x';
 import { ExtendedRecordMap } from 'notion-types';
+import { NotionRenderer } from 'react-notion-x';
 
 // Not not render code
 const IgnoreCode = () => {};
@@ -9,7 +9,7 @@ const IgnoreCode = () => {};
 export default function NotionPage({
   recordMap,
 }: {
-  recordMap: ExtendedRecordMap;
+  recordMap: ExtendedRecordMap | null;
 }) {
   return recordMap ? (
     <NotionRenderer
@@ -20,6 +20,10 @@ export default function NotionPage({
       components={{ Code: IgnoreCode }}
     />
   ) : (
-    <span>{'Lesson inaccessible, please refresh'.repeat(100)}</span>
+    <div className='prose p-4 font-semibold text-red-600'>
+      {
+        'Sorry! Something went wrong loading the lesson. Please refresh the page and try again...'
+      }
+    </div>
   );
 }

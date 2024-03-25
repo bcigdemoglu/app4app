@@ -7,9 +7,11 @@ import {
 } from '@/components/MdxOutputComponents';
 import {
   AI_MODAL_PARAM,
+  CALENDLY_BETA_CALL_URL,
   COURSE_MAP,
   CREATOR_MODAL_PARAM,
   DEMO_LESSON_AI_FEEDBACK,
+  isDemoCourse,
 } from '@/lib/data';
 import { perf } from '@/utils/debug';
 import {
@@ -105,7 +107,8 @@ export default async function Page({ params, searchParams }: Props) {
   const prevSectionLink = prevSection
     ? `/playground/${courseId}/${params.lesson}/${prevSection}`
     : null;
-  const nextSection = sectionId + 1 <= totalSections ? sectionId + 1 : null;
+  const nextSection =
+    totalSections && sectionId + 1 <= totalSections ? sectionId + 1 : null;
   const nextSectionLink = nextSection
     ? `/playground/${courseId}/${params.lesson}/${nextSection}`
     : null;
@@ -118,18 +121,20 @@ export default async function Page({ params, searchParams }: Props) {
     ? `/playground/${courseId}/${nextLesson}`
     : null;
 
-  const genNewOutput =
+  const genNewOutput = !!(
     inputModifiedAt &&
     (!outputModifiedAt ||
-      (outputModifiedAt && inputModifiedAt > outputModifiedAt));
+      (outputModifiedAt && inputModifiedAt > outputModifiedAt))
+  );
 
-  const MdxOutput = genNewOutput ? (
-    <MDXRemote
-      key={inputModifiedAt}
-      source={mdxOutput}
-      components={getMdxOutputComponents(lessonInputsFromDB)}
-    />
-  ) : null;
+  const MdxOutput =
+    mdxOutput && genNewOutput ? (
+      <MDXRemote
+        key={inputModifiedAt}
+        source={mdxOutput}
+        components={getMdxOutputComponents(lessonInputsFromDB)}
+      />
+    ) : null;
 
   return (
     <main className='grid h-svh grid-cols-3 gap-1 bg-sky-100 text-xs md:gap-2 md:text-base'>
@@ -162,6 +167,13 @@ export default async function Page({ params, searchParams }: Props) {
               {profile?.full_name.charAt(0)}
             </button>
           </Link> */}
+          {isDemoCourse(courseId) ? (
+            <Link href={CALENDLY_BETA_CALL_URL}>
+              <button className='rounded bg-orange-600 px-4 py-2 font-bold text-white hover:bg-orange-800 disabled:bg-orange-400'>
+                Create Yours!
+              </button>
+            </Link>
+          ) : null}
           <Link href='/my-account'>
             <button className='rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700 disabled:bg-blue-300'>
               My account
@@ -187,7 +199,11 @@ export default async function Page({ params, searchParams }: Props) {
         lessonOutputfromDB={lessonOutputfromDB}
         MdxOutput={MdxOutput}
         PreviousLessonOutputs={
-          <PreviousLessonOutputs courseId={courseId} lessonId={lessonId} />
+          <PreviousLessonOutputs
+            courseId={courseId}
+            lessonId={lessonId}
+            user={user}
+          />
         }
       />
 
@@ -203,9 +219,3 @@ export default async function Page({ params, searchParams }: Props) {
     </main>
   );
 }
-
-// export function generateStaticParams(): Array<Props['params']> {
-//   return Object.keys(LESSON_MAP).map((lessonPage) => ({
-//     lesson: lessonPage,
-//   }));
-// }
