@@ -50,6 +50,15 @@ export const DEMO_LESSON_MAP: LessonMap = {
     next: null,
     order: 1,
   },
+  persona: {
+    id: 'persona',
+    notionId: 'd6e80168be0e47739b9dc934406e40d8',
+    title: 'Lesson 1: Building a Customer Persona',
+    description: 'Build a Customer Persona for Course Creators',
+    prev: null,
+    next: null,
+    order: 0,
+  },
   ilayda1: {
     id: 'ilayda1',
     notionId: '605044ae6a9d4c42afc7ddb6b4a6cced',

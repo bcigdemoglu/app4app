@@ -532,10 +532,10 @@ export default function LessonIO({
         </div>
       </div>
 
-      <footer className='col-span-3 grid grid-cols-3 gap-1 p-2 pt-0 md:grid-cols-5 md:gap-2'>
+      <footer className='col-span-3 grid grid-cols-3 gap-1 p-2 pt-0 md:grid-cols-3 md:gap-2'>
         <div
           className={cn(
-            'col-span-3 flex flex-grow justify-center gap-2 md:col-span-2 md:justify-start',
+            'col-span-3 flex flex-grow justify-center gap-2 md:col-span-1 md:justify-start',
             {
               'hidden md:flex': selectedTab === 1, // Hide feedback buttons when input tab is selected
             }
@@ -547,7 +547,7 @@ export default function LessonIO({
           {/* {lessonCompleted ? <span>✅</span> : <span>🟦</span>} */}
           <span>{lesson.title}</span>
         </div>
-        <div className='col-span-3 flex flex-grow justify-center gap-2 md:col-span-2 md:justify-end'>
+        <div className='col-span-3 flex flex-grow justify-center gap-2 md:col-span-1 md:justify-end'>
           <LessonButtons
             sectionCompleted={sectionCompleted}
             prevSectionLink={prevSectionLink}
