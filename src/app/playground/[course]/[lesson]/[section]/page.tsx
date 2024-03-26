@@ -1,4 +1,5 @@
 import AIFeedbackModal from '@/components/AIFeedbackModal';
+import { CTAButton } from '@/components/CTAModal';
 import CreatorFeedbackModal from '@/components/CreatorFeedbackModal';
 import LessonIO from '@/components/LessonIO';
 import {
@@ -7,7 +8,6 @@ import {
 } from '@/components/MdxOutputComponents';
 import {
   AI_MODAL_PARAM,
-  CALENDLY_BETA_CALL_URL,
   COURSE_MAP,
   CREATOR_MODAL_PARAM,
   DEMO_LESSON_AI_FEEDBACK,
@@ -167,13 +167,7 @@ export default async function Page({ params, searchParams }: Props) {
               {profile?.full_name.charAt(0)}
             </button>
           </Link> */}
-          {isDemoCourse(courseId) ? (
-            <Link href={CALENDLY_BETA_CALL_URL}>
-              <button className='rounded bg-orange-600 px-4 py-2 font-bold text-white hover:bg-orange-800 disabled:bg-orange-400'>
-                Create Yours!
-              </button>
-            </Link>
-          ) : null}
+          {isDemoCourse(courseId) ? <CTAButton /> : null}
           <Link href='/my-account'>
             <button className='rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700 disabled:bg-blue-300'>
               My account
@@ -207,15 +201,16 @@ export default async function Page({ params, searchParams }: Props) {
         }
       />
 
-      {searchParams[CREATOR_MODAL_PARAM] && <CreatorFeedbackModal />}
-      {searchParams[AI_MODAL_PARAM] && (
+      {searchParams[CREATOR_MODAL_PARAM] ? <CreatorFeedbackModal /> : null}
+      {searchParams[AI_MODAL_PARAM] ? (
         <AIFeedbackModal
           aiFeedbackSource={await getAIFeedbackMDX(
             DEMO_LESSON_AI_FEEDBACK[lessonId]?.mdx ??
               'Sorry, no AI feedback available.'
           )}
         />
-      )}
+      ) : null}
+      {/* {isDemoCourse(courseId) ? <CTAModal /> : null} */}
     </main>
   );
 }
