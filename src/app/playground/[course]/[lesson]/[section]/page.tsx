@@ -24,27 +24,48 @@ import {
   serializeLessonMDX,
 } from '@/utils/lessonHelpers';
 import { createClient } from '@/utils/supabase/server';
+import { Metadata } from 'next';
 import { MDXRemote } from 'next-mdx-remote/rsc';
 import { cookies } from 'next/headers';
 import Image from 'next/image';
 import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
 
-export const metadata = {
-  title: "Ilayda's Playground: How to Start a Business",
-  description: 'How to start a busines in 2024',
-};
 interface Props {
   params: { course: string; lesson: string; section: string };
   searchParams: { [AI_MODAL_PARAM]: string; [CREATOR_MODAL_PARAM]: string };
 }
 
+function isValidCourse(courseId: string) {
+  return COURSE_MAP[courseId];
+}
+
+function isValidLesson(courseId: string, lessonId: string) {
+  return COURSE_MAP[courseId] && COURSE_MAP[courseId].lessonMap[lessonId];
+}
+
+function isValidSection(courseId: string, lessonId: string, sectionId: string) {
+  return (
+    COURSE_MAP[courseId] &&
+    COURSE_MAP[courseId].lessonMap[lessonId] &&
+    !isNaN(parseInt(sectionId)) &&
+    parseInt(sectionId) >= 1
+  );
+}
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  if (!isValidCourse(params.course)) notFound();
+  return {
+    title: COURSE_MAP[params.course].title,
+    description: COURSE_MAP[params.course].description,
+  };
+}
+
 export default async function Page({ params, searchParams }: Props) {
   if (
-    !COURSE_MAP[params.course] ||
-    !COURSE_MAP[params.course].lessonMap[params.lesson] ||
-    isNaN(parseInt(params.section)) ||
-    parseInt(params.section) < 1
+    !isValidCourse(params.course) ||
+    !isValidLesson(params.course, params.lesson) ||
+    !isValidSection(params.course, params.lesson, params.section)
   )
     notFound();
   const { access } = COURSE_MAP[params.course];

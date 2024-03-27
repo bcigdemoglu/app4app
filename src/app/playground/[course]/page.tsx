@@ -1,5 +1,6 @@
 import { COURSE_MAP } from '@/lib/data';
 import { createClient } from '@/utils/supabase/server';
+import { Metadata } from 'next';
 import { cookies } from 'next/headers';
 import { notFound, redirect } from 'next/navigation';
 
@@ -9,6 +10,14 @@ interface Props {
 
 function isValidCourse(courseId: string) {
   return COURSE_MAP[courseId];
+}
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  if (!isValidCourse(params.course)) notFound();
+  return {
+    title: COURSE_MAP[params.course].title,
+    description: COURSE_MAP[params.course].description,
+  };
 }
 
 export default async function Page({ params }: Props) {

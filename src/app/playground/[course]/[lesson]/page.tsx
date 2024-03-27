@@ -4,6 +4,7 @@ import {
   getLessonInputs,
 } from '@/utils/lessonHelpers';
 import { createClient } from '@/utils/supabase/server';
+import { Metadata } from 'next';
 import { cookies } from 'next/headers';
 import { notFound, redirect } from 'next/navigation';
 
@@ -11,8 +12,20 @@ interface Props {
   params: { course: string; lesson: string };
 }
 
+function isValidCourse(courseId: string) {
+  return COURSE_MAP[courseId];
+}
+
 function isValidLesson(courseId: string, lessonId: string) {
   return COURSE_MAP[courseId] && COURSE_MAP[courseId].lessonMap[lessonId];
+}
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  if (!isValidCourse(params.course)) notFound();
+  return {
+    title: COURSE_MAP[params.course].title,
+    description: COURSE_MAP[params.course].description,
+  };
 }
 
 export default async function Page({ params }: Props) {
