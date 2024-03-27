@@ -1,9 +1,6 @@
 import { AIFeedbackMap, CourseMap, LessonMap } from '@/lib/types';
 import { Block, ExtendedRecordMap } from 'notion-types';
 
-export const CALENDLY_BETA_CALL_URL =
-  'https://calendly.com/ilaydacloudy/beta-user-introduction';
-
 export const DEMO_LESSON_MAP: LessonMap = {
   '1': {
     id: '1',

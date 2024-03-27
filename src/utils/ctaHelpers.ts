@@ -1,4 +1,5 @@
-import { CALENDLY_BETA_CALL_URL } from '@/lib/data';
+export const CALENDLY_BETA_CALL_URL =
+  'https://calendly.com/ilaydacloudy/discovery';
 
 export const openInNewTab = (url: string) => {
   window.open(url, '_blank', 'noopener,noreferrer');
