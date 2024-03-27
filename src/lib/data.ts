@@ -59,13 +59,13 @@ export const DEMO_LESSON_MAP: LessonMap = {
     next: null,
     order: 0,
   },
-  ilayda1: {
-    id: 'ilayda1',
+  affirmation: {
+    id: 'affirmation',
     notionId: '605044ae6a9d4c42afc7ddb6b4a6cced',
-    title: 'Lesson Ilayda 1: GENIUS',
-    description: 'Ilayda to impress',
+    title: 'Lesson 1: Affirmation Generator',
+    description: 'Affirm yourself',
     prev: null,
-    next: 'ilayda2',
+    next: null,
     order: 0,
   },
   ilayda2: {
