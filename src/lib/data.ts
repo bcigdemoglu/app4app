@@ -127,8 +127,8 @@ export const BIP_LESSON_MAP: LessonMap = {
 export const COURSE_MAP: CourseMap = {
   demo: {
     id: 'demo',
-    title: 'Demo Course',
-    description: 'This is a demo course to impress creators',
+    title: 'Cloudybook Demo',
+    description: 'Welcome to Cloudybook interactive workbook demo',
     access: 'preview',
     lessonMap: DEMO_LESSON_MAP,
   },
