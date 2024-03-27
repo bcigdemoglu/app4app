@@ -1,7 +1,7 @@
+import Hotjar from '@/components/Hotjar';
 import { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
-// import Hotjar from './components/Hotjar';
 // import GoogleAnalytics from './components/GoogleAnalytics';
 import { Analytics as VercelAnalytics } from '@vercel/analytics/react';
 import { SpeedInsights } from '@vercel/speed-insights/next';
@@ -47,7 +47,7 @@ export default function RootLayout({
         <VercelAnalytics />
         <SpeedInsights />
       </body>
-      {/* <Hotjar /> */}
+      <Hotjar />
       {/* <GoogleAnalytics /> */}
     </html>
   );

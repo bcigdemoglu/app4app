@@ -1,12 +1,12 @@
-// 'use client';
+'use client';
 
-// import { useEffect } from 'react';
-// import { hotjar } from 'react-hotjar';
+import { useEffect } from 'react';
+import { hotjar } from 'react-hotjar';
 
-// export default function Hotjar() {
-//   useEffect(() => {
-//     hotjar.initialize(3813067, 6);
-//   }, []);
+export default function Hotjar() {
+  useEffect(() => {
+    hotjar.initialize(3922601, 6);
+  }, []);
 
-//   return <></>;
-// }
+  return <></>;
+}
