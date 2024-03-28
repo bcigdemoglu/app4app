@@ -286,7 +286,7 @@ export default function LessonIO({
   nextSectionLink: string | null;
   prevLessonLink: string | null;
   nextLessonLink: string | null;
-  totalSections: number;
+  totalSections: number | null;
   mdxInputSource: MDXRemoteSerializeResult | null;
   lessonInputsFromDB: JsonObject | null;
   lessonOutputfromDB: string | null;
@@ -493,9 +493,11 @@ export default function LessonIO({
           value={lessonId}
         />
         <input type='hidden' readOnly={true} name='section' value={sectionId} />
-        <div className=''>
-          <ProgressBar section={sectionId} totalSections={totalSections} />
-        </div>
+        {totalSections ? (
+          <div className=''>
+            <ProgressBar section={sectionId} totalSections={totalSections} />
+          </div>
+        ) : null}
         <div className='bottom-0 left-0 flex w-full justify-center space-x-2 bg-sky-100 pt-1 md:justify-start md:pt-2'>
           <FormButtons
             courseId={courseId}

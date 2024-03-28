@@ -51,11 +51,11 @@ export function getLessonMDX(
 ): {
   mdxInput: string | null;
   mdxOutput: string | null;
-  totalSections: number;
+  totalSections: number | null;
 } {
   if (!recordMap) {
     return {
-      totalSections: 0,
+      totalSections: null,
       mdxInput: null,
       mdxOutput: null,
     };

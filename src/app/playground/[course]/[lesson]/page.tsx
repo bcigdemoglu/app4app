@@ -62,5 +62,10 @@ export default async function Page({ params }: Props) {
     }
   }
 
+  /// TODO IF lastCompletedSection > totalSection, return to totalSection!!!!!!!!
+  /// TODO IF lastCompletedSection > totalSection, return to totalSection!!!!!!!!
+  /// TODO IF lastCompletedSection > totalSection, return to totalSection!!!!!!!!
+  /// TODO IF lastCompletedSection > totalSection, return to totalSection!!!!!!!!
+
   redirect(`/playground/${courseId}/${lessonId}/${sectionId}`);
 }

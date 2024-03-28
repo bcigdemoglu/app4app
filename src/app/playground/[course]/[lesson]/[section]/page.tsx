@@ -114,8 +114,8 @@ export default async function Page({ params, searchParams }: Props) {
     sectionId
   );
 
-  // Section cannot be greater than totalSections, redirect to the last section
-  if (totalSections > 1 && sectionId > totalSections) {
+  // Section cannot be greater than totalSections
+  if (totalSections && sectionId > totalSections) {
     redirect(`/playground/${courseId}/${lessonId}`);
   }
 
