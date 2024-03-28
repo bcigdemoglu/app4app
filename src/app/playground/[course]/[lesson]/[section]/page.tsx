@@ -115,8 +115,9 @@ export default async function Page({ params, searchParams }: Props) {
   );
 
   // Section cannot be greater than totalSections, redirect to the last section
-  if (sectionId > 1 && sectionId > totalSections)
+  if (totalSections > 1 && sectionId > totalSections) {
     redirect(`/playground/${courseId}/${lessonId}`);
+  }
 
   const { mdxInputSource } = await serializeLessonMDX(mdxInput, mdxOutput);
 
