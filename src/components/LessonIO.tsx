@@ -392,6 +392,8 @@ export default function LessonIO({
       });
     }
     setLoadingInputSection(false);
+    // Set pathname to redirect to after login or going to my account
+    localStorage.setItem('redirectTo', pathname);
   }, [
     formState.state,
     lessonInputs,
@@ -400,12 +402,8 @@ export default function LessonIO({
     lessonId,
     sectionId,
     totalSections,
+    pathname,
   ]);
-
-  useEffect(() => {
-    // Set pathname to redirect to after login or going to my account
-    localStorage.setItem('redirectTo', pathname);
-  }, [pathname]);
 
   return (
     <>
