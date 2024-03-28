@@ -1,8 +1,8 @@
-import { redirect } from 'next/navigation';
-import { resetPassword } from './actions';
 import { getAuthUserAndProfile } from '@/utils/userActions';
-import { logout } from '../my-account/actions';
 import Link from 'next/link';
+import { redirect } from 'next/navigation';
+import { logout } from '../my-account/actions';
+import { resetPassword } from './actions';
 
 export default async function ResetPasswordPage() {
   const { user } = await getAuthUserAndProfile();
@@ -56,8 +56,8 @@ export default async function ResetPasswordPage() {
 
         <div>
           <Link href='/playground'>
-            <button className='flex w-full justify-center rounded-md border border-transparent bg-pink-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-pink-700 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:ring-offset-2'>
-              Go to Playground
+            <button className='flex w-full justify-center rounded-md border border-transparent bg-orange-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-orange-800 focus:outline-none focus:ring-2 focus:ring-orange-400 focus:ring-offset-2'>
+              Go to Playground!
             </button>
           </Link>
         </div>

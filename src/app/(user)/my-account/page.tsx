@@ -1,7 +1,7 @@
-import { redirect } from 'next/navigation';
-import { updateProfile, logout } from './actions';
-import Link from 'next/link';
 import { getAuthUserAndProfile } from '@/utils/userActions';
+import Link from 'next/link';
+import { redirect } from 'next/navigation';
+import { logout, updateProfile } from './actions';
 
 function InputField({
   name,
@@ -91,7 +91,7 @@ export default async function MyAccountPage() {
         {profile && (
           <div>
             <Link href='/playground'>
-              <button className='flex w-full justify-center rounded-md border border-transparent bg-pink-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-pink-700 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:ring-offset-2'>
+              <button className='flex w-full justify-center rounded-md border border-transparent bg-orange-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-orange-800 focus:outline-none focus:ring-2 focus:ring-orange-400 focus:ring-offset-2'>
                 Go to Playground!
               </button>
             </Link>

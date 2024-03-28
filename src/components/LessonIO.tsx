@@ -6,7 +6,9 @@ import {
   updateUserInputsByLessonId,
   updateUserOutputByLessonId as updateUserOutputsByLessonId,
 } from '@/app/actions';
+import LoadingAnimation from '@/components/LoadingAnimation';
 import { getMdxInputComponents } from '@/components/MdxInputComponents';
+import NotionPage from '@/components/NotionPage';
 import {
   AI_MODAL_PARAM,
   CREATOR_MODAL_PARAM,
@@ -29,12 +31,11 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { MDXRemote, MDXRemoteSerializeResult } from 'next-mdx-remote';
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { ExtendedRecordMap } from 'notion-types';
 import { useEffect, useRef, useState, useTransition } from 'react';
 import { useFormState, useFormStatus } from 'react-dom';
 import { renderToStaticMarkup } from 'react-dom/server';
-import NotionPage from './NotionPage';
 
 function hashString(str: string) {
   let hash = 0;
@@ -178,10 +179,6 @@ const CleanOutputMessage = () => {
   );
 };
 
-const GeneratingMessage = () => {
-  return <span>{'Generating your awesome document...'}</span>;
-};
-
 const OutputJsx = ({
   PreviousLessonOutputs,
   outputHTML,
@@ -307,7 +304,8 @@ export default function LessonIO({
   const lessonCompleted = sectionCompleted && finalSection;
   const completionConfetti = finalSection && lessonCompleted;
 
-  const [loading, setLoading] = useState(true);
+  const pathname = usePathname();
+  const [loadingInputSection, setLoadingInputSection] = useState(true);
   const [formState, formAction] = useFormState(updateUserInputsByLessonId, {
     state: 'pending',
   } as UpdateUserInputFormState);
@@ -393,7 +391,7 @@ export default function LessonIO({
         );
       });
     }
-    setLoading(false);
+    setLoadingInputSection(false);
   }, [
     formState.state,
     lessonInputs,
@@ -403,6 +401,11 @@ export default function LessonIO({
     sectionId,
     totalSections,
   ]);
+
+  useEffect(() => {
+    // Set pathname to redirect to after login or going to my account
+    localStorage.setItem('redirectTo', pathname);
+  }, [pathname]);
 
   return (
     <>
@@ -457,8 +460,8 @@ export default function LessonIO({
         <div className='prose h-screen flex-grow overflow-auto p-4'>
           {!mdxInputSource ? (
             ''
-          ) : loading ? (
-            'Loading playground...'
+          ) : loadingInputSection ? (
+            <LoadingAnimation className='m-auto h-full w-1/2' />
           ) : (
             <MDXRemote
               {...mdxInputSource}
@@ -520,7 +523,7 @@ export default function LessonIO({
         <div className='hidden'>{MdxOutput}</div>
         <div className='h-screen flex-grow overflow-auto p-4'>
           {isGeneratingOutput ? (
-            <GeneratingMessage />
+            <LoadingAnimation className='m-auto h-full w-1/2' />
           ) : outputHTML ? (
             <OutputJsx
               PreviousLessonOutputs={PreviousLessonOutputs}

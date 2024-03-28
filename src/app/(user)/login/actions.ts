@@ -17,14 +17,13 @@ export async function login(formData: FormData) {
     password: formData.get('password') as string,
   };
 
-  const { data: loginData, error: signInWithPasswordError } =
+  const { error: signInWithPasswordError } =
     await supabase.auth.signInWithPassword(credentials);
 
   if (signInWithPasswordError) {
     console.error('error', signInWithPasswordError);
     redirect('/error');
   }
-  console.log('loginData', loginData);
 
   const { data: profile, error: loginProfileError } = await supabase
     .from('profiles')
@@ -37,7 +36,7 @@ export async function login(formData: FormData) {
 
   if (!profile) {
     revalidatePath('/', 'layout');
-    redirect('/my-account');
+    redirect(`/my-account`);
   } else {
     revalidatePath('/', 'layout');
     redirect('/playground');
@@ -46,9 +45,6 @@ export async function login(formData: FormData) {
 
 export async function handleLogInWithGoogle() {
   const origin = headers().get('origin');
-
-  console.log('headers', headers());
-  console.log('origin', origin);
 
   const cookieStore = cookies();
   const supabase = createClient(cookieStore);
@@ -66,6 +62,5 @@ export async function handleLogInWithGoogle() {
     redirect('/error');
   }
 
-  console.log('oauthData', oauthData);
   if (oauthData.url) redirect(oauthData.url);
 }

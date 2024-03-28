@@ -80,12 +80,16 @@ export default async function Page({ params, searchParams }: Props) {
     redirect('/register');
   }
 
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('*')
-    .single();
-  if (access === 'private' && !profile) {
-    redirect('/my-account');
+  if (user) {
+    // Once the user is logged in, they must have a profile
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('*')
+      .single();
+
+    if (!profile) {
+      redirect('/my-account');
+    }
   }
 
   const sectionId = parseInt(params.section);
@@ -163,7 +167,7 @@ export default async function Page({ params, searchParams }: Props) {
         <div className='flex justify-start gap-2'>
           <span className='flex transform rounded-lg text-sm font-bold text-white md:text-xl'>
             <Image
-              src='/cloudybook2.png'
+              src='/cloudybook_blue_black.png'
               alt='Cloudy Book'
               width={165}
               height={34}
@@ -189,11 +193,26 @@ export default async function Page({ params, searchParams }: Props) {
             </button>
           </Link> */}
           {isDemoCourse(courseId) ? <CTAButton /> : null}
-          <Link href='/my-account'>
-            <button className='rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700 disabled:bg-blue-300'>
-              My account
-            </button>
-          </Link>
+          {user ? (
+            <Link href='/my-account'>
+              <button className='rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700 disabled:bg-blue-300'>
+                My account
+              </button>
+            </Link>
+          ) : (
+            <>
+              <Link href='/register'>
+                <button className='rounded bg-green-500 px-4 py-2 font-bold text-white hover:bg-green-600 disabled:bg-green-300'>
+                  Create new account
+                </button>
+              </Link>
+              <Link href='/login'>
+                <button className='rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700 disabled:bg-blue-300'>
+                  Log in
+                </button>
+              </Link>
+            </>
+          )}
         </div>
       </header>
 

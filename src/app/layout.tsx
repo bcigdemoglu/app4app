@@ -13,6 +13,7 @@ import 'react-notion-x/src/styles.css';
 // where the icons flash from a very large icon down to a properly sized one:
 import '@fortawesome/fontawesome-svg-core/styles.css';
 // Prevent fontawesome from adding its CSS since we did it manually above:
+import LoadingAnimation from '@/components/LoadingAnimation';
 import { config } from '@fortawesome/fontawesome-svg-core';
 import { Suspense } from 'react';
 config.autoAddCss = false; /* eslint-disable import/first */
@@ -20,8 +21,8 @@ config.autoAddCss = false; /* eslint-disable import/first */
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: "Ilayda's Playground",
-  description: 'Ready to start your business in 2024?',
+  title: 'Cloudybook',
+  description: "Jump into CloudyBook's Interactive Tomorrow!",
 };
 
 export default function RootLayout({
@@ -34,11 +35,8 @@ export default function RootLayout({
       <body className={inter.className}>
         <Suspense
           fallback={
-            <div className='flex h-svh items-center justify-center'>
-              <div className='h-32 w-32 animate-spin rounded-full border-b-2 border-blue-700'></div>
-              <div className='absolute text-xl font-semibold'>
-                Loading Awesomeness...
-              </div>
+            <div className='flex h-svh flex-col items-center justify-center'>
+              <LoadingAnimation className='w-1/5' />
             </div>
           }
         >

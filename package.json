@@ -42,6 +42,7 @@
     "react-canvas-confetti": "^2.0.5",
     "react-dom": "^18",
     "react-hotjar": "^6.2.0",
+    "react-lottie-player": "^2.0.0",
     "react-notion-x": "^6.16.0",
     "reading-time": "^1.5.0",
     "rehype-autolink-headings": "^7.1.0",

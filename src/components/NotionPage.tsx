@@ -1,5 +1,7 @@
 'use client';
 
+import Image from 'next/image';
+import Link from 'next/link';
 import { ExtendedRecordMap } from 'notion-types';
 import { NotionRenderer } from 'react-notion-x';
 
@@ -14,10 +16,10 @@ export default function NotionPage({
   return recordMap ? (
     <NotionRenderer
       recordMap={recordMap}
-      fullPage={true}
+      fullPage
       darkMode={false}
-      disableHeader={true}
-      components={{ Code: IgnoreCode }}
+      disableHeader
+      components={{ Code: IgnoreCode, nextImage: Image, nextLink: Link }}
     />
   ) : (
     <div className='prose p-4 font-semibold text-red-600'>
