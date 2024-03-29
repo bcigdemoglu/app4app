@@ -24,7 +24,7 @@ export function getMdxInputComponents(
   }) {
     const fieldId = toInputTextId(name);
     const cachedInput = localStorage.getItem(
-      getLSKey(courseId, lessonId, sectionId, fieldId)
+      getLSKey(courseId, lessonId, fieldId)
     );
     const inputFromDB = lessonInputsFromDB?.[fieldId] as string;
     const defaultValue = clearInputs ? '' : cachedInput ?? inputFromDB ?? '';
@@ -35,7 +35,7 @@ export function getMdxInputComponents(
       setClearInputs(false);
       if (localStorage)
         localStorage.setItem(
-          getLSKey(courseId, lessonId, sectionId, fieldId),
+          getLSKey(courseId, lessonId, fieldId),
           e.target.value
         );
       if (fieldRef.current) {
@@ -88,7 +88,7 @@ export function getMdxInputComponents(
     const initialTableData: TableData = [headerRow, defaultRow];
 
     const localCache = localStorage.getItem(
-      getLSKey(courseId, lessonId, sectionId, fieldId)
+      getLSKey(courseId, lessonId, fieldId)
     );
     const parsedCache = localCache
       ? (JSON.parse(localCache) as TableData)
@@ -145,7 +145,7 @@ export function getMdxInputComponents(
     const updateCacheAndReturn = (updatedData: TableData) => {
       if (localStorage)
         localStorage.setItem(
-          getLSKey(courseId, lessonId, sectionId, fieldId),
+          getLSKey(courseId, lessonId, fieldId),
           JSON.stringify(updatedData)
         );
       return updatedData;

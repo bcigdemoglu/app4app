@@ -11,6 +11,7 @@ import {
   COURSE_MAP,
   CREATOR_MODAL_PARAM,
   DEMO_LESSON_AI_FEEDBACK,
+  genMetadata,
   isDemoCourse,
 } from '@/lib/data';
 import { perf } from '@/utils/debug';
@@ -55,13 +56,8 @@ function isValidSection(courseId: string, lessonId: string, sectionId: string) {
 
 export function generateMetadata({ params }: Props): Metadata {
   if (!isValidCourse(params.course)) notFound();
-  return {
-    title: COURSE_MAP[params.course].title,
-    description: COURSE_MAP[params.course].description,
-    openGraph: {
-      images: ['/cloudybook icon.png'],
-    },
-  };
+  const { title, description } = COURSE_MAP[params.course];
+  return genMetadata(title, description);
 }
 
 export default async function Page({ params, searchParams }: Props) {

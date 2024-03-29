@@ -1,4 +1,4 @@
-import { COURSE_MAP } from '@/lib/data';
+import { COURSE_MAP, genMetadata } from '@/lib/data';
 import { createClient } from '@/utils/supabase/server';
 import { Metadata } from 'next';
 import { cookies } from 'next/headers';
@@ -14,13 +14,8 @@ function isValidCourse(courseId: string) {
 
 export function generateMetadata({ params }: Props): Metadata {
   if (!isValidCourse(params.course)) notFound();
-  return {
-    title: COURSE_MAP[params.course].title,
-    description: COURSE_MAP[params.course].description,
-    openGraph: {
-      images: ['/cloudybook icon.png'],
-    },
-  };
+  const { title, description } = COURSE_MAP[params.course];
+  return genMetadata(title, description);
 }
 
 export default async function Page({ params }: Props) {

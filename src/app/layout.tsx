@@ -14,19 +14,17 @@ import 'react-notion-x/src/styles.css';
 import '@fortawesome/fontawesome-svg-core/styles.css';
 // Prevent fontawesome from adding its CSS since we did it manually above:
 import LoadingAnimation from '@/components/LoadingAnimation';
+import { genMetadata } from '@/lib/data';
 import { config } from '@fortawesome/fontawesome-svg-core';
 import { Suspense } from 'react';
 config.autoAddCss = false; /* eslint-disable import/first */
 
 const inter = Inter({ subsets: ['latin'] });
 
-export const metadata: Metadata = {
-  title: 'Cloudybook',
-  description: 'Where Workbooks Come Alive',
-  openGraph: {
-    images: ['/cloudybook icon.png'],
-  },
-};
+export const metadata: Metadata = genMetadata(
+  'Cloudybook',
+  'Where Workbooks Come Alive'
+);
 
 export default function RootLayout({
   children,

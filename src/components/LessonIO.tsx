@@ -351,7 +351,7 @@ export default function LessonIO({
     formRef.current?.reset();
     setClearInputs(true);
     for (const key in localStorage) {
-      if (key.startsWith(getLSPrefix(courseId, lessonId, sectionId))) {
+      if (key.startsWith(getLSPrefix(courseId, lessonId))) {
         localStorage.removeItem(key);
       }
     }

@@ -1,5 +1,19 @@
 import { AIFeedbackMap, CourseMap, LessonMap } from '@/lib/types';
+import { Metadata } from 'next';
 import { Block, ExtendedRecordMap } from 'notion-types';
+
+export const genMetadata = (title: string, description: string): Metadata => ({
+  metadataBase: new URL('https://app.cloudybook.com'),
+  title,
+  description,
+  openGraph: {
+    title,
+    description,
+    images: '/cloudybook icon.png',
+    siteName: 'Cloudybook',
+    type: 'website',
+  },
+});
 
 export const DEMO_LESSON_MAP: LessonMap = {
   smart: {
@@ -212,32 +226,46 @@ export const getLessonInputMDX = (
   );
 };
 
-export const getLessonOutputMDX = (
+export const getLessonOutputAtSectionMDX = (
   recordMap: ExtendedRecordMap,
   section: number
-) => {
+): string => {
+  const { outputIndex } = sectionToIndex(section);
   return (
     extractMarkdownBlocks(recordMap)
       .map((b) => extractMarkdownText(b))
-      ?.at(sectionToIndex(section).outputIndex) || ''
+      ?.at(outputIndex) || ''
   );
 };
 
-export const getLSPrefix = (
-  courseId: string,
-  lessonId: string,
-  sectionId: number
-) => {
-  return `cloudybook-${courseId}-${lessonId}-${sectionId}`;
+export const getLessonOutputMDX = (
+  recordMap: ExtendedRecordMap,
+  section: number
+): string => {
+  const markdownTexts = extractMarkdownBlocks(recordMap).map((b) =>
+    extractMarkdownText(b)
+  );
+  let outputCombinedMdx = '';
+  for (let i = 1; i <= section; i++) {
+    const outputIndex = sectionToIndex(i).outputIndex;
+    const outputAtSection = markdownTexts.at(outputIndex);
+    if (outputAtSection) {
+      outputCombinedMdx += markdownTexts.at(outputIndex) + '\n';
+    }
+  }
+  return outputCombinedMdx;
+};
+
+export const getLSPrefix = (courseId: string, lessonId: string) => {
+  return `cloudybook-${courseId}-${lessonId}`;
 };
 
 export const getLSKey = (
   courseId: string,
   lessonId: string,
-  sectionId: number,
   fieldId: string
 ) => {
-  return `${getLSPrefix(courseId, lessonId, sectionId)}-${fieldId}`;
+  return `${getLSPrefix(courseId, lessonId)}-${fieldId}`;
 };
 
 export const isDemoCourse = (courseId: string) => {
