@@ -5,6 +5,7 @@ import {
   getLessonInputMDX,
   getLessonOutputMDX,
   getLessonTotalSections,
+  isDemoCourse,
 } from '@/lib/data';
 import {
   JsonObject,
@@ -215,7 +216,7 @@ export async function fetchUserProgressForCourse(
   courseId: string,
   user: User | null
 ): Promise<UserProgressFromDB[] | null> {
-  if (!user) {
+  if (!user || isDemoCourse(courseId)) {
     return null;
   }
 
