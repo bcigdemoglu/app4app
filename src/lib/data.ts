@@ -121,6 +121,17 @@ export const BIP_LESSON_MAP: LessonMap = {
   },
 };
 
+export const ITP_LESSON_MAP: LessonMap = {
+  'observation-notes': {
+    id: 'observation-notes',
+    notionId: '69ce8622214b413f90eb2a5dae8eff05',
+    title: 'Observation Notes',
+    prev: null,
+    next: null,
+    order: 0,
+  },
+};
+
 export const COURSE_MAP: CourseMap = {
   demo: {
     id: 'demo',
@@ -135,6 +146,15 @@ export const COURSE_MAP: CourseMap = {
     description: 'This is a super short page',
     access: 'private',
     lessonMap: BIP_LESSON_MAP,
+  },
+  'identify-the-problem': {
+    id: 'identify-the-problem',
+    title:
+      'Identify & Define the Problem with Business Analysis by The BA Guide | Jeremy Aschenbrenner',
+    description:
+      'Use business analysis techniques to identify a business pain point, find its root cause, and sell the value of fixing it',
+    access: 'preview',
+    lessonMap: ITP_LESSON_MAP,
   },
 };
 

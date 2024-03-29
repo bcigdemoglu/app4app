@@ -22,7 +22,7 @@ const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
   title: 'Cloudybook',
-  description: "Jump into CloudyBook's Interactive Tomorrow!",
+  description: 'Where Workbooks Come Alive',
 };
 
 export default function RootLayout({

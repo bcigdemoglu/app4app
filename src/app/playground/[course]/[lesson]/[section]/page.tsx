@@ -66,9 +66,14 @@ export default async function Page({ params, searchParams }: Props) {
     !isValidCourse(params.course) ||
     !isValidLesson(params.course, params.lesson) ||
     !isValidSection(params.course, params.lesson, params.section)
-  )
+  ) {
     notFound();
-  const { access } = COURSE_MAP[params.course];
+  }
+
+  const courseId = params.course;
+  const { access } = COURSE_MAP[courseId];
+  const sectionId = parseInt(params.section);
+  const lessonId = params.lesson;
 
   const cookieStore = cookies();
   const supabase = createClient(cookieStore);
@@ -76,7 +81,13 @@ export default async function Page({ params, searchParams }: Props) {
   const {
     data: { user },
   } = await perf('getUser', () => supabase.auth.getUser());
-  if (access === 'private' && !user) {
+
+  const allowAccess =
+    !!(access === 'public') || // Allow access if public
+    !!(access === 'preview' && sectionId === 1) || // Allow access if preview and first section
+    !!user; // Allow access if user is logged in
+
+  if (!allowAccess) {
     redirect('/register');
   }
 
@@ -91,11 +102,8 @@ export default async function Page({ params, searchParams }: Props) {
       redirect('/my-account');
     }
   }
-
-  const sectionId = parseInt(params.section);
-  const courseId = params.course;
-  const lesson = COURSE_MAP[params.course].lessonMap[params.lesson];
-  const { notionId, id: lessonId } = lesson;
+  const lesson = COURSE_MAP[courseId].lessonMap[lessonId];
+  const { notionId } = lesson;
 
   // Start both serialization operations in parallel
   const recordMapPromise = getRecordMap(notionId);

@@ -22,7 +22,7 @@ export default function UserLayout({
           <div className='-mt-20 flex flex-col items-center space-y-8'>
             <GreetingAnimation className='w-1/2' />
             <h1 className='text-center text-5xl font-thin tracking-[-0.025em] text-white'>
-              Get Ready for Your Interactive Experience
+              Where Workbooks Come Alive
             </h1>
             <Image
               src='/cloudybook_white.png'

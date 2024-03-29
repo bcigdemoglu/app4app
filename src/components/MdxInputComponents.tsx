@@ -16,9 +16,11 @@ export function getMdxInputComponents(
   function I_TEXT({
     name,
     placeholder,
+    rows,
   }: {
     name: string;
     placeholder?: string;
+    rows?: string;
   }) {
     const fieldId = toInputTextId(name);
     const cachedInput = localStorage.getItem(
@@ -37,13 +39,9 @@ export function getMdxInputComponents(
           e.target.value
         );
       if (fieldRef.current) {
+        fieldRef.current.style.height = 'auto'; // Reset the height
         const newHeight = fieldRef.current.scrollHeight + 2;
-        const currentHeight = parseInt(
-          fieldRef.current.style.height.split('px')[0]
-        );
-        if (newHeight > currentHeight) {
-          fieldRef.current.style.height = newHeight + 'px'; // Fit the textarea to its content
-        }
+        fieldRef.current.style.height = newHeight + 'px'; // Fit the textarea to its content
       }
     };
 
@@ -63,7 +61,7 @@ export function getMdxInputComponents(
         defaultValue={defaultValue}
         className='mt-1 block w-full rounded-md border border-slate-300 bg-white pl-2 pr-1 font-mono placeholder-zinc-400 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500'
         placeholder={placeholder ?? 'Type your answer here...'}
-        rows={5}
+        rows={rows && !isNaN(parseInt(rows)) ? parseInt(rows) : 5}
         required
       />
     );
