@@ -1,9 +1,9 @@
-import Link from 'next/link';
-import Image from 'next/image';
-import { register } from './actions';
 import { getAuthUser } from '@/utils/userActions';
+import Image from 'next/image';
+import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { handleLogInWithGoogle } from '../login/actions';
+import { register } from './actions';
 
 export default async function RegisterPage() {
   const user = await getAuthUser();
@@ -93,6 +93,7 @@ export default async function RegisterPage() {
             id='password'
             autoComplete='current-password'
             required
+            minLength={6}
             className='mt-1 block w-full rounded-md border border-slate-300 bg-white px-3 py-2 placeholder-zinc-400 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500'
             placeholder='Password'
           />

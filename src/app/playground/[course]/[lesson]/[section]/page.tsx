@@ -254,7 +254,7 @@ export default async function Page({ params, searchParams }: Props) {
         <AIFeedbackModal
           aiFeedbackSource={await getAIFeedbackMDX(
             DEMO_LESSON_AI_FEEDBACK[lessonId]?.mdx ??
-              'Sorry, no AI feedback available.'
+              'No AI feedback available for Demo.'
           )}
         />
       ) : null}

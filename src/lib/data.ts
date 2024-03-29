@@ -103,8 +103,24 @@ export const BIP_LESSON_MAP: LessonMap = {
     notionId: '4a840b6f793848569701085af2bdf2d8',
     title: 'Current State',
     prev: 'foreword',
-    next: null,
+    next: 'strategic-objectives',
     order: 2,
+  },
+  'strategic-objectives': {
+    id: 'strategic-objectives',
+    notionId: '1-a933a7e7d9e24bfba52ec8646439f022',
+    title: 'Strategic Objectives',
+    prev: 'currentstate',
+    next: 'approach-to-be-taken',
+    order: 3,
+  },
+  'approach-to-be-taken': {
+    id: 'approach-to-be-taken',
+    notionId: '478c7273b261428385208822b1d8b91e',
+    title: 'The Approach to be Taken',
+    prev: 'strategic-objectives',
+    next: null,
+    order: 4,
   },
 };
 
