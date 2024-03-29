@@ -43,6 +43,16 @@ export async function updateUserInputsByLessonId(
     redirect('/login');
   }
 
+  // Once the user is logged in, they must have a profile
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('*')
+    .single();
+
+  if (!profile) {
+    redirect('/my-account');
+  }
+
   try {
     // Fetch user progress with error handling
     const { data: userProgress, error: getUserProgressError } = await supabase

@@ -1,7 +1,10 @@
 import { COURSE_MAP } from '@/lib/data';
+import { perf } from '@/utils/debug';
 import {
   fetchLessonUserProgress,
   getLessonInputs,
+  getLessonMDX,
+  getRecordMap,
 } from '@/utils/lessonHelpers';
 import { createClient } from '@/utils/supabase/server';
 import { Metadata } from 'next';
@@ -47,25 +50,32 @@ export default async function Page({ params }: Props) {
   let sectionId = STARTING_SECTION;
 
   if (user) {
-    const userProgressFromDB = await fetchLessonUserProgress(
-      lessonId,
-      courseId,
-      user
+    const lesson = COURSE_MAP[courseId].lessonMap[lessonId];
+    const { notionId } = lesson;
+    // Start both serialization operations in parallel
+    const recordMapPromise = getRecordMap(notionId);
+    const userProgressFromDBPromise = user
+      ? fetchLessonUserProgress(lessonId, courseId, user)
+      : Promise.resolve(null);
+
+    // Wait for both operations to complete
+    const [recordMap, userProgressFromDB] = await perf(
+      `/playground/${courseId}/${lessonId}: recordMapAndUserProgress`,
+      async () =>
+        await Promise.all([recordMapPromise, userProgressFromDBPromise])
     );
+
+    const { totalSections } = getLessonMDX(recordMap, sectionId);
     const { lastCompletedSection } = getLessonInputs(
       userProgressFromDB,
       lessonId,
       user
     );
-    if (lastCompletedSection) {
-      sectionId = lastCompletedSection;
+    if (totalSections && lastCompletedSection) {
+      // if lastCompletedSection > totalSection, return totalSection
+      sectionId = Math.min(lastCompletedSection, totalSections);
     }
   }
-
-  /// TODO IF lastCompletedSection > totalSection, return to totalSection!!!!!!!!
-  /// TODO IF lastCompletedSection > totalSection, return to totalSection!!!!!!!!
-  /// TODO IF lastCompletedSection > totalSection, return to totalSection!!!!!!!!
-  /// TODO IF lastCompletedSection > totalSection, return to totalSection!!!!!!!!
 
   redirect(`/playground/${courseId}/${lessonId}/${sectionId}`);
 }

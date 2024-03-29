@@ -161,7 +161,11 @@ export function getMdxInputComponents(
       setClearInputs(false);
     };
 
-    const copyTable = async (e: React.MouseEvent<HTMLButtonElement>) => {
+    const copyTable = async (
+      e:
+        | React.MouseEvent<HTMLButtonElement>
+        | React.ClipboardEvent<HTMLTableElement>
+    ) => {
       e.preventDefault();
       const tableString = tableData
         .map((r) => r.map((c) => c.trim()).join('\t'))
@@ -174,10 +178,20 @@ export function getMdxInputComponents(
       }
     };
 
-    const pasteTable = async (e: React.MouseEvent<HTMLButtonElement>) => {
+    const pasteTable = async (
+      e:
+        | React.MouseEvent<HTMLButtonElement>
+        | React.ClipboardEvent<HTMLTableElement>
+    ) => {
       e.preventDefault();
       try {
         const text = await navigator.clipboard.readText();
+        console.log('Pasted text: ', text);
+        // print tab characters and newline characters as they are
+        console.log(
+          'Pasted text in full: ',
+          text.replace(/\t/g, '\\t').replace(/\n/g, '\\n')
+        );
         const copiedTable: TableData = text
           .split('\n')
           .filter((r) => r.trim() !== '') // Filter empty rows
@@ -219,10 +233,14 @@ export function getMdxInputComponents(
           <TableButton action={addColumn}>+ Col</TableButton>
           <TableButton action={deleteRow}>- Row</TableButton>
           <TableButton action={deleteColumn}>- Col</TableButton>
-          <TableButton action={copyTable}>Copy Table</TableButton>
+          {/* <TableButton action={copyTable}>Copy Table</TableButton> */}
           <TableButton action={pasteTable}>Paste Table</TableButton>
         </div>
-        <table className='table-auto items-start'>
+        <table
+          className='table-auto items-start'
+          onPaste={pasteTable}
+          onCopy={copyTable}
+        >
           <thead>
             <tr>
               {tableData[0]?.map((header, colIndex) => (

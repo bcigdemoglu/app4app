@@ -2,33 +2,6 @@ import { AIFeedbackMap, CourseMap, LessonMap } from '@/lib/types';
 import { Block, ExtendedRecordMap } from 'notion-types';
 
 export const DEMO_LESSON_MAP: LessonMap = {
-  '1': {
-    id: '1',
-    notionId: 'b57f92a1577e48fcae50a841889968a3',
-    title: 'Lesson 0: Live Page',
-    description: 'How to commit to your idea?',
-    prev: null,
-    next: '2',
-    order: 0,
-  },
-  '2': {
-    id: '2',
-    notionId: '5186495d873648d48ad0061e433b2caa',
-    title: 'Lesson 1: Commitment',
-    description: 'How to commit to your idea?',
-    prev: null,
-    next: '3',
-    order: 1,
-  },
-  '3': {
-    id: '3',
-    notionId: '8060ad9aaa5e44dfa4086af80f18dc3c',
-    title: 'Lesson 2: Reality',
-    description: "What's the reality of your idea?",
-    prev: '2',
-    next: null,
-    order: 2,
-  },
   smart: {
     id: 'smart',
     notionId: '1271d4fa33d44955995843af0b4cda92',
