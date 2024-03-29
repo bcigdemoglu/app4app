@@ -23,6 +23,9 @@ const inter = Inter({ subsets: ['latin'] });
 export const metadata: Metadata = {
   title: 'Cloudybook',
   description: 'Where Workbooks Come Alive',
+  openGraph: {
+    images: ['/cloudybook icon.png'],
+  },
 };
 
 export default function RootLayout({

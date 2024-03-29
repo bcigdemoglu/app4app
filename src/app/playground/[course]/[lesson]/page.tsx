@@ -23,11 +23,14 @@ function isValidLesson(courseId: string, lessonId: string) {
   return COURSE_MAP[courseId] && COURSE_MAP[courseId].lessonMap[lessonId];
 }
 
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
+export function generateMetadata({ params }: Props): Metadata {
   if (!isValidCourse(params.course)) notFound();
   return {
     title: COURSE_MAP[params.course].title,
     description: COURSE_MAP[params.course].description,
+    openGraph: {
+      images: ['/cloudybook icon.png'],
+    },
   };
 }
 

@@ -53,11 +53,14 @@ function isValidSection(courseId: string, lessonId: string, sectionId: string) {
   );
 }
 
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
+export function generateMetadata({ params }: Props): Metadata {
   if (!isValidCourse(params.course)) notFound();
   return {
     title: COURSE_MAP[params.course].title,
     description: COURSE_MAP[params.course].description,
+    openGraph: {
+      images: ['/cloudybook icon.png'],
+    },
   };
 }
 
