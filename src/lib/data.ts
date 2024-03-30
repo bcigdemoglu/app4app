@@ -7,7 +7,7 @@ export const genMetadata = (title: string, description: string): Metadata => ({
   title: `Cloudybook App - ${title}`,
   description,
   openGraph: {
-    title,
+    title: `Cloudybook App - ${title}`,
     description,
     images: '/cloudybook icon.png',
     siteName: 'Cloudybook',
