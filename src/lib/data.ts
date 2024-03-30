@@ -4,7 +4,7 @@ import { Block, ExtendedRecordMap } from 'notion-types';
 
 export const genMetadata = (title: string, description: string): Metadata => ({
   metadataBase: new URL('https://app.cloudybook.com'),
-  title,
+  title: `Cloudybook App - ${title}`,
   description,
   openGraph: {
     title,
