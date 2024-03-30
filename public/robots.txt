@@ -1,5 +1,6 @@
 User-agent: *
 Allow: /
 Disallow: /playground
+Disallow: /widget
 
 Sitemap: https://app.cloudybook.com/sitemap.xml
