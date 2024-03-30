@@ -28,7 +28,7 @@ export async function login(formData: FormData) {
   const { data: profile, error: loginProfileError } = await supabase
     .from('profiles')
     .select('*')
-    .single();
+    .maybeSingle();
 
   if (loginProfileError) {
     console.error('loginProfileError', loginProfileError);

@@ -1,9 +1,9 @@
 'server-only';
 
+import { Tables } from '@/lib/database.types';
+import { User } from '@supabase/supabase-js';
 import { cookies } from 'next/headers';
 import { createClient } from './supabase/server';
-import { User } from '@supabase/supabase-js';
-import { Tables } from '@/lib/database.types';
 
 export async function getAuthUser(): Promise<User | null> {
   const cookieStore = cookies();
@@ -28,7 +28,7 @@ export async function getAuthUserAndProfile(): Promise<{
   const { data: profile } = await supabase
     .from('profiles')
     .select('*')
-    .single();
+    .maybeSingle();
 
   return { user, profile };
 }

@@ -15,7 +15,8 @@ export default async function Page() {
     .select('*')
     .single();
 
-  if (!profile || profile.plan?.toLowerCase() !== 'admin') {
+  const isAdmin = profile?.plan.toLowerCase() === 'admin';
+  if (!isAdmin) {
     notFound();
   }
 

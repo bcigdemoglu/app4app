@@ -47,7 +47,7 @@ export async function updateUserInputsByLessonId(
   const { data: profile } = await supabase
     .from('profiles')
     .select('*')
-    .single();
+    .maybeSingle();
 
   if (!profile) {
     redirect('/my-account');
@@ -118,9 +118,11 @@ export async function updateUserInputsByLessonId(
       .single();
 
     if (error) {
-      throw new Error(
-        `DB_ERROR: Failed to update/insert progress for user ${user.id}`
+      console.error(
+        `DB_ERROR: Failed to update/insert progress for user ${user.id}`,
+        error
       );
+      redirect('/error');
     }
 
     revalidatePath('/playground'); // Assuming you have a helper for this
@@ -264,7 +266,7 @@ export async function exportUserOutput(
   const { data: profile } = await supabase
     .from('profiles')
     .select('*')
-    .single();
+    .maybeSingle();
 
   if (!profile) {
     redirect('/my-account');
@@ -277,7 +279,7 @@ export async function exportUserOutput(
       .eq('course_id', courseId)
       .eq('user_id', user.id)
       .eq('lesson_id', lessonId)
-      .single();
+      .maybeSingle();
 
   if (getExportedOutputError) {
     console.error('getExportedOutputError', getExportedOutputError);
