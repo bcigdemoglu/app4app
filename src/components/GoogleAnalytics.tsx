@@ -1,3 +1,5 @@
+'use client';
+
 import { doNotTrackPath } from '@/lib/data';
 import { usePathname } from 'next/navigation';
 import Script from 'next/script';
