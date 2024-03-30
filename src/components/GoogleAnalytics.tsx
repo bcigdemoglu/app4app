@@ -1,11 +1,15 @@
-import { collectPathAnalytics } from '@/lib/data';
+import { doNotTrackPath } from '@/lib/data';
 import { usePathname } from 'next/navigation';
 import Script from 'next/script';
 
 export default function GoogleAnalytics() {
   const pathname = usePathname();
 
-  return collectPathAnalytics(pathname) ? (
+  if (doNotTrackPath(pathname)) {
+    return null;
+  }
+
+  return (
     <>
       <Script src='https://www.googletagmanager.com/gtag/js?id=G-0FMTHR11XE' />
       <Script id='google-analytics'>
@@ -18,7 +22,5 @@ export default function GoogleAnalytics() {
   `}
       </Script>
     </>
-  ) : (
-    <></>
   );
 }
