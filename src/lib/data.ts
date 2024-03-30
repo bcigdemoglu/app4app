@@ -10,7 +10,7 @@ export const genMetadata = (title: string, description: string): Metadata => ({
     title: `Cloudybook App - ${title}`,
     description,
     images: '/cloudybook icon.png',
-    siteName: 'Cloudybook',
+    siteName: 'Cloudybook App',
     type: 'website',
   },
 });
