@@ -13,6 +13,7 @@ import 'react-notion-x/src/styles.css';
 // where the icons flash from a very large icon down to a properly sized one:
 import '@fortawesome/fontawesome-svg-core/styles.css';
 // Prevent fontawesome from adding its CSS since we did it manually above:
+import GoogleAnalytics from '@/components/GoogleAnalytics';
 import LoadingAnimation from '@/components/LoadingAnimation';
 import { genMetadata } from '@/lib/data';
 import { config } from '@fortawesome/fontawesome-svg-core';
@@ -33,6 +34,8 @@ export default function RootLayout({
 }) {
   return (
     <html lang='en'>
+      <GoogleAnalytics />
+      <Hotjar />
       <body className={inter.className}>
         <Suspense
           fallback={
@@ -46,8 +49,6 @@ export default function RootLayout({
         <VercelAnalytics />
         <SpeedInsights />
       </body>
-      <Hotjar />
-      {/* <GoogleAnalytics /> */}
     </html>
   );
 }
