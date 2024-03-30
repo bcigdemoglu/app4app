@@ -153,7 +153,7 @@ export const COURSE_MAP: CourseMap = {
     title: 'Business Improvement Plan by Robert Chapman',
     description:
       'The step by step guide to building the most effective plan for your business',
-    access: 'private',
+    access: 'preview',
     lessonMap: BIP_LESSON_MAP,
   },
   'identify-the-problem': {
