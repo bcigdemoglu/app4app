@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { sendResetPasswordEmail } from './actions';
 
 export default function SendResetPasswordPage() {
@@ -37,6 +38,15 @@ export default function SendResetPasswordPage() {
           </button>
         </div>
       </form>
+      <div className='mt-4 text-sm text-zinc-500'>
+        Already have an account?{' '}
+        <Link
+          href='/login'
+          className='font-medium text-indigo-600 hover:text-indigo-500'
+        >
+          Login here.
+        </Link>
+      </div>
     </div>
   );
 }
