@@ -54,13 +54,21 @@ export default async function MyAccountPage() {
           }
         />
 
-        {profile && (
+        {user ? (
+          <div>
+            <span className='block text-sm font-medium text-zinc-700'>
+              Email: {user?.email}
+            </span>
+          </div>
+        ) : null}
+
+        {profile ? (
           <div>
             <span className='block text-sm font-medium text-zinc-700'>
               Plan: {profile?.plan}
             </span>
           </div>
-        )}
+        ) : null}
 
         <div>
           <button

@@ -19,7 +19,6 @@ export async function updateProfile(formData: FormData) {
   const userProfile = {
     full_name: formData.get('full_name') as string,
     email: user?.user?.email || 'no email found',
-    plan: 'Free',
     updated_at: new Date().toISOString(),
   };
 
@@ -33,7 +32,7 @@ export async function updateProfile(formData: FormData) {
   }
 
   revalidatePath('/', 'layout');
-  redirect('/my-account');
+  redirect('/playground');
 }
 
 export async function logout() {
