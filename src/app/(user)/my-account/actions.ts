@@ -9,16 +9,16 @@ import { createClient } from '@/utils/supabase/actions';
 export async function updateProfile(formData: FormData) {
   const cookieStore = cookies();
   const supabase = createClient(cookieStore);
-  const { error: authError } = await supabase.auth.getUser();
+  const { data: user, error: authError } = await supabase.auth.getUser();
 
-  if (authError) {
+  if (!user) {
     console.error('authError', authError);
     redirect('/error');
   }
 
   const userProfile = {
     full_name: formData.get('full_name') as string,
-    email: formData.get('email') as string,
+    email: user?.user?.email || 'no email found',
     plan: 'Free',
     updated_at: new Date().toISOString(),
   };

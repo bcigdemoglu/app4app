@@ -62,20 +62,6 @@ export default async function MyAccountPage() {
           </div>
         )}
 
-        {user?.email && (
-          <div>
-            <span className='block text-sm font-medium text-zinc-700'>
-              Email: {user.email}
-            </span>
-            <input
-              name='email'
-              className='hidden'
-              value={user.email}
-              readOnly={true}
-            />
-          </div>
-        )}
-
         <div>
           <button
             formAction={updateProfile}

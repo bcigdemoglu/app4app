@@ -13,9 +13,9 @@ export default function UserLayout({
   return (
     <section>
       <div className='bg-secondary-50 flex min-h-screen overflow-y-auto'>
-        <div className='flex w-full items-center justify-center md:w-1/2'>
-          {/* Sign-up Form Section */}
-          <div className='mx-auto w-full max-w-md space-y-6'>{children}</div>
+        <div className='mx-auto flex w-10/12 items-center justify-center md:w-1/2'>
+          {/* Form Section */}
+          <div className='w-full max-w-md space-y-6'>{children}</div>
         </div>
         <div className='hidden items-center justify-center bg-gradient-to-r from-blue-600 to-blue-800 lg:flex lg:w-1/2'>
           {/* Illustration*/}

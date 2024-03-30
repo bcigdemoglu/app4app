@@ -5,8 +5,9 @@ import { useEffect, useState } from 'react';
 export const CTAButton = () => (
   <button
     onClick={() => openCalendyInNewTab()}
-    className='rounded bg-orange-600 px-4 py-2 font-bold text-white hover:bg-orange-800 disabled:bg-orange-400'
+    className='hidden rounded bg-orange-600 px-4 py-2 font-bold text-white hover:bg-orange-800 disabled:bg-orange-400 md:flex'
   >
+    {/* Hidden on mobile */}
     Create Yours!
   </button>
 );

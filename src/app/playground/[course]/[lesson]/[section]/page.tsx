@@ -211,11 +211,12 @@ export default async function Page({ params, searchParams }: Props) {
             <>
               <Link href='/register'>
                 <button className='rounded bg-green-500 px-4 py-2 font-bold text-white hover:bg-green-600 disabled:bg-green-300'>
-                  Create new account
+                  Create account
                 </button>
               </Link>
               <Link href='/login'>
-                <button className='rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700 disabled:bg-blue-300'>
+                <button className='hidden rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700 disabled:bg-blue-300 md:flex'>
+                  {/* Hidden on mobile */}
                   Log in
                 </button>
               </Link>
