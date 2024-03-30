@@ -15,6 +15,11 @@ export const genMetadata = (title: string, description: string): Metadata => ({
   },
 });
 
+export const DO_NOT_TRACK_PATHS = ['/widget'];
+
+export const collectPathAnalytics = (pathname: string) =>
+  !DO_NOT_TRACK_PATHS.some((dntPath) => pathname.startsWith(dntPath));
+
 export const DEMO_LESSON_MAP: LessonMap = {
   smart: {
     id: 'smart',
