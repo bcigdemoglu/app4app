@@ -23,7 +23,7 @@ config.autoAddCss = false; /* eslint-disable import/first */
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = genMetadata(
-  'Cloudybook',
+  'Cloudybook App',
   'Where Workbooks Come Alive'
 );
 
