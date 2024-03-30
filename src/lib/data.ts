@@ -278,7 +278,7 @@ export const getLessonOutputMDX = (
 };
 
 export const getLSPrefix = (courseId: string, lessonId: string) => {
-  return `cloudybook-${courseId}-${lessonId}`;
+  return ['cloudybook', courseId, lessonId].join('.');
 };
 
 export const getLSKey = (
@@ -286,7 +286,7 @@ export const getLSKey = (
   lessonId: string,
   fieldId: string
 ) => {
-  return `${getLSPrefix(courseId, lessonId)}-${fieldId}`;
+  return [getLSPrefix(courseId, lessonId), fieldId].join('.');
 };
 
 export const isDemoCourse = (courseId: string) => {
