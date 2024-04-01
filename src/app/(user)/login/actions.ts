@@ -21,8 +21,12 @@ export async function login(formData: FormData) {
     await supabase.auth.signInWithPassword(credentials);
 
   if (signInWithPasswordError) {
-    console.error('error', signInWithPasswordError);
-    redirect('/error');
+    if (signInWithPasswordError.message === 'Email not confirmed') {
+      redirect('/register-success');
+    } else {
+      console.error('signInWithPasswordError', signInWithPasswordError);
+      redirect('/error');
+    }
   }
 
   const { data: profile, error: loginProfileError } = await supabase
