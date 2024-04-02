@@ -22,10 +22,10 @@ export default function Error({
             : 'Sorry, there was an error. Please try again later.'}
         </p>
         <Link
-          href='/'
+          href='/playground'
           className='mt-8 inline-block rounded-md bg-blue-600 px-6 py-3 font-semibold text-white transition duration-300 hover:bg-blue-700'
         >
-          Return Home
+          Return to Playground
         </Link>
       </div>
     </div>
