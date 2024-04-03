@@ -2,8 +2,9 @@
 
 import {
   COURSE_MAP,
-  getLessonInputMDX,
-  getLessonOutputMDX,
+  getLessonInputAtSectionMDX,
+  getLessonInputUpToSectionMDX,
+  getLessonOutputUpToSectionMDX,
   getLessonTotalSections,
   isDemoCourse,
 } from '@/lib/data';
@@ -63,46 +64,40 @@ export function getLessonMDX(
   }
   return {
     totalSections: getLessonTotalSections(recordMap),
-    mdxInput: getLessonInputMDX(recordMap, section),
-    mdxOutput: getLessonOutputMDX(recordMap, section),
+    mdxInput: getLessonInputAtSectionMDX(recordMap, section),
+    mdxOutput: getLessonOutputUpToSectionMDX(recordMap, section),
+  };
+}
+
+export function getFullLessonMDX(recordMap: ExtendedRecordMap): {
+  mdxInput: string;
+  mdxOutput: string;
+  totalSections: number;
+} {
+  const totalSections = getLessonTotalSections(recordMap);
+  return {
+    totalSections,
+    mdxInput: getLessonInputUpToSectionMDX(recordMap, totalSections, true),
+    mdxOutput: getLessonOutputUpToSectionMDX(recordMap, totalSections, true),
   };
 }
 
 export async function serializeLessonMDX(
-  mdxInput: string | null,
-  mdxOutput: string | null
-): Promise<{
-  mdxInputSource: MDXRemoteSerializeResult | null;
-  mdxOutputSource: MDXRemoteSerializeResult | null;
-}> {
-  if (!mdxInput || !mdxOutput) {
-    return {
-      mdxInputSource: null,
-      mdxOutputSource: null,
-    };
+  lessonMdx: string | null
+): Promise<MDXRemoteSerializeResult | null> {
+  if (!lessonMdx) {
+    return null;
   }
 
   // Start both serialization operations in parallel
-  const inputMDXPromise = serialize(mdxInput, {
-    mdxOptions: {
-      remarkPlugins: [remarkGfm],
-      rehypePlugins: [rehypeSlug, rehypeAutolinkHeadings],
-    },
-  });
-  const outputMDXPromise = serialize(mdxOutput, {
+  const mdxSource = await serialize(lessonMdx, {
     mdxOptions: {
       remarkPlugins: [remarkGfm],
       rehypePlugins: [rehypeSlug, rehypeAutolinkHeadings],
     },
   });
 
-  // Wait for both operations to complete
-  const [mdxInputSource, mdxOutputSource] = await Promise.all([
-    inputMDXPromise,
-    outputMDXPromise,
-  ]);
-
-  return { mdxInputSource, mdxOutputSource };
+  return mdxSource;
 }
 
 export async function fetchLessonUserProgress(

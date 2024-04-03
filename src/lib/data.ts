@@ -108,24 +108,40 @@ export const BIP_LESSON_MAP: LessonMap = {
     notionId: '4a840b6f793848569701085af2bdf2d8',
     title: 'Current State',
     prev: 'foreword',
-    next: 'strategic-objectives',
+    next: 'strategicobjectives',
     order: 2,
   },
-  'strategic-objectives': {
-    id: 'strategic-objectives',
+  strategicobjectives: {
+    id: 'strategicobjectives',
     notionId: '1-a933a7e7d9e24bfba52ec8646439f022',
     title: 'Strategic Objectives',
     prev: 'currentstate',
-    next: 'approach-to-be-taken',
+    next: 'approachtobetaken',
     order: 3,
   },
-  'approach-to-be-taken': {
-    id: 'approach-to-be-taken',
+  approachtobetaken: {
+    id: 'approachtobetaken',
     notionId: '478c7273b261428385208822b1d8b91e',
     title: 'The Approach to be Taken',
-    prev: 'strategic-objectives',
-    next: null,
+    prev: 'strategicobjectives',
+    next: 'timeline',
     order: 4,
+  },
+  timeline: {
+    id: 'timeline',
+    notionId: '729a36aef1204881bada23567fcd752d',
+    title: 'Timeline',
+    prev: 'approachtobetaken',
+    next: 'scope',
+    order: 5,
+  },
+  scope: {
+    id: 'scope',
+    notionId: '2ef16085fdeb4fe68a0575d2a356b28c',
+    title: 'Scope',
+    prev: 'timeline',
+    next: null,
+    order: 6,
   },
 };
 
@@ -236,45 +252,80 @@ export const getLessonTotalSections = (
   );
 };
 
-export const getLessonInputMDX = (
+const getLessonAtSectionMDX = (
   recordMap: ExtendedRecordMap,
-  section: number
+  section: number,
+  field: 'inputIndex' | 'outputIndex'
 ) => {
+  const index = sectionToIndex(section)[field];
   return (
     extractMarkdownBlocks(recordMap)
       .map((b) => extractMarkdownText(b))
-      ?.at(sectionToIndex(section).inputIndex) || ''
+      ?.at(index) || ''
   );
+};
+
+const getLessonUpToSectionMDX = (
+  recordMap: ExtendedRecordMap,
+  section: number,
+  field: 'inputIndex' | 'outputIndex',
+  displaySectionSeparator: boolean = false
+): string => {
+  const markdownTexts = extractMarkdownBlocks(recordMap).map((b) =>
+    extractMarkdownText(b)
+  );
+  let combinedMdx = '';
+  for (let i = 1; i <= section; i++) {
+    const index = sectionToIndex(i)[field];
+    const mdxAtSection = markdownTexts.at(index);
+    if (mdxAtSection) {
+      const separator = displaySectionSeparator
+        ? `\n\n***--- End of Section ${i} ---***\n\n`
+        : '\n';
+      combinedMdx += markdownTexts.at(index) + separator;
+    }
+  }
+  return combinedMdx;
+};
+
+export const getLessonInputAtSectionMDX = (
+  recordMap: ExtendedRecordMap,
+  section: number
+) => {
+  return getLessonAtSectionMDX(recordMap, section, 'inputIndex');
 };
 
 export const getLessonOutputAtSectionMDX = (
   recordMap: ExtendedRecordMap,
   section: number
 ): string => {
-  const { outputIndex } = sectionToIndex(section);
-  return (
-    extractMarkdownBlocks(recordMap)
-      .map((b) => extractMarkdownText(b))
-      ?.at(outputIndex) || ''
+  return getLessonAtSectionMDX(recordMap, section, 'outputIndex');
+};
+
+export const getLessonInputUpToSectionMDX = (
+  recordMap: ExtendedRecordMap,
+  section: number,
+  displaySectionSeparator: boolean = false
+): string => {
+  return getLessonUpToSectionMDX(
+    recordMap,
+    section,
+    'inputIndex',
+    displaySectionSeparator
   );
 };
 
-export const getLessonOutputMDX = (
+export const getLessonOutputUpToSectionMDX = (
   recordMap: ExtendedRecordMap,
-  section: number
+  section: number,
+  displaySectionSeparator: boolean = false
 ): string => {
-  const markdownTexts = extractMarkdownBlocks(recordMap).map((b) =>
-    extractMarkdownText(b)
+  return getLessonUpToSectionMDX(
+    recordMap,
+    section,
+    'outputIndex',
+    displaySectionSeparator
   );
-  let outputCombinedMdx = '';
-  for (let i = 1; i <= section; i++) {
-    const outputIndex = sectionToIndex(i).outputIndex;
-    const outputAtSection = markdownTexts.at(outputIndex);
-    if (outputAtSection) {
-      outputCombinedMdx += markdownTexts.at(outputIndex) + '\n';
-    }
-  }
-  return outputCombinedMdx;
 };
 
 export const getLSPrefix = (courseId: string, lessonId: string) => {

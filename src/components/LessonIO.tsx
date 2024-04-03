@@ -468,7 +468,6 @@ export default function LessonIO({
                 setClearInputs,
                 courseId,
                 lessonId,
-                sectionId,
                 JSON.parse(lessonInputs)
               )}
             />

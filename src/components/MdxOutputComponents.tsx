@@ -9,6 +9,16 @@ import { User } from '@supabase/supabase-js';
 import { MDXComponents } from 'mdx/types';
 import { Fragment } from 'react';
 
+function NoDataFound() {
+  return (
+    <div className='text-red-700'>
+      {
+        'ERROR: Data not found. Please re-submit lesson or contact support@cloudybook.com.'
+      }
+    </div>
+  );
+}
+
 export async function PreviousLessonOutputs({
   courseId,
   lessonId,
@@ -43,17 +53,27 @@ export async function PreviousLessonOutputs({
 }
 
 export function getMdxOutputComponents(
-  lessonInputsFromDB: JsonObject | null
+  lessonInputsJson: JsonObject | null
 ): MDXComponents {
   function O_TEXT({ name }: { name: string }) {
     const fieldId = toInputTextId(name);
-    const value = lessonInputsFromDB
-      ? (lessonInputsFromDB[fieldId] as string)
-      : 'ERROR';
+    const fieldInput =
+      typeof lessonInputsJson?.[fieldId] === 'string'
+        ? (lessonInputsJson[fieldId] as string)
+        : null;
+
+    if (!fieldInput) {
+      return <NoDataFound />;
+    }
+
     return (
       // Respect the newlines in the value
-      <span className='whitespace-pre-line' id={fieldId}>
-        {value}
+      <span
+        key={'outputComponent.' + fieldId}
+        className='whitespace-pre-line'
+        id={fieldId}
+      >
+        {fieldInput}
       </span>
     );
   }
@@ -61,18 +81,18 @@ export function getMdxOutputComponents(
   type TableData = TableRow[];
   const O_TABLE = ({ name }: { name: string }) => {
     const fieldId = toInputTableId(name);
-    const inputFromDB = lessonInputsFromDB?.[fieldId] as string;
-    const parsedInputFromDB = inputFromDB
-      ? (JSON.parse(inputFromDB) as TableData)
+    const fieldInput = lessonInputsJson?.[fieldId] as string;
+    const parsedInputFromDB = fieldInput
+      ? (JSON.parse(fieldInput) as TableData)
       : null;
     const tableData = parsedInputFromDB;
 
     if (!tableData) {
-      return <div>ERROR: No table data found</div>;
+      return <NoDataFound />;
     }
 
     return (
-      <div>
+      <div key={'outputComponent.' + fieldId}>
         <table className='table-auto items-start'>
           <thead>
             <tr>
@@ -104,8 +124,8 @@ export function getMdxOutputComponents(
   };
   async function O_TEXT_AI({ name, prompt }: { name: string; prompt: string }) {
     const fieldId = toInputTextId(name);
-    const inputValue = lessonInputsFromDB
-      ? (lessonInputsFromDB[fieldId] as string)
+    const inputValue = lessonInputsJson
+      ? (lessonInputsJson[fieldId] as string)
       : 'ERROR';
     const aiResponse = await fetchAiResponse(inputValue, prompt);
     // const aiResponse = await Promise.resolve('AI response');
@@ -113,7 +133,11 @@ export function getMdxOutputComponents(
 
     return (
       // Respect the newlines in the value
-      <span className='whitespace-pre-line' id={fieldId}>
+      <span
+        key={'outputComponent.' + fieldId}
+        className='whitespace-pre-line'
+        id={fieldId}
+      >
         {aiResponse}
       </span>
     );

@@ -10,7 +10,6 @@ export function getMdxInputComponents(
   setClearInputs: (val: boolean) => void,
   courseId: string,
   lessonId: string,
-  sectionId: number,
   lessonInputsFromDB: JsonObject | null
 ): MDXComponents {
   function I_TEXT({
@@ -23,12 +22,8 @@ export function getMdxInputComponents(
     rows?: string;
   }) {
     const fieldId = toInputTextId(name);
-    const cachedInput = localStorage.getItem(
-      getLSKey(courseId, lessonId, fieldId)
-    );
     const inputFromDB = lessonInputsFromDB?.[fieldId] as string;
-    const defaultValue = clearInputs ? '' : cachedInput ?? inputFromDB ?? '';
-
+    const [defaultValue, setDefaultValue] = useState('');
     const fieldRef = useRef<HTMLTextAreaElement>(null);
 
     const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -41,19 +36,30 @@ export function getMdxInputComponents(
       if (fieldRef.current) {
         fieldRef.current.style.height = 'auto'; // Reset the height
         const newHeight = fieldRef.current.scrollHeight + 2;
-        fieldRef.current.style.height = newHeight + 'px'; // Fit the textarea to its content
+        fieldRef.current.style.height = `${newHeight}px`; // Fit the textarea to its content
       }
     };
 
     useEffect(() => {
-      if (fieldRef.current) {
-        const newHeight = fieldRef.current.scrollHeight + 2;
-        fieldRef.current.style.height = newHeight + 'px'; // Fit the textarea to its content
+      const cachedInput = localStorage
+        ? localStorage.getItem(getLSKey(courseId, lessonId, fieldId))
+        : null;
+      const newDefaultValue = clearInputs
+        ? ''
+        : cachedInput ?? inputFromDB ?? '';
+      if (!clearInputs && cachedInput !== defaultValue) {
+        setDefaultValue(newDefaultValue);
       }
-    }, [fieldId]);
+      if (fieldRef.current) {
+        fieldRef.current.style.height = 'auto'; // Reset the height
+        const newHeight = fieldRef.current.scrollHeight + 2;
+        fieldRef.current.style.height = `${newHeight}px`; // Fit the textarea to its content
+      }
+    }, [fieldId, inputFromDB, defaultValue]);
 
     return (
       <textarea
+        key={'inputComponent.' + fieldId}
         id={fieldId}
         name={fieldId}
         ref={fieldRef}
@@ -221,7 +227,7 @@ export function getMdxInputComponents(
     };
 
     return (
-      <div>
+      <div key={'inputComponent.' + fieldId}>
         <input
           type='hidden'
           readOnly={true}

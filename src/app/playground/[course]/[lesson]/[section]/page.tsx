@@ -126,8 +126,6 @@ export default async function Page({ params, searchParams }: Props) {
     redirect(`/playground/${courseId}/${lessonId}`);
   }
 
-  const { mdxInputSource } = await serializeLessonMDX(mdxInput, mdxOutput);
-
   const {
     data: lessonInputsFromDB,
     lastCompletedSection: lastCompletedSectionFromDB,
@@ -160,6 +158,7 @@ export default async function Page({ params, searchParams }: Props) {
       (outputModifiedAt && inputModifiedAt > outputModifiedAt))
   );
 
+  const mdxInputSource = await serializeLessonMDX(mdxInput);
   const MdxOutput =
     mdxOutput && genNewOutput ? (
       <MDXRemote

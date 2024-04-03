@@ -1,6 +1,6 @@
+import type { Database } from '@/lib/database.types';
 import { createServerClient, type CookieOptions } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
-import type { Database } from '@/lib/database.types';
 
 export async function middleware(request: NextRequest) {
   let response = NextResponse.next({
