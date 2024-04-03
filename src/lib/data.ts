@@ -2,6 +2,16 @@ import { AIFeedbackMap, CourseMap, LessonMap } from '@/lib/types';
 import { Metadata } from 'next';
 import { Block, ExtendedRecordMap } from 'notion-types';
 
+export const END_SECTION_SEPARATOR = '>>>---ENDSECTION--->>>';
+///// TODO IMPLEMENT IF THERE IS A USE CASE ONLY AT THIS POINT SERVES THE SAME AS ENDSECTION
+///// WOULD IMPACT getLessonUpToSectionMDX for OUTPUT only
+export const RESET_OUTPUT_SEPARATOR = '>>>---RESETOUTPUT--->>>';
+export const MARKDOWN_SEPARATORS = [
+  END_SECTION_SEPARATOR,
+  RESET_OUTPUT_SEPARATOR,
+];
+export const SEPARATOR_REGEX = new RegExp(MARKDOWN_SEPARATORS.join('|'), 'g');
+
 export const genMetadata = (title: string, description: string): Metadata => ({
   metadataBase: new URL('https://app.cloudybook.com'),
   title: `Cloudybook App - ${title}`,
@@ -235,21 +245,23 @@ const extractMarkdownText = (block: Block): string => {
   return block.properties?.title?.[0]?.[0];
 };
 
-const sectionToIndex = (section: number) => ({
-  inputIndex: (section - 1) * 2,
-  outputIndex: (section - 1) * 2 + 1,
-});
+const sectionToIndex = (section: number) => section - 1;
 
 export const getLessonTotalSections = (
   recordMap: ExtendedRecordMap
 ): number => {
-  return Math.max(
-    Math.ceil(
-      extractMarkdownBlocks(recordMap).map((b) => extractMarkdownText(b))
-        ?.length / 2
-    ),
-    1
+  const [inputBlock, outputBlock] = extractMarkdownBlocks(recordMap).map((b) =>
+    extractMarkdownText(b)
   );
+  const totalInputSections = inputBlock.split(SEPARATOR_REGEX).length;
+  const totalOutputSections = outputBlock.split(SEPARATOR_REGEX).length;
+  if (totalInputSections !== totalOutputSections) {
+    throw new Error(
+      `Input and output sections don't match. ` +
+        `totalInputSections: ${totalInputSections}, outputSections: ${totalOutputSections}`
+    );
+  }
+  return totalInputSections;
 };
 
 const getLessonAtSectionMDX = (
@@ -257,12 +269,11 @@ const getLessonAtSectionMDX = (
   section: number,
   field: 'inputIndex' | 'outputIndex'
 ) => {
-  const index = sectionToIndex(section)[field];
-  return (
-    extractMarkdownBlocks(recordMap)
-      .map((b) => extractMarkdownText(b))
-      ?.at(index) || ''
+  const [inputSections, outputSections] = extractMarkdownBlocks(recordMap).map(
+    (b) => extractMarkdownText(b).split(SEPARATOR_REGEX)
   );
+  const sections = field === 'inputIndex' ? inputSections : outputSections;
+  return sections.at(sectionToIndex(section)) || '';
 };
 
 const getLessonUpToSectionMDX = (
@@ -271,18 +282,19 @@ const getLessonUpToSectionMDX = (
   field: 'inputIndex' | 'outputIndex',
   displaySectionSeparator: boolean = false
 ): string => {
-  const markdownTexts = extractMarkdownBlocks(recordMap).map((b) =>
-    extractMarkdownText(b)
+  const [inputSections, outputSections] = extractMarkdownBlocks(recordMap).map(
+    (b) => extractMarkdownText(b).split(SEPARATOR_REGEX)
   );
+  const sections = field === 'inputIndex' ? inputSections : outputSections;
   let combinedMdx = '';
   for (let i = 1; i <= section; i++) {
-    const index = sectionToIndex(i)[field];
-    const mdxAtSection = markdownTexts.at(index);
+    const index = sectionToIndex(i);
+    const mdxAtSection = sections.at(index);
     if (mdxAtSection) {
       const separator = displaySectionSeparator
         ? `\n\n***--- End of Section ${i} ---***\n\n`
         : '\n';
-      combinedMdx += markdownTexts.at(index) + separator;
+      combinedMdx += mdxAtSection + separator;
     }
   }
   return combinedMdx;
