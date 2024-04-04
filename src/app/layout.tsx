@@ -15,6 +15,7 @@ import '@fortawesome/fontawesome-svg-core/styles.css';
 // Prevent fontawesome from adding its CSS since we did it manually above:
 import GoogleAnalytics from '@/components/GoogleAnalytics';
 import LoadingAnimation from '@/components/LoadingAnimation';
+import TrackAnalytics from '@/components/TrackAnalytics';
 import { genMetadata } from '@/lib/data';
 import { config } from '@fortawesome/fontawesome-svg-core';
 import { Suspense } from 'react';
@@ -34,8 +35,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang='en'>
-      <GoogleAnalytics />
-      <Hotjar />
+      <TrackAnalytics>
+        <GoogleAnalytics />
+        <Hotjar />
+      </TrackAnalytics>
       <body className={inter.className}>
         <Suspense
           fallback={
@@ -46,8 +49,10 @@ export default function RootLayout({
         >
           {children}
         </Suspense>
-        <VercelAnalytics />
-        <SpeedInsights />
+        <TrackAnalytics>
+          <VercelAnalytics />
+          <SpeedInsights />
+        </TrackAnalytics>
       </body>
     </html>
   );

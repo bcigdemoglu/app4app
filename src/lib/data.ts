@@ -25,7 +25,12 @@ export const genMetadata = (title: string, description: string): Metadata => ({
   },
 });
 
-export const DO_NOT_TRACK_PATHS = ['/widget'];
+export const DO_NOT_TRACK_PATHS = [
+  '/widget',
+  '/playground/demo/persona/1',
+  '/playground/demo/smart/1',
+  '/playground/demo/affirmation/1',
+];
 
 export const doNotTrackPath = (pathname: string) =>
   DO_NOT_TRACK_PATHS.some((dntPath) => pathname.startsWith(dntPath));
