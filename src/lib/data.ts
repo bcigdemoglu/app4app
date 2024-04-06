@@ -72,33 +72,6 @@ export const DEMO_LESSON_MAP: LessonMap = {
     next: null,
     order: 0,
   },
-  ilayda2: {
-    id: 'ilayda2',
-    notionId: '66e8502d68b4476cabad402e1c9f62a0',
-    title: 'Lesson Ilayda 2: AMAZING',
-    description: 'Universe to impress ilayda',
-    prev: 'ilayda1',
-    next: 'supershortpage',
-    order: 1,
-  },
-  supershortpage: {
-    id: 'supershortpage',
-    notionId: '371627a158454d5bbed5f2a45bc487a4',
-    title: 'Lesson: Super Short Page',
-    description: 'This is a super short page',
-    prev: 'ilayda2',
-    next: null,
-    order: 7,
-  },
-  businessimprovementplan: {
-    id: 'businessimprovementplan',
-    notionId: '18a54ccc0e8945caac723b32c5746a70',
-    title: 'Lesson: Improvement Plan',
-    description: 'This is a super short page',
-    prev: 'ilayda2',
-    next: null,
-    order: 8,
-  },
 };
 
 export const BIP_LESSON_MAP: LessonMap = {
@@ -155,8 +128,40 @@ export const BIP_LESSON_MAP: LessonMap = {
     notionId: '2ef16085fdeb4fe68a0575d2a356b28c',
     title: 'Scope',
     prev: 'timeline',
-    next: null,
+    next: 'risk',
     order: 6,
+  },
+  risk: {
+    id: 'risk',
+    notionId: '1fbfc275b35c4c43bec839859b9042e7',
+    title: 'Risk',
+    prev: 'scope',
+    next: 'roles',
+    order: 7,
+  },
+  roles: {
+    id: 'roles',
+    notionId: 'dd1d0f070e114a0b8646fbdcbb537c03',
+    title: 'Roles',
+    prev: 'risk',
+    next: 'deliveryapproach',
+    order: 8,
+  },
+  deliveryapproach: {
+    id: 'deliveryapproach',
+    notionId: '0fdb1d1ecd1c4486aa5e7215173bbbb9',
+    title: 'The Delivery Approach',
+    prev: 'roles',
+    next: 'end',
+    order: 9,
+  },
+  end: {
+    id: 'end',
+    notionId: '83d5f063f8004ed591982a1b2ec6ab3b',
+    title: 'The End',
+    prev: 'deliveryapproach',
+    next: null,
+    order: 10,
   },
 };
 
@@ -201,6 +206,8 @@ export const COURSE_MAP: CourseMap = {
 export const CREATOR_MODAL_PARAM = 'feedback';
 
 export const AI_MODAL_PARAM = 'ai';
+
+export const SYLLABUS_MODAL_PARAM = 'syllabus';
 
 export const DEMO_LESSON_AI_FEEDBACK: AIFeedbackMap = {
   smart: {
@@ -255,15 +262,40 @@ const sectionToIndex = (section: number) => section - 1;
 export const getLessonTotalSections = (
   recordMap: ExtendedRecordMap
 ): number => {
-  const [inputBlock, outputBlock] = extractMarkdownBlocks(recordMap).map((b) =>
-    extractMarkdownText(b)
-  );
+  const [extractedInput, extractedOutput] = extractMarkdownBlocks(
+    recordMap
+  ).map((b) => extractMarkdownText(b));
+  const inputBlock = extractedInput || '';
+  const outputBlock = extractedOutput || '';
   const totalInputSections = inputBlock.split(SEPARATOR_REGEX).length;
   const totalOutputSections = outputBlock.split(SEPARATOR_REGEX).length;
   if (totalInputSections !== totalOutputSections) {
     throw new Error(
       `Input and output sections don't match. ` +
         `totalInputSections: ${totalInputSections}, outputSections: ${totalOutputSections}`
+    );
+  }
+
+  // TODO: DEFINITELY BETTER PLACED ELSEWHERE BUT GOOD FOR VERIFICATION FOR NOW
+  // WE ARE STILL GETTING STARTED EH :D
+
+  const userFieldsRegex = /name="([^"]*)"(?! lesson)/g;
+  const userInputFields = new Set(
+    [...inputBlock.matchAll(userFieldsRegex)].map((match) => match[1])
+  );
+  const userOutputFields = new Set(
+    [...outputBlock.matchAll(userFieldsRegex)].map((match) => match[1])
+  );
+  const missingInOutput = Array.from(userInputFields)
+    .filter((field) => !userOutputFields.has(field))
+    .join(', ');
+  const missingInInput = Array.from(userOutputFields)
+    .filter((field) => !userInputFields.has(field))
+    .join(', ');
+
+  if (missingInOutput.length > 0 || missingInInput.length > 0) {
+    throw new Error(
+      `Missing fields in output: [${missingInOutput}], in input: [${missingInInput}]`
     );
   }
   return totalInputSections;
@@ -274,9 +306,12 @@ const getLessonAtSectionMDX = (
   section: number,
   field: 'inputIndex' | 'outputIndex'
 ) => {
-  const [inputSections, outputSections] = extractMarkdownBlocks(recordMap).map(
-    (b) => extractMarkdownText(b).split(SEPARATOR_REGEX)
-  );
+  const [extractedInputSections, extractedOutputSections] =
+    extractMarkdownBlocks(recordMap).map((b) =>
+      extractMarkdownText(b).split(SEPARATOR_REGEX)
+    );
+  const inputSections = extractedInputSections || [];
+  const outputSections = extractedOutputSections || [];
   const sections = field === 'inputIndex' ? inputSections : outputSections;
   return sections.at(sectionToIndex(section)) || '';
 };
@@ -287,9 +322,12 @@ const getLessonUpToSectionMDX = (
   field: 'inputIndex' | 'outputIndex',
   displaySectionSeparator: boolean = false
 ): string => {
-  const [inputSections, outputSections] = extractMarkdownBlocks(recordMap).map(
-    (b) => extractMarkdownText(b).split(SEPARATOR_REGEX)
-  );
+  const [extractedInputSections, extractedOutputSections] =
+    extractMarkdownBlocks(recordMap).map((b) =>
+      extractMarkdownText(b).split(SEPARATOR_REGEX)
+    );
+  const inputSections = extractedInputSections || [];
+  const outputSections = extractedOutputSections || [];
   const sections = field === 'inputIndex' ? inputSections : outputSections;
   let combinedMdx = '';
   for (let i = 1; i <= section; i++) {

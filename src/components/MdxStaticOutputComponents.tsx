@@ -1,13 +1,11 @@
-'server-only';
-
-import { JsonObject, toInputTableId, toInputTextId } from '@/lib/types';
 import {
-  fetchAiResponse,
-  fetchUserProgressForCourseUpToLesson,
-} from '@/utils/lessonHelpers';
-import { User } from '@supabase/supabase-js';
+  JsonObject,
+  UserProgressForCourseFromDB,
+  toInputTableId,
+  toInputTextId,
+} from '@/lib/types';
+import { getInputFieldFromUserProgressForCourse } from '@/utils/lessonDataHelpers';
 import { MDXComponents } from 'mdx/types';
-import { Fragment } from 'react';
 
 function NoDataFound() {
   return (
@@ -19,48 +17,24 @@ function NoDataFound() {
   );
 }
 
-export async function PreviousLessonOutputs({
-  courseId,
-  lessonId,
-  user,
-}: {
-  courseId: string;
-  lessonId: string;
-  user: User | null;
-}) {
-  const userProgressForCourseUpToLesson =
-    await fetchUserProgressForCourseUpToLesson(courseId, lessonId, user);
-
-  if (!userProgressForCourseUpToLesson) {
-    return <></>;
-  }
-
-  return (
-    <>
-      {userProgressForCourseUpToLesson.map((userProgress) => (
-        <Fragment key={userProgress.id}>
-          <div
-            className='prose'
-            dangerouslySetInnerHTML={{
-              __html: (userProgress.outputs_json as JsonObject).data as string,
-            }}
-          />
-          <br></br>
-        </Fragment>
-      ))}
-    </>
-  );
-}
-
-export function getMdxOutputComponents(
-  lessonInputsJson: JsonObject | null
+export function getMdxStaticOutputComponents(
+  lessonInputsJson: JsonObject | null,
+  userProgressForCourse: UserProgressForCourseFromDB | null
 ): MDXComponents {
-  function O_TEXT({ name }: { name: string }) {
+  function O_TEXT({ name, lessonId }: { name: string; lessonId?: string }) {
     const fieldId = toInputTextId(name);
+    const externalFieldInput = lessonId
+      ? getInputFieldFromUserProgressForCourse(
+          userProgressForCourse,
+          fieldId,
+          lessonId
+        )
+      : null;
     const fieldInput =
-      typeof lessonInputsJson?.[fieldId] === 'string'
+      externalFieldInput ||
+      (typeof lessonInputsJson?.[fieldId] === 'string'
         ? (lessonInputsJson[fieldId] as string)
-        : null;
+        : null);
 
     if (!fieldInput) {
       return <NoDataFound />;
@@ -68,11 +42,7 @@ export function getMdxOutputComponents(
 
     return (
       // Respect the newlines in the value
-      <span
-        key={'outputComponent.' + fieldId}
-        className='whitespace-pre-line'
-        id={fieldId}
-      >
+      <span key={'outputComponent.' + fieldId} className='whitespace-pre-line'>
         {fieldInput}
       </span>
     );
@@ -122,26 +92,6 @@ export function getMdxOutputComponents(
       </div>
     );
   };
-  async function O_TEXT_AI({ name, prompt }: { name: string; prompt: string }) {
-    const fieldId = toInputTextId(name);
-    const inputValue = lessonInputsJson
-      ? (lessonInputsJson[fieldId] as string)
-      : 'ERROR';
-    const aiResponse = await fetchAiResponse(inputValue, prompt);
-    // const aiResponse = await Promise.resolve('AI response');
-    console.log('aiResponse', aiResponse);
-
-    return (
-      // Respect the newlines in the value
-      <span
-        key={'outputComponent.' + fieldId}
-        className='whitespace-pre-line'
-        id={fieldId}
-      >
-        {aiResponse}
-      </span>
-    );
-  }
   function O_PAGE() {
     return (
       // Respect the newlines in the value
@@ -150,7 +100,6 @@ export function getMdxOutputComponents(
   }
   return {
     O_TEXT,
-    O_TEXT_AI,
     O_TABLE,
     O_PAGE,
   };

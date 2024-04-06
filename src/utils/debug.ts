@@ -30,7 +30,7 @@ export const perf = async <T>(
     const endTime = performance.now();
     const elapsedTime = endTime - startTime;
 
-    console.log(
+    console.debug(
       `${fnName} execution time: ${elapsedTime.toFixed(0)} milliseconds`
     );
 

@@ -1,18 +1,22 @@
-import LessonInputArea from '@/components/LessonInputArea';
-import { getMdxOutputComponents } from '@/components/MdxOutputComponents';
+import { getMdxDynamicOutputComponents } from '@/components/MdxDynamicOutputComponents';
+import { getMdxStaticOutputComponents } from '@/components/MdxStaticOutputComponents';
 import NotionPage from '@/components/NotionPage';
 import { COURSE_MAP, genMetadata } from '@/lib/data';
 import { perf } from '@/utils/debug';
 import {
-  fetchLessonUserProgress,
-  getFullLessonMDX,
   getLessonInputs,
+  getUserProgressForLesson,
+} from '@/utils/lessonDataHelpers';
+import {
+  fetchUserProgressForCourse,
+  getFullLessonMDX,
   getRecordMap,
   serializeLessonMDX,
 } from '@/utils/lessonHelpers';
 import { createClient } from '@/utils/supabase/server';
 import { Metadata } from 'next';
 import { MDXRemote } from 'next-mdx-remote/rsc';
+import dynamic from 'next/dynamic';
 import { cookies } from 'next/headers';
 import { notFound } from 'next/navigation';
 
@@ -65,13 +69,18 @@ export default async function Page({ params }: Props) {
   // Start both serialization operations in parallel
   const recordMapPromise = getRecordMap(notionId);
   const userProgressFromDBPromise = user
-    ? fetchLessonUserProgress(lessonId, courseId, user)
+    ? fetchUserProgressForCourse(courseId)
     : Promise.resolve(null);
 
   // Wait for both operations to complete
-  const [recordMap, userProgressFromDB] = await perf(
+  const [recordMap, userProgressForCourse] = await perf(
     `/playground/${courseId}/${lessonId}: recordMapAndUserProgress`,
     async () => await Promise.all([recordMapPromise, userProgressFromDBPromise])
+  );
+
+  const userProgressForLesson = getUserProgressForLesson(
+    userProgressForCourse,
+    lessonId
   );
 
   if (!recordMap) {
@@ -80,9 +89,8 @@ export default async function Page({ params }: Props) {
 
   const { mdxInput, mdxOutput } = getFullLessonMDX(recordMap);
   const { data: lessonInputsFromDB } = getLessonInputs(
-    userProgressFromDB,
-    lessonId,
-    user
+    userProgressForLesson,
+    lessonId
   );
   const lessonInputs = JSON.stringify(lessonInputsFromDB);
 
@@ -91,23 +99,35 @@ export default async function Page({ params }: Props) {
     throw new Error('MDX input source not found');
   }
 
+  const LessonInputArea = dynamic(
+    () => import('@/components/LessonInputArea'),
+    { ssr: false }
+  );
+
   return (
-    <div className='grid h-svh grid-cols-3 overflow-auto p-10'>
-      <div className='flex-grow overflow-auto'>
+    <div className='grid h-svh grid-cols-3 p-10'>
+      <div className='h-full flex-grow overflow-auto'>
         <NotionPage recordMap={recordMap}></NotionPage>
       </div>
-      <div className='prose h-svh'>
+      <div className='prose h-full overflow-auto'>
         <LessonInputArea
           mdxInputSource={mdxInputSource}
           courseId={courseId}
           lessonId={lessonId}
           lessonInputs={lessonInputs}
+          userProgressForCourse={JSON.stringify(userProgressForCourse)}
         />
       </div>
-      <div className='prose'>
+      <div className='prose h-full overflow-auto'>
         <MDXRemote
           source={mdxOutput}
-          components={getMdxOutputComponents(lessonInputsFromDB)}
+          components={{
+            ...getMdxDynamicOutputComponents(lessonInputsFromDB),
+            ...getMdxStaticOutputComponents(
+              lessonInputsFromDB,
+              userProgressForCourse
+            ),
+          }}
         />
       </div>
     </div>

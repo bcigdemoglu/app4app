@@ -1,20 +1,16 @@
 'server-only';
 
 import {
-  COURSE_MAP,
   getLessonInputAtSectionMDX,
   getLessonInputUpToSectionMDX,
   getLessonOutputUpToSectionMDX,
   getLessonTotalSections,
-  isDemoCourse,
 } from '@/lib/data';
 import {
-  JsonObject,
-  UserProgressFromDB,
-  verifiedJsonObjectFromDB,
+  UserProgressForCourseFromDB,
+  UserProgressForLessonFromDB,
 } from '@/lib/types';
 import { createClient } from '@/utils/supabase/server';
-import { User } from '@supabase/supabase-js';
 import { MDXRemoteSerializeResult } from 'next-mdx-remote';
 import { serialize } from 'next-mdx-remote/serialize';
 import { cookies } from 'next/headers';
@@ -100,15 +96,10 @@ export async function serializeLessonMDX(
   return mdxSource;
 }
 
-export async function fetchLessonUserProgress(
+export async function fetchUserProgressForLesson(
   lessonId: string,
-  courseId: string,
-  user: User | null
-): Promise<UserProgressFromDB | null> {
-  if (!user) {
-    return null;
-  }
-
+  courseId: string
+): Promise<UserProgressForLessonFromDB | null> {
   return perf('fetchUserProgressFromDB', async () => {
     const cookieStore = cookies();
     const supabase = createClient(cookieStore);
@@ -137,84 +128,9 @@ export async function fetchLessonUserProgress(
   });
 }
 
-interface LessonInput {
-  data: JsonObject | null;
-  lastCompletedSection: number | null;
-  modifiedAt: string | null;
-}
-
-export function getLessonInputs(
-  userProgress: UserProgressFromDB | null,
-  lessonId: string,
-  user: User | null
-): LessonInput {
-  // Get full object or default to empty object
-  if (user && userProgress && userProgress.inputs_json) {
-    // Get user progress if there is one in DB
-    const inputsFromDB = verifiedJsonObjectFromDB(
-      userProgress.inputs_json,
-      `FATAL_DB_ERROR: inputs_json is not an object for user ${user.id} of lesson ${lessonId}!`
-    );
-    const metadata = inputsFromDB['metadata'] as JsonObject;
-    const lastCompletedSection = metadata['lastCompletedSection'] as number;
-    const modifiedAt = metadata['modified_at'] as string;
-    return {
-      data: inputsFromDB['data'] as JsonObject,
-      lastCompletedSection,
-      modifiedAt,
-    };
-  }
-  console.log(
-    `no lesson input found for lesson ${lessonId} of user ${
-      user ? user.id : 'NOT LOGGED IN'
-    }`
-  );
-  return { data: null, lastCompletedSection: null, modifiedAt: null };
-}
-
-export function getLessonOutput(
-  userProgress: UserProgressFromDB | null,
-  lessonId: string,
-  user: User | null
-): { data: string | null; modifiedAt: string | null } {
-  // Get full object or default to null object
-  if (user && userProgress && userProgress.outputs_json) {
-    // Get user progress if there is one in DB
-    const outputsFromDB = verifiedJsonObjectFromDB(
-      userProgress.outputs_json,
-      `FATAL_DB_ERROR: outputs_json is not an object for user ${user.id} of lesson ${lessonId}!`
-    );
-    const data = outputsFromDB['data'] as string;
-    const metadata = outputsFromDB['metadata'] as JsonObject;
-    const modifiedAt = metadata['modified_at'] as string;
-    return { data, modifiedAt };
-  }
-  console.log(
-    `no lesson output found for lesson ${lessonId} of user ${
-      user ? user.id : 'NOT LOGGED IN'
-    }`
-  );
-  return { data: null, modifiedAt: null };
-}
-
-export function getLessonOrder(courseId: string, lessonId: string): number {
-  return COURSE_MAP[courseId].lessonMap[lessonId].order;
-}
-
-export function getLessonOrderFromUserProgress(
-  userProgress: UserProgressFromDB
-): number {
-  return getLessonOrder(userProgress.course_id, userProgress.lesson_id);
-}
-
 export async function fetchUserProgressForCourse(
-  courseId: string,
-  user: User | null
-): Promise<UserProgressFromDB[] | null> {
-  if (!user || isDemoCourse(courseId)) {
-    return null;
-  }
-
+  courseId: string
+): Promise<UserProgressForCourseFromDB | null> {
   return perf('fetchUserProgressForCourse', async () => {
     const cookieStore = cookies();
     const supabase = createClient(cookieStore);
@@ -238,31 +154,17 @@ export async function fetchUserProgressForCourse(
       console.error('getUserProgressError', getUserProgressError);
     }
 
-    // Order the outputs by Lesson Order
-    userProgressList?.sort((a: UserProgressFromDB, b: UserProgressFromDB) => {
-      return (
-        getLessonOrderFromUserProgress(a) - getLessonOrderFromUserProgress(b)
-      );
-    });
+    if (!userProgressList) {
+      return null;
+    }
 
-    return userProgressList;
+    const userProgressForCourse: UserProgressForCourseFromDB = {};
+    for (const userProgress of userProgressList) {
+      userProgressForCourse[userProgress.lesson_id] = userProgress;
+    }
+
+    return userProgressForCourse;
   });
-}
-
-export async function fetchUserProgressForCourseUpToLesson(
-  courseId: string,
-  lessonId: string,
-  user: User | null
-): Promise<UserProgressFromDB[] | null> {
-  const allUserProgress = await fetchUserProgressForCourse(courseId, user);
-  if (!allUserProgress) return null;
-
-  const maxLessonOrder = COURSE_MAP[courseId].lessonMap[lessonId].order;
-
-  return allUserProgress.filter(
-    (userProgress) =>
-      getLessonOrderFromUserProgress(userProgress) < maxLessonOrder
-  );
 }
 
 export async function fetchAiResponse(

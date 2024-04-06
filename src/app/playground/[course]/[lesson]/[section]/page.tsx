@@ -2,25 +2,29 @@ import AIFeedbackModal from '@/components/AIFeedbackModal';
 import { CTAButton } from '@/components/CTAModal';
 import CreatorFeedbackModal from '@/components/CreatorFeedbackModal';
 import LessonIO from '@/components/LessonIO';
-import {
-  PreviousLessonOutputs,
-  getMdxOutputComponents,
-} from '@/components/MdxOutputComponents';
+import { getMdxDynamicOutputComponents } from '@/components/MdxDynamicOutputComponents';
+import { getMdxStaticOutputComponents } from '@/components/MdxStaticOutputComponents';
+import { PreviousLessonOutputs } from '@/components/PreviousLessonOutputs';
+import SyllabuskModal from '@/components/Syllabus Modal';
 import {
   AI_MODAL_PARAM,
   COURSE_MAP,
   CREATOR_MODAL_PARAM,
   DEMO_LESSON_AI_FEEDBACK,
+  SYLLABUS_MODAL_PARAM,
   genMetadata,
   isDemoCourse,
 } from '@/lib/data';
 import { perf } from '@/utils/debug';
 import {
-  fetchLessonUserProgress,
-  getAIFeedbackMDX,
   getLessonInputs,
-  getLessonMDX,
   getLessonOutput,
+  getUserProgressForLesson,
+} from '@/utils/lessonDataHelpers';
+import {
+  fetchUserProgressForCourse,
+  getAIFeedbackMDX,
+  getLessonMDX,
   getRecordMap,
   serializeLessonMDX,
 } from '@/utils/lessonHelpers';
@@ -34,7 +38,11 @@ import { notFound, redirect } from 'next/navigation';
 
 interface Props {
   params: { course: string; lesson: string; section: string };
-  searchParams: { [AI_MODAL_PARAM]: string; [CREATOR_MODAL_PARAM]: string };
+  searchParams: {
+    [AI_MODAL_PARAM]: string;
+    [CREATOR_MODAL_PARAM]: string;
+    [SYLLABUS_MODAL_PARAM]: string;
+  };
 }
 
 function isValidCourse(courseId: string) {
@@ -106,14 +114,15 @@ export default async function Page({ params, searchParams }: Props) {
 
   // Start both serialization operations in parallel
   const recordMapPromise = getRecordMap(notionId);
-  const userProgressFromDBPromise = user
-    ? fetchLessonUserProgress(lessonId, courseId, user)
+  const userProgressForCoursePromise = user
+    ? fetchUserProgressForCourse(courseId)
     : Promise.resolve(null);
 
   // Wait for both operations to complete
-  const [recordMap, userProgressFromDB] = await perf(
+  const [recordMap, userProgressForCourse] = await perf(
     `/playground/${courseId}/${lessonId}/${sectionId}: recordMapAndUserProgress`,
-    async () => await Promise.all([recordMapPromise, userProgressFromDBPromise])
+    async () =>
+      await Promise.all([recordMapPromise, userProgressForCoursePromise])
   );
 
   const { mdxInput, mdxOutput, totalSections } = getLessonMDX(
@@ -126,13 +135,18 @@ export default async function Page({ params, searchParams }: Props) {
     redirect(`/playground/${courseId}/${lessonId}`);
   }
 
+  const userProgressForLesson = getUserProgressForLesson(
+    userProgressForCourse,
+    lessonId
+  );
+
   const {
     data: lessonInputsFromDB,
     lastCompletedSection: lastCompletedSectionFromDB,
     modifiedAt: inputModifiedAt,
-  } = getLessonInputs(userProgressFromDB, lessonId, user);
+  } = getLessonInputs(userProgressForLesson, lessonId);
   const { data: lessonOutputfromDB, modifiedAt: outputModifiedAt } =
-    getLessonOutput(userProgressFromDB, lessonId, user);
+    getLessonOutput(userProgressForLesson, lessonId, user);
 
   const prevSection = sectionId - 1 > 0 ? sectionId - 1 : null;
   const prevSectionLink = prevSection
@@ -164,7 +178,13 @@ export default async function Page({ params, searchParams }: Props) {
       <MDXRemote
         key={inputModifiedAt}
         source={mdxOutput}
-        components={getMdxOutputComponents(lessonInputsFromDB)}
+        components={{
+          ...getMdxDynamicOutputComponents(lessonInputsFromDB),
+          ...getMdxStaticOutputComponents(
+            lessonInputsFromDB,
+            userProgressForCourse
+          ),
+        }}
       />
     ) : null;
 
@@ -201,11 +221,18 @@ export default async function Page({ params, searchParams }: Props) {
           </Link> */}
           {isDemoCourse(courseId) ? <CTAButton /> : null}
           {user ? (
-            <Link href='/my-account'>
-              <button className='rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700 disabled:bg-blue-300'>
-                My account
-              </button>
-            </Link>
+            <>
+              <Link href={`?${SYLLABUS_MODAL_PARAM}=true`}>
+                <button className='rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700 disabled:bg-blue-300 md:flex'>
+                  Syllabus
+                </button>
+              </Link>
+              <Link href='/my-account'>
+                <button className='rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700 disabled:bg-blue-300'>
+                  My account
+                </button>
+              </Link>
+            </>
           ) : (
             <>
               <Link href='/register'>
@@ -244,7 +271,7 @@ export default async function Page({ params, searchParams }: Props) {
           <PreviousLessonOutputs
             courseId={courseId}
             lessonId={lessonId}
-            user={user}
+            userProgressForCourse={userProgressForCourse}
           />
         }
       />
@@ -257,6 +284,9 @@ export default async function Page({ params, searchParams }: Props) {
               'No AI feedback available for Demo.'
           )}
         />
+      ) : null}
+      {searchParams[SYLLABUS_MODAL_PARAM] ? (
+        <SyllabuskModal courseId={courseId} />
       ) : null}
       {/* {isDemoCourse(courseId) ? <CTAModal /> : null} */}
     </main>

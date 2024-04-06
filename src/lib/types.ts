@@ -38,6 +38,12 @@ export interface Lesson {
   order: number;
 }
 
+export interface LessonInput {
+  data: JsonObject | null;
+  lastCompletedSection: number | null;
+  modifiedAt: string | null;
+}
+
 export type LessonMap = Record<string, Lesson>;
 export interface Course {
   id: string;
@@ -51,7 +57,13 @@ export type CourseMap = Record<string, Course>;
 
 export type AIFeedbackMap = Record<string, { mdx: string }>;
 
-export type UserProgressFromDB = Tables<'user_progress'>;
+export type UserProgressForLessonFromDB = Tables<'user_progress'>;
+export type UserProgressForCourseFromDB = Record<
+  string,
+  UserProgressForLessonFromDB
+>;
+export type OrderedUserProgressForCourseFromDB = UserProgressForLessonFromDB[];
+
 export type ExportedOuputsFromDB = Tables<'exported_outputs'>;
 
 export type UpdateUserInputFormState = {

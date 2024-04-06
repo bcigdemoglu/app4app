@@ -3,8 +3,17 @@
 import { getLSKey } from '@/lib/data';
 import { JsonObject, toInputTableId, toInputTextId } from '@/lib/types';
 import { MDXComponents } from 'mdx/types';
-import { ReactNode, useEffect, useRef, useState } from 'react';
+import { ChangeEvent, ReactNode, useEffect, useRef, useState } from 'react';
 
+function resetHeight(el: HTMLElement) {
+  el.style.height = 'auto'; // Reset the height
+  const newHeight = el.scrollHeight + 2;
+  el.style.height = `${newHeight}px`; // Fit the textarea to its content
+}
+
+/////// TODO: Instead of getMdxInputComponents, it should encapsulate I_TEXT such as const I_TEXT_WRAPPER = ({lessonInputsFromDB, ...rest}) => <I_TEXT lessonInputsFromDB={lessonInputsFromDB}  {...rest} />
+/////// Then we can do a lazy load on I_TEXT and I_TABLE to allow for localStorage loaded at runtime and remove any useEffect causing re-renders.
+/////// Something like I_TEXT_WRAPPER = { I_TEXT = dynamic(() => import('./I_TEXT'), { ssr: false }); return <I_TEXT lessonInputsFromDB={lessonInputsFromDB}  {...rest} /> };
 export function getMdxInputComponents(
   clearInputs: boolean,
   setClearInputs: (val: boolean) => void,
@@ -33,11 +42,7 @@ export function getMdxInputComponents(
           getLSKey(courseId, lessonId, fieldId),
           e.target.value
         );
-      if (fieldRef.current) {
-        fieldRef.current.style.height = 'auto'; // Reset the height
-        const newHeight = fieldRef.current.scrollHeight + 2;
-        fieldRef.current.style.height = `${newHeight}px`; // Fit the textarea to its content
-      }
+      resetHeight(e.target);
     };
 
     useEffect(() => {
@@ -51,9 +56,7 @@ export function getMdxInputComponents(
         setDefaultValue(newDefaultValue);
       }
       if (fieldRef.current) {
-        fieldRef.current.style.height = 'auto'; // Reset the height
-        const newHeight = fieldRef.current.scrollHeight + 2;
-        fieldRef.current.style.height = `${newHeight}px`; // Fit the textarea to its content
+        resetHeight(fieldRef.current);
       }
     }, [fieldId, inputFromDB, defaultValue]);
 
@@ -158,13 +161,19 @@ export function getMdxInputComponents(
     };
 
     // Update cell data
-    const updateCell = (rowIndex: number, colIndex: number, value: string) => {
+    const updateCell = (
+      e: ChangeEvent<HTMLTextAreaElement>,
+      rowIndex: number,
+      colIndex: number,
+      value: string
+    ) => {
       setTableData((curData) => {
         const updatedData = curData.map((curRow) => [...curRow]);
         updatedData[rowIndex][colIndex] = value;
         return updatedData;
       });
       setClearInputs(false);
+      resetHeight(e.target);
     };
 
     const copyTable = async (
@@ -192,12 +201,6 @@ export function getMdxInputComponents(
       e.preventDefault();
       try {
         const text = await navigator.clipboard.readText();
-        console.log('Pasted text: ', text);
-        // print tab characters and newline characters as they are
-        console.log(
-          'Pasted text in full: ',
-          text.replace(/\t/g, '\\t').replace(/\n/g, '\\n')
-        );
         const copiedTable: TableData = text
           .split('\n')
           .filter((r) => r.trim() !== '') // Filter empty rows
@@ -255,7 +258,7 @@ export function getMdxInputComponents(
                     value={header}
                     placeholder='...'
                     className='align-top'
-                    onChange={(e) => updateCell(0, colIndex, e.target.value)}
+                    onChange={(e) => updateCell(e, 0, colIndex, e.target.value)}
                     onBlur={
                       () => updateCacheAndReturn(tableData) // Save on blur
                     }
@@ -279,7 +282,7 @@ export function getMdxInputComponents(
                             placeholder='...'
                             className='align-top'
                             onChange={(e) =>
-                              updateCell(rowIndex, colIndex, e.target.value)
+                              updateCell(e, rowIndex, colIndex, e.target.value)
                             }
                             onBlur={
                               () => updateCacheAndReturn(tableData) // Save on blur
@@ -297,7 +300,7 @@ export function getMdxInputComponents(
                             placeholder='...'
                             className='align-top'
                             onChange={(e) =>
-                              updateCell(rowIndex, colIndex, e.target.value)
+                              updateCell(e, rowIndex, colIndex, e.target.value)
                             }
                             onBlur={
                               () => updateCacheAndReturn(tableData) // Save on blur

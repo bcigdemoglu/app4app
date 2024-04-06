@@ -1,8 +1,8 @@
 import { COURSE_MAP, genMetadata } from '@/lib/data';
 import { perf } from '@/utils/debug';
+import { getLessonInputs } from '@/utils/lessonDataHelpers';
 import {
-  fetchLessonUserProgress,
-  getLessonInputs,
+  fetchUserProgressForLesson,
   getLessonMDX,
   getRecordMap,
 } from '@/utils/lessonHelpers';
@@ -53,7 +53,7 @@ export default async function Page({ params }: Props) {
     // Start both serialization operations in parallel
     const recordMapPromise = getRecordMap(notionId);
     const userProgressFromDBPromise = user
-      ? fetchLessonUserProgress(lessonId, courseId, user)
+      ? fetchUserProgressForLesson(lessonId, courseId)
       : Promise.resolve(null);
 
     // Wait for both operations to complete
@@ -66,8 +66,7 @@ export default async function Page({ params }: Props) {
     const { totalSections } = getLessonMDX(recordMap, sectionId);
     const { lastCompletedSection } = getLessonInputs(
       userProgressFromDB,
-      lessonId,
-      user
+      lessonId
     );
     if (totalSections && lastCompletedSection) {
       // if lastCompletedSection > totalSection, return totalSection
