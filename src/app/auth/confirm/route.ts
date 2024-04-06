@@ -1,7 +1,7 @@
 // Following guide https://supabase.com/docs/guides/auth/server-side/email-based-auth-with-pkce-flow-for-ssr
 import { type EmailOtpType } from '@supabase/supabase-js';
 import { cookies } from 'next/headers';
-import { type NextRequest, NextResponse } from 'next/server';
+import { NextResponse, type NextRequest } from 'next/server';
 
 import { createClient } from '@/utils/supabase/actions';
 
@@ -15,15 +15,6 @@ export async function GET(request: NextRequest) {
   // redirection
   const next = searchParams.get('next') ?? '/';
   const redirectTo = `${origin}${next}`;
-
-  console.log(
-    'origin',
-    origin,
-    'searchParams',
-    searchParams,
-    'redirectTo',
-    redirectTo
-  );
 
   if (token_hash && type) {
     const cookieStore = cookies();
