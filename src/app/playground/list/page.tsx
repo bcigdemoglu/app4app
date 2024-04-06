@@ -32,11 +32,15 @@ export default async function Page() {
             </Link>
             <ul>
               {Object.values(course.lessonMap).map((lesson) => (
-                <li key={lesson.id}>
+                <li key={lesson.id} className='flex gap-2'>
+                  <Link
+                    className='font-extrabold text-green-600'
+                    href={`/playground/${courseId}/${lesson.id}/verify`}
+                  >
+                    {`Verify`}
+                  </Link>
                   <Link href={`/playground/${courseId}/${lesson.id}`}>
-                    {lesson.title}
-                    <br></br>
-                    {`/playground/${courseId}/${lesson.id}`}
+                    {lesson.title}: {`/playground/${courseId}/${lesson.id}`}
                   </Link>
                 </li>
               ))}
