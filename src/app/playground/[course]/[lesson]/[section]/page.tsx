@@ -274,6 +274,7 @@ export default async function Page({ params, searchParams }: Props) {
             userProgressForCourse={userProgressForCourse}
           />
         }
+        userProgressForCourse={userProgressForCourse}
       />
 
       {searchParams[CREATOR_MODAL_PARAM] ? <CreatorFeedbackModal /> : null}

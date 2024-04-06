@@ -8,6 +8,7 @@ import {
 } from '@/app/actions';
 import LoadingAnimation from '@/components/LoadingAnimation';
 import { getMdxInputComponents } from '@/components/MdxInputComponents';
+import { getMdxStaticOutputComponents } from '@/components/MdxStaticOutputComponents';
 import NotionPage from '@/components/NotionPage';
 import {
   AI_MODAL_PARAM,
@@ -15,7 +16,12 @@ import {
   getLSPrefix,
   isDemoCourse,
 } from '@/lib/data';
-import { JsonObject, Lesson, UpdateUserInputFormState } from '@/lib/types';
+import {
+  JsonObject,
+  Lesson,
+  UpdateUserInputFormState,
+  UserProgressForCourseFromDB,
+} from '@/lib/types';
 import { cn } from '@/utils/cn';
 import {
   faAngleLeft,
@@ -277,6 +283,7 @@ export default function LessonIO({
   lastCompletedSectionFromDB,
   MdxOutput,
   PreviousLessonOutputs,
+  userProgressForCourse,
 }: {
   recordMap: ExtendedRecordMap | null;
   courseId: string;
@@ -293,6 +300,7 @@ export default function LessonIO({
   lastCompletedSectionFromDB: number | null;
   MdxOutput: JSX.Element | null;
   PreviousLessonOutputs: JSX.Element | null;
+  userProgressForCourse: UserProgressForCourseFromDB | null;
 }) {
   const { id: lessonId, notionId } = lesson;
   const outputHTML = lessonOutputfromDB;
@@ -463,13 +471,19 @@ export default function LessonIO({
           ) : (
             <MDXRemote
               {...mdxInputSource}
-              components={getMdxInputComponents(
-                clearInputs,
-                setClearInputs,
-                courseId,
-                lessonId,
-                JSON.parse(lessonInputs)
-              )}
+              components={{
+                ...getMdxInputComponents(
+                  clearInputs,
+                  setClearInputs,
+                  courseId,
+                  lessonId,
+                  JSON.parse(lessonInputs)
+                ),
+                ...getMdxStaticOutputComponents(
+                  JSON.parse(lessonInputs),
+                  userProgressForCourse
+                ),
+              }}
             />
           )}
         </div>

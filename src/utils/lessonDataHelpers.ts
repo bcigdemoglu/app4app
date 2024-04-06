@@ -70,7 +70,7 @@ export function getInputFieldFromUserProgressForLesson(
   fieldName: string
 ): string | null {
   return (
-    (((userProgress?.inputs_json as JsonObject).data as JsonObject)?.[
+    (((userProgress?.inputs_json as JsonObject)?.data as JsonObject)?.[
       fieldName
     ] as string) || null
   );
