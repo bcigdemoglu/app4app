@@ -13,7 +13,7 @@ export async function GET(request: NextRequest) {
   const token_hash = searchParams.get('token_hash');
   const type = searchParams.get('type') as EmailOtpType | null;
   // redirection
-  const next = searchParams.get('next') ?? '/';
+  const next = searchParams.get('next') ?? '/playground';
   const redirectTo = `${origin}${next}`;
 
   if (token_hash && type) {
