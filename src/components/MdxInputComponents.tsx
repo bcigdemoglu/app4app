@@ -2,6 +2,8 @@
 
 import { getLSKey } from '@/lib/data';
 import { JsonObject, toInputTableId, toInputTextId } from '@/lib/types';
+// import { EditorContent, useEditor } from '@tiptap/react';
+// import StarterKit from '@tiptap/starter-kit';
 import { MDXComponents } from 'mdx/types';
 import { ChangeEvent, ReactNode, useEffect, useRef, useState } from 'react';
 
@@ -34,6 +36,10 @@ export function getMdxInputComponents(
     const inputFromDB = lessonInputsFromDB?.[fieldId] as string;
     const [defaultValue, setDefaultValue] = useState('');
     const fieldRef = useRef<HTMLTextAreaElement>(null);
+    // const editor = useEditor({
+    //   content: '<p>Example Text</p>',
+    //   extensions: [StarterKit],
+    // });
 
     const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
       setClearInputs(false);
@@ -59,6 +65,14 @@ export function getMdxInputComponents(
         resetHeight(fieldRef.current);
       }
     }, [fieldId, inputFromDB, defaultValue]);
+
+    // return (
+    //   <EditorContent
+    //     className='mt-1 block w-full rounded-md border border-slate-300 bg-white pl-2 pr-1 font-mono placeholder-zinc-400 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500'
+    //     editor={editor}
+    //     required
+    //   />
+    // );
 
     return (
       <textarea

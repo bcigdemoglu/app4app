@@ -23,6 +23,8 @@
     "@next/third-parties": "^14.0.4",
     "@supabase/ssr": "^0.1.0",
     "@supabase/supabase-js": "^2.39.3",
+    "@tiptap/react": "^2.2.6",
+    "@tiptap/starter-kit": "^2.2.6",
     "@types/mdx": "^2.0.10",
     "@vercel/analytics": "^1.1.1",
     "@vercel/speed-insights": "^1.0.2",
