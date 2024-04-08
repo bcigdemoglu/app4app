@@ -81,6 +81,9 @@ export default async function Page({ params, searchParams }: Props) {
   const { access } = COURSE_MAP[courseId];
   const sectionId = parseInt(params.section);
   const lessonId = params.lesson;
+  const totalLessons = !isDemoCourse(courseId)
+    ? Object.keys(COURSE_MAP[courseId].lessonMap).length
+    : 1;
 
   const cookieStore = cookies();
   const supabase = createClient(cookieStore);
@@ -224,7 +227,7 @@ export default async function Page({ params, searchParams }: Props) {
             <>
               <Link href={`?${SYLLABUS_MODAL_PARAM}=true`}>
                 <button className='rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700 disabled:bg-blue-300 md:flex'>
-                  Syllabus
+                  My Progress
                 </button>
               </Link>
               <Link href='/my-account'>
@@ -256,6 +259,7 @@ export default async function Page({ params, searchParams }: Props) {
         recordMap={recordMap}
         courseId={courseId}
         lesson={lesson}
+        totalLessons={totalLessons}
         sectionId={sectionId}
         prevSectionLink={prevSectionLink}
         nextSectionLink={nextSectionLink}

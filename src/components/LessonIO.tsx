@@ -265,6 +265,7 @@ export default function LessonIO({
   recordMap,
   courseId,
   lesson,
+  totalLessons,
   sectionId,
   prevSectionLink,
   nextSectionLink,
@@ -282,6 +283,7 @@ export default function LessonIO({
   recordMap: ExtendedRecordMap | null;
   courseId: string;
   lesson: Lesson;
+  totalLessons: number;
   sectionId: number;
   prevSectionLink: string | null;
   nextSectionLink: string | null;
@@ -555,7 +557,9 @@ export default function LessonIO({
         </div>
         <div className='hidden items-center gap-1 md:flex md:justify-center'>
           {/* {lessonCompleted ? <span>✅</span> : <span>🟦</span>} */}
-          <span>{lesson.title}</span>
+          <span>{`Lesson ${lesson.order + 1}/${totalLessons}: ${
+            lesson.title
+          }`}</span>
         </div>
         <div className='col-span-3 flex flex-grow justify-center gap-2 md:col-span-1 md:justify-end'>
           <LessonButtons
