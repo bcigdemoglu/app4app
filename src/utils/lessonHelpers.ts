@@ -7,6 +7,7 @@ import {
   getLessonTotalSections,
 } from '@/lib/data';
 import {
+  ExportedOuputsFromDB,
   UserProgressForCourseFromDB,
   UserProgressForLessonFromDB,
 } from '@/lib/types';
@@ -14,6 +15,7 @@ import { createClient } from '@/utils/supabase/server';
 import { MDXRemoteSerializeResult } from 'next-mdx-remote';
 import { serialize } from 'next-mdx-remote/serialize';
 import { cookies } from 'next/headers';
+import { redirect } from 'next/navigation';
 import { NotionAPI } from 'notion-client';
 import { ExtendedRecordMap } from 'notion-types';
 import rehypeAutolinkHeadings from 'rehype-autolink-headings';
@@ -194,4 +196,48 @@ export async function fetchAiResponse(
   } else {
     return `ERROR AI Response: ${aiResponse}`;
   }
+}
+
+export async function fetchExportedOutput(
+  exportedOutputId: string
+): Promise<ExportedOuputsFromDB | null> {
+  const cookieStore = cookies();
+  const supabase = createClient(cookieStore);
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    redirect('/login');
+  }
+
+  const { data: existingExportedOutput, error: getExportedOutputError } =
+    await supabase
+      .from('exported_outputs')
+      .select('*')
+      .eq('id', exportedOutputId)
+      .single();
+
+  if (getExportedOutputError) {
+    console.error('getExportedOutputError', getExportedOutputError);
+    return null;
+  }
+
+  const { data: updatedExportedOutput, error: getUpdatedOutputError } =
+    await supabase
+      .from('exported_outputs')
+      .update({
+        view_count: existingExportedOutput.view_count + 1,
+      })
+      .eq('id', exportedOutputId)
+      .select()
+      .single();
+
+  if (getUpdatedOutputError) {
+    console.error('getUpdatedOutputError', getUpdatedOutputError);
+    return null;
+  }
+
+  return updatedExportedOutput;
 }

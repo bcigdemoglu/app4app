@@ -1,7 +1,6 @@
 'use server';
 
 import {
-  ExportedOuputsFromDB,
   JsonObject,
   UpdateUserInputFormState,
   isSameJson,
@@ -332,50 +331,6 @@ export async function exportUserOutput(
     const { id, output } = updatedExportedOutput;
     return { id, output };
   }
-}
-
-export async function fetchExportedOutput(
-  exportedOutputId: string
-): Promise<ExportedOuputsFromDB | null> {
-  const cookieStore = cookies();
-  const supabase = createClient(cookieStore);
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    redirect('/login');
-  }
-
-  const { data: existingExportedOutput, error: getExportedOutputError } =
-    await supabase
-      .from('exported_outputs')
-      .select('*')
-      .eq('id', exportedOutputId)
-      .single();
-
-  if (getExportedOutputError) {
-    console.error('getExportedOutputError', getExportedOutputError);
-    return null;
-  }
-
-  const { data: updatedExportedOutput, error: getUpdatedOutputError } =
-    await supabase
-      .from('exported_outputs')
-      .update({
-        view_count: existingExportedOutput.view_count + 1,
-      })
-      .eq('id', exportedOutputId)
-      .select()
-      .single();
-
-  if (getUpdatedOutputError) {
-    console.error('getUpdatedOutputError', getUpdatedOutputError);
-    return null;
-  }
-
-  return updatedExportedOutput;
 }
 
 export async function collectWidgetStat(

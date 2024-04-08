@@ -1,5 +1,5 @@
-import { fetchExportedOutput } from '@/app/actions';
 import Printer from '@/components/Printer';
+import { fetchExportedOutput } from '@/utils/lessonHelpers';
 import { notFound } from 'next/navigation';
 
 interface Props {
