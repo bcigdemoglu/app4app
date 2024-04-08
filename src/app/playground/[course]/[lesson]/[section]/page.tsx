@@ -185,7 +185,8 @@ export default async function Page({ params, searchParams }: Props) {
           ...getMdxDynamicOutputComponents(lessonInputsFromDB),
           ...getMdxStaticOutputComponents(
             lessonInputsFromDB,
-            userProgressForCourse
+            userProgressForCourse,
+            courseId
           ),
         }}
       />

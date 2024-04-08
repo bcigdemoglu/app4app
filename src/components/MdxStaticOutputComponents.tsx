@@ -1,3 +1,4 @@
+import { COURSE_MAP } from '@/lib/data';
 import {
   JsonObject,
   UserProgressForCourseFromDB,
@@ -6,6 +7,22 @@ import {
 } from '@/lib/types';
 import { getInputFieldFromUserProgressForCourse } from '@/utils/lessonDataHelpers';
 import { MDXComponents } from 'mdx/types';
+import Link from 'next/link';
+
+function NoDataFoundForLesson({
+  courseId,
+  lessonId,
+}: {
+  courseId: string;
+  lessonId: string;
+}) {
+  const lessonTitle = COURSE_MAP[courseId].lessonMap[lessonId].title;
+  return (
+    <Link href={`/playground/${courseId}/${lessonId}`} className='text-red-700'>
+      {`ERROR: Data not found. Please complete and re-submit Lesson "${lessonTitle}". If the issue persists, please contact support@cloudybook.com.`}
+    </Link>
+  );
+}
 
 function NoDataFound() {
   return (
@@ -19,17 +36,25 @@ function NoDataFound() {
 
 export function getMdxStaticOutputComponents(
   lessonInputsJson: JsonObject | null,
-  userProgressForCourse: UserProgressForCourseFromDB | null
+  userProgressForCourse: UserProgressForCourseFromDB | null,
+  courseId: string
 ): MDXComponents {
   function O_TEXT({ name, lessonId }: { name: string; lessonId?: string }) {
     const fieldId = toInputTextId(name);
-    const externalFieldInput = lessonId
+    const externalLessonId = lessonId;
+    const externalFieldInput = externalLessonId
       ? getInputFieldFromUserProgressForCourse(
           userProgressForCourse,
           fieldId,
-          lessonId
+          externalLessonId
         )
       : null;
+    if (externalLessonId && typeof externalFieldInput !== 'string') {
+      // You must submit the lesson in full to see the output
+      return (
+        <NoDataFoundForLesson courseId={courseId} lessonId={externalLessonId} />
+      );
+    }
     const fieldInput =
       externalFieldInput ||
       (typeof lessonInputsJson?.[fieldId] === 'string'

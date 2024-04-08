@@ -255,7 +255,7 @@ const FormButtons = ({
         disabled={formButtonsDisabled || !sectionCompleted}
         className='rounded bg-red-500 px-4 py-2 font-bold text-white hover:bg-red-700 disabled:bg-red-300'
       >
-        {isRestatingLesson ? 'Resetting...' : <>Reset All</>}
+        {isRestatingLesson ? 'Resetting...' : <>Reset Lesson</>}
       </button>
     </>
   );
@@ -477,7 +477,8 @@ export default function LessonIO({
                 ),
                 ...getMdxStaticOutputComponents(
                   JSON.parse(lessonInputs),
-                  userProgressForCourse
+                  userProgressForCourse,
+                  courseId
                 ),
               }}
             />
@@ -538,6 +539,8 @@ export default function LessonIO({
               PreviousLessonOutputs={PreviousLessonOutputs}
               outputHTML={outputHTML}
             />
+          ) : PreviousLessonOutputs ? (
+            PreviousLessonOutputs
           ) : (
             <CleanOutputMessage />
           )}

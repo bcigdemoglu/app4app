@@ -35,7 +35,8 @@ export default function LessonInputArea({
         ),
         ...getMdxStaticOutputComponents(
           JSON.parse(lessonInputs),
-          JSON.parse(userProgressForCourse)
+          JSON.parse(userProgressForCourse),
+          courseId
         ),
       }}
     />
