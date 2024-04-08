@@ -1,3 +1,7 @@
+export function isDev(): boolean {
+  return process?.env?.NODE_ENV === 'development';
+}
+
 /**
  * Measures the execution time of an asynchronous function and logs the result.
  *
@@ -30,8 +34,7 @@ export const perf = async <T>(
     const endTime = performance.now();
     const elapsedTime = endTime - startTime;
 
-    const isDev = process?.env?.NODE_ENV === 'development';
-    if (isDev) {
+    if (isDev()) {
       console.debug(
         `${fnName} execution time: ${elapsedTime.toFixed(0)} milliseconds`
       );

@@ -23,6 +23,7 @@ import {
   UserProgressForCourseFromDB,
 } from '@/lib/types';
 import { cn } from '@/utils/cn';
+import { isDev } from '@/utils/debug';
 import {
   faAngleLeft,
   faAngleRight,
@@ -334,7 +335,6 @@ export default function LessonIO({
   function onExportOutput() {
     startExporting(async () => {
       if (outputHTML) {
-        console.debug('Exporting output...');
         const previousLessonOutputsHTML =
           !isDemoCourse(courseId) && PreviousLessonOutputs
             ? renderToStaticMarkup(PreviousLessonOutputs)
@@ -345,7 +345,6 @@ export default function LessonIO({
           lessonId,
           true
         );
-        console.debug('Exported output...', isExporting);
         router.push(`/playground/output/${exportedOutputId}`);
       }
     });
@@ -361,12 +360,14 @@ export default function LessonIO({
     }
   };
 
-  console.debug(
-    'Rendering page: formState.state',
-    formState.state,
-    'current outputHTML',
-    hashString(outputHTML ?? '')
-  );
+  if (isDev()) {
+    console.debug(
+      'Rendering page: formState.state',
+      formState.state,
+      'current outputHTML',
+      hashString(outputHTML ?? '')
+    );
+  }
 
   useEffect(() => {
     if (
@@ -375,11 +376,13 @@ export default function LessonIO({
     ) {
       startGeneratingOutput(async () => {
         const renderedOutputHTML = renderToStaticMarkup(MdxOutput);
-        console.debug(
-          'Sending form data... ',
-          'new outputHTML',
-          hashString(renderedOutputHTML)
-        );
+        if (isDev()) {
+          console.debug(
+            'Sending form data... ',
+            'new outputHTML',
+            hashString(renderedOutputHTML)
+          );
+        }
         setClearInputs(false);
         await updateUserOutputsByLessonId(
           courseId,
@@ -388,11 +391,13 @@ export default function LessonIO({
         );
         // Select output tab after successful form submission
         setSelectedTab(2);
-        console.debug(
-          'Sent form data! ',
-          'new outputHTML',
-          hashString(renderedOutputHTML)
-        );
+        if (isDev()) {
+          console.debug(
+            'Sent form data! ',
+            'new outputHTML',
+            hashString(renderedOutputHTML)
+          );
+        }
       });
     }
     setLoadingInputSection(false);
