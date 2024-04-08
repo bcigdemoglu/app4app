@@ -23,6 +23,37 @@ async function getLessonTotalSections(lesson: Lesson) {
   return Array.from({ length: totalSections || 0 }, (_, i) => i + 1);
 }
 
+function LessonSectionInfo({
+  userProgressForCourse,
+  courseId,
+  lesson,
+  section,
+}: {
+  userProgressForCourse: UserProgressForCourseFromDB | null;
+  courseId: string;
+  lesson: Lesson;
+  section: number;
+}) {
+  const sectionCompleted = isLessonSectionCompleted(
+    userProgressForCourse,
+    lesson.id,
+    section
+  );
+
+  const sectionContent = `${section} ${sectionCompleted ? '✅' : '❌'}`;
+
+  return sectionCompleted ? (
+    <Link
+      className='text-nowrap'
+      href={`/playground/${courseId}/${lesson.id}/${section}`}
+    >
+      {sectionContent}
+    </Link>
+  ) : (
+    <div className='text-nowrap'>{sectionContent}</div>
+  );
+}
+
 function isLessonSectionCompleted(
   userProgressForCourse: UserProgressForCourseFromDB | null,
   lessonId: string,
@@ -130,20 +161,13 @@ export default async function SyllabuskModal({
                 </Link>
                 <div className='m-0 flex flex-wrap gap-2 p-0 pl-4'>
                   {lessonSectionData[lesson.id].map((section) => (
-                    <Link
+                    <LessonSectionInfo
                       key={section}
-                      className='text-nowrap'
-                      href={`/playground/${courseId}/${lesson.id}/${section}`}
-                    >
-                      {section}{' '}
-                      {isLessonSectionCompleted(
-                        userProgressForCourse,
-                        lesson.id,
-                        section
-                      )
-                        ? '✅'
-                        : '❌'}
-                    </Link>
+                      userProgressForCourse={userProgressForCourse}
+                      courseId={courseId}
+                      lesson={lesson}
+                      section={section}
+                    />
                   ))}
                 </div>
               </li>
