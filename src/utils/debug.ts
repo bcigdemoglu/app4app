@@ -30,12 +30,12 @@ export const perf = async <T>(
     const endTime = performance.now();
     const elapsedTime = endTime - startTime;
 
-    // const isDev = process.env.NODE_ENV === 'development';
-    // if (isDev) {
-    console.debug(
-      `${fnName} execution time: ${elapsedTime.toFixed(0)} milliseconds`
-    );
-    // }
+    const isDev = process?.env?.NODE_ENV === 'development';
+    if (isDev) {
+      console.debug(
+        `${fnName} execution time: ${elapsedTime.toFixed(0)} milliseconds`
+      );
+    }
 
     return result;
   } catch (error) {
