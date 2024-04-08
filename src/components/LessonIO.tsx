@@ -241,7 +241,7 @@ const FormButtons = ({
         onClick={resetForm}
         className='rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700 disabled:bg-blue-300'
       >
-        Clear
+        <FontAwesomeIcon icon={faTrashCan} />
       </button>
       <button
         type='reset'
@@ -255,13 +255,7 @@ const FormButtons = ({
         disabled={formButtonsDisabled || !sectionCompleted}
         className='rounded bg-red-500 px-4 py-2 font-bold text-white hover:bg-red-700 disabled:bg-red-300'
       >
-        {isRestatingLesson ? (
-          'Restarting...'
-        ) : (
-          <>
-            <FontAwesomeIcon icon={faTrashCan} />
-          </>
-        )}
+        {isRestatingLesson ? 'Resetting...' : <>Reset All</>}
       </button>
     </>
   );
