@@ -74,7 +74,7 @@ export default async function Page({ params }: Props) {
 
   // Wait for both operations to complete
   const [recordMap, userProgressForCourse] = await perf(
-    `/playground/${courseId}/${lessonId}: recordMapAndUserProgress`,
+    `/playground/${courseId}/${lessonId}/verify: recordMapAndUserProgress`,
     async () => await Promise.all([recordMapPromise, userProgressFromDBPromise])
   );
 
