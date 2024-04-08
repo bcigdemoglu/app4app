@@ -203,11 +203,11 @@ export const COURSE_MAP: CourseMap = {
   },
 };
 
-export const CREATOR_MODAL_PARAM = 'feedback';
+export const CREATOR_MODAL_PARAM = 'showfeedback';
 
-export const AI_MODAL_PARAM = 'ai';
+export const AI_MODAL_PARAM = 'showai';
 
-export const SYLLABUS_MODAL_PARAM = 'syllabus';
+export const PROGRESS_MODAL_PARAM = 'showprogress';
 
 export const DEMO_LESSON_AI_FEEDBACK: AIFeedbackMap = {
   smart: {

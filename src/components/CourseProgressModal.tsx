@@ -94,7 +94,7 @@ function isLessonCompleted(
   return totalSection <= lastCompletedSection;
 }
 
-export default async function SyllabuskModal({
+export default async function CourseProgressModal({
   courseId,
 }: {
   courseId: string;
@@ -141,7 +141,7 @@ export default async function SyllabuskModal({
       <div className='m-auto rounded-lg bg-white p-8 shadow-lg'>
         <div className='prose flex flex-col items-center space-y-4 prose-a:no-underline'>
           <Link href={`/playground/${courseId}`}>
-            <h2 className='m-0 p-0'>Syllabus for {title}</h2>
+            <h2 className='m-0 p-0'>My Progress for {title}</h2>
           </Link>
           <ul>
             {Object.values(lessonMap).map((lesson) => (

@@ -1,17 +1,17 @@
 import AIFeedbackModal from '@/components/AIFeedbackModal';
 import { CTAButton } from '@/components/CTAModal';
+import CourseProgressModal from '@/components/CourseProgressModal';
 import CreatorFeedbackModal from '@/components/CreatorFeedbackModal';
 import LessonIO from '@/components/LessonIO';
 import { getMdxDynamicOutputComponents } from '@/components/MdxDynamicOutputComponents';
 import { getMdxStaticOutputComponents } from '@/components/MdxStaticOutputComponents';
 import { PreviousLessonOutputs } from '@/components/PreviousLessonOutputs';
-import SyllabuskModal from '@/components/Syllabus Modal';
 import {
   AI_MODAL_PARAM,
   COURSE_MAP,
   CREATOR_MODAL_PARAM,
   DEMO_LESSON_AI_FEEDBACK,
-  SYLLABUS_MODAL_PARAM,
+  PROGRESS_MODAL_PARAM,
   genMetadata,
   isDemoCourse,
 } from '@/lib/data';
@@ -41,7 +41,7 @@ interface Props {
   searchParams: {
     [AI_MODAL_PARAM]: string;
     [CREATOR_MODAL_PARAM]: string;
-    [SYLLABUS_MODAL_PARAM]: string;
+    [PROGRESS_MODAL_PARAM]: string;
   };
 }
 
@@ -226,7 +226,7 @@ export default async function Page({ params, searchParams }: Props) {
           {isDemoCourse(courseId) ? <CTAButton /> : null}
           {user ? (
             <>
-              <Link href={`?${SYLLABUS_MODAL_PARAM}=true`}>
+              <Link href={`?${PROGRESS_MODAL_PARAM}=true`}>
                 <button className='rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700 disabled:bg-blue-300 md:flex'>
                   My Progress
                 </button>
@@ -291,8 +291,8 @@ export default async function Page({ params, searchParams }: Props) {
           )}
         />
       ) : null}
-      {searchParams[SYLLABUS_MODAL_PARAM] ? (
-        <SyllabuskModal courseId={courseId} />
+      {searchParams[PROGRESS_MODAL_PARAM] ? (
+        <CourseProgressModal courseId={courseId} />
       ) : null}
       {/* {isDemoCourse(courseId) ? <CTAModal /> : null} */}
     </main>
