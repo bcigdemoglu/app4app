@@ -5,7 +5,11 @@ import { redirect } from 'next/navigation';
 import { handleLogInWithGoogle } from '../login/actions';
 import { register } from './actions';
 
-export default async function RegisterPage() {
+interface Props {
+  searchParams: { email: string };
+}
+
+export default async function RegisterPage({ searchParams: { email } }: Props) {
   const user = await getAuthUser();
   if (user) {
     redirect('/my-account');
@@ -74,6 +78,7 @@ export default async function RegisterPage() {
             name='email'
             id='email'
             autoComplete='email'
+            defaultValue={email}
             required
             className='mt-1 block w-full rounded-md border border-slate-300 bg-white px-3 py-2 placeholder-zinc-400 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500'
             placeholder='you@example.com'

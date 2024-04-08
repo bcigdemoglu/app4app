@@ -25,7 +25,7 @@ export async function login(formData: FormData) {
       redirect('/register-success');
     } else {
       console.error('signInWithPasswordError', signInWithPasswordError);
-      redirect('/error');
+      redirect(`/register?email=${credentials.email}`);
     }
   }
 
