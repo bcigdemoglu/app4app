@@ -24,7 +24,10 @@ export async function login(formData: FormData) {
     if (signInWithPasswordError.message === 'Email not confirmed') {
       redirect('/register-success');
     } else {
-      console.error('signInWithPasswordError', signInWithPasswordError);
+      console.error(
+        `signInWithPasswordError for email ${credentials.email}`,
+        signInWithPasswordError
+      );
       redirect(`/register?email=${credentials.email}`);
     }
   }
@@ -35,7 +38,10 @@ export async function login(formData: FormData) {
     .maybeSingle();
 
   if (loginProfileError) {
-    console.error('loginProfileError', loginProfileError);
+    console.error(
+      `loginProfileError for email: ${credentials.email}`,
+      loginProfileError
+    );
   }
 
   if (!profile) {
