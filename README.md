@@ -19,7 +19,6 @@ An application to create applications
 ## Important Files
 
 - Sitemap generator: [sitemap.ts](src/app/sitemap.ts)
-- Blog post generator: [contentlayer.config.ts](contentlayer.config.ts)
 - Blog posts located at: [posts](posts)
 - Blog post images located at: [posts](posts)
 - 404 Not Found Page: [not-found.tsx](src/app/not-found.tsx)

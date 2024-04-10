@@ -5,7 +5,7 @@ import { hotjar } from 'react-hotjar';
 
 export default function Hotjar() {
   useEffect(() => {
-    hotjar.initialize(3922601, 6);
+    hotjar.initialize({ id: 3922601, sv: 6 });
   }, []);
 
   return <></>;

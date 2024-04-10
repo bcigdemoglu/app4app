@@ -1,10 +1,10 @@
 'use client';
-import { openCalendyInNewTab } from '@/utils/ctaHelpers';
+import { openPricingInNewTab } from '@/utils/ctaHelpers';
 import { useEffect, useState } from 'react';
 
 export const CTAButton = () => (
   <button
-    onClick={() => openCalendyInNewTab()}
+    onClick={() => openPricingInNewTab()}
     className='hidden rounded bg-orange-600 px-4 py-2 font-bold text-white hover:bg-orange-800 disabled:bg-orange-400 md:flex'
   >
     {/* Hidden on mobile */}
@@ -53,7 +53,7 @@ export default function CTAModal() {
               type='button'
               onClick={() => {
                 setShow(false);
-                openCalendyInNewTab();
+                openPricingInNewTab();
               }}
               className='rounded bg-green-500 p-2 text-white hover:bg-green-600'
             >

@@ -1,10 +1,9 @@
-export const CALENDLY_BETA_CALL_URL =
-  'https://calendly.com/ilaydacloudy/discovery';
+export const CLOUDYBOOK_PRICING_URL = 'https://cloudybook.com/#pricing';
 
 export const openInNewTab = (url: string) => {
   window.open(url, '_blank', 'noopener,noreferrer');
 };
 
-export const openCalendyInNewTab = () => {
-  openInNewTab(CALENDLY_BETA_CALL_URL);
+export const openPricingInNewTab = () => {
+  openInNewTab(CLOUDYBOOK_PRICING_URL);
 };

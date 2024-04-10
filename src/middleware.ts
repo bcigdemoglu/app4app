@@ -1,6 +1,7 @@
 import type { Database } from '@/lib/database.types';
 import { createServerClient, type CookieOptions } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
+import { GUEST_MODE_COOKIE } from './lib/data';
 
 export async function middleware(request: NextRequest) {
   let response = NextResponse.next({
@@ -55,7 +56,15 @@ export async function middleware(request: NextRequest) {
     }
   );
 
-  await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (user) {
+    // Remove guest user information when user logs in
+    request.cookies.delete(GUEST_MODE_COOKIE);
+    response.cookies.delete(GUEST_MODE_COOKIE);
+  }
 
   return response;
 }
@@ -64,11 +73,11 @@ export const config = {
   matcher: [
     /*
      * Match all request paths except for the ones starting with:
+     * - api (API routes)
      * - _next/static (static files)
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
-     * Feel free to modify this pattern to include more paths.
      */
-    '/((?!_next/static|_next/image|favicon.ico).*)',
+    '/((?!api|_next/static|_next/image|favicon.ico).*)',
   ],
 };

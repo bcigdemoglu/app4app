@@ -1,7 +1,7 @@
 'use client';
 
 import { cn } from '@/utils/cn';
-import { openCalendyInNewTab } from '@/utils/ctaHelpers';
+import { openPricingInNewTab } from '@/utils/ctaHelpers';
 import dynamic from 'next/dynamic';
 import { useState, useTransition } from 'react';
 import { collectWidgetStat } from '../actions';
@@ -272,7 +272,7 @@ export default function IncomeCalculator() {
             !
           </div>
           <button
-            onClick={() => openCalendyInNewTab()}
+            onClick={() => openPricingInNewTab()}
             className='btn rounded bg-green-500 px-4 py-2 font-semibold text-white hover:bg-green-700'
           >
             Book a call and learn how it works!
