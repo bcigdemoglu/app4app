@@ -1,5 +1,6 @@
 'use server';
 
+import { GUEST_MODE_COOKIE } from '@/lib/data';
 import {
   JsonObject,
   UpdateUserInputFormState,
@@ -8,8 +9,10 @@ import {
 } from '@/lib/types';
 import { createClient } from '@/utils/supabase/actions';
 import { revalidatePath } from 'next/cache';
-import { cookies } from 'next/headers';
+import { cookies, headers } from 'next/headers';
 import { redirect } from 'next/navigation';
+import requestIp from 'request-ip';
+import { v4 as uuidv4 } from 'uuid';
 
 export async function updateUserInputsByLessonId(
   _currentState: UpdateUserInputFormState,
@@ -353,4 +356,35 @@ export async function collectWidgetStat(
   }
 
   return true;
+}
+
+export async function activateGuestMode() {
+  const cookieStore = cookies();
+
+  const existingGuestId = cookieStore.get(GUEST_MODE_COOKIE);
+  if (existingGuestId) {
+    console.error('Guest mode already activated', existingGuestId.value);
+    redirect('/playground');
+  }
+
+  const newGuestId = uuidv4();
+  // Set the cookie
+  cookieStore.set(GUEST_MODE_COOKIE, newGuestId, { httpOnly: true });
+
+  const metadata = Object.fromEntries(headers().entries());
+  const ip = requestIp.getClientIp({ headers: metadata });
+
+  const supabase = createClient(cookieStore);
+  const { error: guestModeError } = await supabase
+    .from('guest_mode')
+    .insert([{ guest_id: newGuestId, ip, metadata }])
+    .single();
+
+  if (guestModeError) {
+    console.error('guestModeError', guestModeError);
+    redirect('/register');
+  }
+
+  console.debug('Guest mode activated', newGuestId);
+  redirect('/playground');
 }

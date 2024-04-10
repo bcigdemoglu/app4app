@@ -69,6 +69,27 @@ export type Database = {
         }
         Relationships: []
       }
+      guest_mode: {
+        Row: {
+          created_at: string
+          guest_id: string
+          id: number
+          metadata: Json
+        }
+        Insert: {
+          created_at?: string
+          guest_id: string
+          id?: number
+          metadata: Json
+        }
+        Update: {
+          created_at?: string
+          guest_id?: string
+          id?: number
+          metadata?: Json
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string

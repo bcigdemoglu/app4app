@@ -1,3 +1,4 @@
+import { activateGuestMode } from '@/app/actions';
 import { getAuthUser } from '@/utils/userActions';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -124,6 +125,15 @@ export default async function RegisterPage({ searchParams: { email } }: Props) {
           Login here.
         </Link>
       </div>
+
+      <form action={activateGuestMode} id='guest-user'>
+        <button
+          type='submit'
+          className='mt-4 text-sm text-zinc-500 hover:text-red-500'
+        >
+          {'Continue with guest mode. (Your data will not be saved.)'}
+        </button>
+      </form>
     </div>
   );
 }

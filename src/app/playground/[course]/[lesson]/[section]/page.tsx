@@ -11,6 +11,7 @@ import {
   COURSE_MAP,
   CREATOR_MODAL_PARAM,
   DEMO_LESSON_AI_FEEDBACK,
+  GUEST_MODE_COOKIE,
   PROGRESS_MODAL_PARAM,
   genMetadata,
   isDemoCourse,
@@ -87,6 +88,7 @@ export default async function Page({ params, searchParams }: Props) {
 
   const cookieStore = cookies();
   const supabase = createClient(cookieStore);
+  const guestId = cookieStore.get(GUEST_MODE_COOKIE);
 
   const {
     data: { user },
@@ -241,15 +243,19 @@ export default async function Page({ params, searchParams }: Props) {
             <>
               <Link href='/register'>
                 <button className='rounded bg-green-500 px-4 py-2 font-bold text-white hover:bg-green-600 disabled:bg-green-300'>
-                  Create account
+                  {guestId
+                    ? 'Ready? Create account for full access!'
+                    : 'Create account'}
                 </button>
               </Link>
-              <Link href='/login'>
-                <button className='hidden rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700 disabled:bg-blue-300 md:flex'>
-                  {/* Hidden on mobile */}
-                  Log in
-                </button>
-              </Link>
+              {!guestId ? (
+                <Link href='/login'>
+                  <button className='hidden rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700 disabled:bg-blue-300 md:flex'>
+                    {/* Hidden on mobile */}
+                    Log in
+                  </button>
+                </Link>
+              ) : null}
             </>
           )}
         </div>

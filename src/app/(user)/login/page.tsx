@@ -1,3 +1,4 @@
+import { activateGuestMode } from '@/app/actions';
 import { getAuthUser } from '@/utils/userActions';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -15,9 +16,8 @@ export default async function LoginPage() {
       <div className='space-y-5'>
         <h2 className='text-3xl font-extrabold text-zinc-900'>Welcome back</h2>
         <p className='text-zinc-500'>Login to continue building</p>
-        <form>
+        <form id='google-login' action={handleLogInWithGoogle}>
           <button
-            formAction={handleLogInWithGoogle}
             type='submit'
             className='flex w-full items-center justify-center rounded-md border border-zinc-300 bg-white px-4 py-2 font-medium text-zinc-700 shadow-sm hover:bg-zinc-50'
           >
@@ -41,7 +41,7 @@ export default async function LoginPage() {
         </div>
       </div>
 
-      <form className='space-y-6'>
+      <form action={login} id='password-login' className='space-y-6'>
         <div>
           <label
             htmlFor='email'
@@ -80,7 +80,6 @@ export default async function LoginPage() {
 
         <div>
           <button
-            formAction={login}
             type='submit'
             className='flex w-full justify-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2'
           >
@@ -107,6 +106,15 @@ export default async function LoginPage() {
           Sign up here.
         </Link>
       </div>
+
+      <form action={activateGuestMode} id='guest-user'>
+        <button
+          type='submit'
+          className='mt-4 text-sm text-zinc-500 hover:text-red-500'
+        >
+          {'Continue with guest mode. (Your data will not be saved.)'}
+        </button>
+      </form>
     </div>
   );
 }

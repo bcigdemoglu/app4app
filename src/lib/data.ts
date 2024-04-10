@@ -2,6 +2,8 @@ import { AIFeedbackMap, CourseMap, LessonMap } from '@/lib/types';
 import { Metadata } from 'next';
 import { Block, ExtendedRecordMap } from 'notion-types';
 
+export const GUEST_MODE_COOKIE = 'guestId';
+
 export const END_SECTION_SEPARATOR = '>>>---ENDSECTION--->>>';
 ///// TODO IMPLEMENT IF THERE IS A USE CASE ONLY AT THIS POINT SERVES THE SAME AS ENDSECTION
 ///// WOULD IMPACT getLessonUpToSectionMDX for OUTPUT only
