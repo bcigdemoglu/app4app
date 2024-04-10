@@ -1,21 +1,17 @@
 'server-only';
 
 import {
+  GUEST_MODE_COOKIE,
   getLessonInputAtSectionMDX,
   getLessonInputUpToSectionMDX,
   getLessonOutputUpToSectionMDX,
   getLessonTotalSections,
 } from '@/lib/data';
-import {
-  ExportedOuputsFromDB,
-  UserProgressForCourseFromDB,
-  UserProgressForLessonFromDB,
-} from '@/lib/types';
+import { ExportedOuputsFromDB, UserProgressForCourseFromDB } from '@/lib/types';
 import { createClient } from '@/utils/supabase/server';
 import { MDXRemoteSerializeResult } from 'next-mdx-remote';
 import { serialize } from 'next-mdx-remote/serialize';
 import { cookies } from 'next/headers';
-import { redirect } from 'next/navigation';
 import { NotionAPI } from 'notion-client';
 import { ExtendedRecordMap } from 'notion-types';
 import rehypeAutolinkHeadings from 'rehype-autolink-headings';
@@ -98,36 +94,36 @@ export async function serializeLessonMDX(
   return mdxSource;
 }
 
-export async function fetchUserProgressForLesson(
-  lessonId: string,
+async function fetchProgressForCourse(
+  dbTable: 'user_progress' | 'guest_user_progress',
+  userId: string,
   courseId: string
-): Promise<UserProgressForLessonFromDB | null> {
-  return perf('fetchUserProgressFromDB', async () => {
-    const cookieStore = cookies();
-    const supabase = createClient(cookieStore);
+): Promise<UserProgressForCourseFromDB | null> {
+  const cookieStore = cookies();
+  const supabase = createClient(cookieStore);
 
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+  await supabase.auth.getUser();
 
-    if (!user) {
-      throw new Error('Unauthorized user for fetchUserProgressFromDB');
-    }
+  const { data: userProgressList, error: getUserProgressError } = await supabase
+    .from(dbTable)
+    .select('*')
+    .eq('user_id', userId)
+    .eq('course_id', courseId);
 
-    const { data: userProgress, error: getUserProgressError } = await supabase
-      .from('user_progress')
-      .select('*')
-      .eq('user_id', user.id)
-      .eq('lesson_id', lessonId)
-      .eq('course_id', courseId)
-      .maybeSingle();
+  if (getUserProgressError) {
+    console.error('getUserProgressError', getUserProgressError);
+  }
 
-    if (getUserProgressError) {
-      console.error('getUserProgressError', getUserProgressError);
-    }
+  if (!userProgressList) {
+    return null;
+  }
 
-    return userProgress;
-  });
+  const userProgressForCourse: UserProgressForCourseFromDB = {};
+  for (const userProgress of userProgressList) {
+    userProgressForCourse[userProgress.lesson_id] = userProgress;
+  }
+
+  return userProgressForCourse;
 }
 
 export async function fetchUserProgressForCourse(
@@ -145,27 +141,21 @@ export async function fetchUserProgressForCourse(
       throw new Error('Unauthorized user for fetchUserProgressForCourse');
     }
 
-    const { data: userProgressList, error: getUserProgressError } =
-      await supabase
-        .from('user_progress')
-        .select('*')
-        .eq('user_id', user.id)
-        .eq('course_id', courseId);
+    return fetchProgressForCourse('user_progress', user.id, courseId);
+  });
+}
 
-    if (getUserProgressError) {
-      console.error('getUserProgressError', getUserProgressError);
-    }
+export async function fetchGuestProgressForCourse(
+  courseId: string
+): Promise<UserProgressForCourseFromDB | null> {
+  return perf('fetchUserProgressForCourse', async () => {
+    const guestUserId = cookies().get(GUEST_MODE_COOKIE)?.value;
 
-    if (!userProgressList) {
+    if (!guestUserId) {
       return null;
     }
 
-    const userProgressForCourse: UserProgressForCourseFromDB = {};
-    for (const userProgress of userProgressList) {
-      userProgressForCourse[userProgress.lesson_id] = userProgress;
-    }
-
-    return userProgressForCourse;
+    return fetchProgressForCourse('guest_user_progress', guestUserId, courseId);
   });
 }
 
@@ -204,40 +194,63 @@ export async function fetchExportedOutput(
   const cookieStore = cookies();
   const supabase = createClient(cookieStore);
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  let exportedOutputDb: 'exported_outputs' | 'guest_exported_outputs';
+  let exportedOutput = null;
 
-  if (!user) {
-    redirect('/login');
-  }
-
-  const { data: existingExportedOutput, error: getExportedOutputError } =
+  const { data: userExportedOutput, error: getUserExportedOutputError } =
     await supabase
       .from('exported_outputs')
       .select('*')
       .eq('id', exportedOutputId)
-      .single();
+      .maybeSingle();
 
-  if (getExportedOutputError) {
-    console.error('getExportedOutputError', getExportedOutputError);
+  if (getUserExportedOutputError) {
+    console.error('getUserExportedOutputError', getUserExportedOutputError);
     return null;
   }
 
-  const { data: updatedExportedOutput, error: getUpdatedOutputError } =
-    await supabase
-      .from('exported_outputs')
-      .update({
-        view_count: existingExportedOutput.view_count + 1,
-      })
-      .eq('id', exportedOutputId)
-      .select()
-      .single();
+  if (userExportedOutput) {
+    exportedOutputDb = 'exported_outputs';
+    exportedOutput = userExportedOutput;
+  } else {
+    const { data: guestExportedOutput, error: getGuestExportedOutputError } =
+      await supabase
+        .from('guest_exported_outputs')
+        .select('*')
+        .eq('id', exportedOutputId)
+        .maybeSingle();
 
-  if (getUpdatedOutputError) {
-    console.error('getUpdatedOutputError', getUpdatedOutputError);
-    return null;
+    if (getGuestExportedOutputError) {
+      console.error('getGuestExportedOutputError', getGuestExportedOutputError);
+      return null;
+    }
+
+    if (guestExportedOutput) {
+      exportedOutputDb = 'guest_exported_outputs';
+      exportedOutput = guestExportedOutput;
+    } else {
+      return null;
+    }
   }
 
-  return updatedExportedOutput;
+  if (exportedOutputDb && exportedOutput) {
+    const { data: updatedExportedOutput, error: getUpdatedOutputError } =
+      await supabase
+        .from(exportedOutputDb)
+        .update({
+          view_count: exportedOutput.view_count + 1,
+        })
+        .eq('id', exportedOutputId)
+        .select()
+        .single();
+
+    if (getUpdatedOutputError) {
+      console.error('getUpdatedOutputError', getUpdatedOutputError);
+      return null;
+    }
+
+    return updatedExportedOutput;
+  }
+
+  return null;
 }

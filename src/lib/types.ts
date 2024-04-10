@@ -50,7 +50,7 @@ export interface Course {
   title: string;
   description: string;
   lessonMap: LessonMap;
-  access: 'public' | 'private' | 'preview';
+  access: 'guest' | 'private' | 'preview';
 }
 
 export type CourseMap = Record<string, Course>;

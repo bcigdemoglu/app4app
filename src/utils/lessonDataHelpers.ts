@@ -7,7 +7,6 @@ import {
   UserProgressForLessonFromDB,
   verifiedJsonObjectFromDB,
 } from '@/lib/types';
-import { User } from '@supabase/supabase-js';
 
 export function getLessonInputs(
   userProgress: UserProgressForLessonFromDB | null,
@@ -33,17 +32,12 @@ export function getLessonInputs(
 }
 
 export function getLessonOutput(
-  userProgress: UserProgressForLessonFromDB | null,
-  lessonId: string,
-  user: User | null
+  userProgress: UserProgressForLessonFromDB | null
 ): { data: string | null; modifiedAt: string | null } {
   // Get full object or default to null object
-  if (user && userProgress && userProgress.outputs_json) {
+  if (userProgress && userProgress.outputs_json) {
     // Get user progress if there is one in DB
-    const outputsFromDB = verifiedJsonObjectFromDB(
-      userProgress.outputs_json,
-      `FATAL_DB_ERROR: outputs_json is not an object for user ${user.id} of lesson ${lessonId}!`
-    );
+    const outputsFromDB = userProgress.outputs_json as JsonObject;
     const data = outputsFromDB['data'] as string;
     const metadata = outputsFromDB['metadata'] as JsonObject;
     const modifiedAt = metadata['modified_at'] as string;

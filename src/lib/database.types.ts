@@ -69,55 +69,70 @@ export type Database = {
         }
         Relationships: []
       }
+      guest_exported_outputs: {
+        Row: {
+          course_id: string
+          created_at: string
+          full_name: string
+          id: string
+          is_public: boolean
+          lesson_id: string
+          modified_at: string
+          output: string
+          user_id: string
+          view_count: number
+        }
+        Insert: {
+          course_id: string
+          created_at?: string
+          full_name: string
+          id?: string
+          is_public?: boolean
+          lesson_id: string
+          modified_at?: string
+          output: string
+          user_id?: string
+          view_count?: number
+        }
+        Update: {
+          course_id?: string
+          created_at?: string
+          full_name?: string
+          id?: string
+          is_public?: boolean
+          lesson_id?: string
+          modified_at?: string
+          output?: string
+          user_id?: string
+          view_count?: number
+        }
+        Relationships: []
+      }
       guest_mode: {
         Row: {
           created_at: string
           guest_id: string
           id: number
+          ip: string | null
           metadata: Json
         }
         Insert: {
           created_at?: string
           guest_id: string
           id?: number
+          ip?: string | null
           metadata: Json
         }
         Update: {
           created_at?: string
           guest_id?: string
           id?: number
+          ip?: string | null
           metadata?: Json
         }
         Relationships: []
       }
-      profiles: {
-        Row: {
-          created_at: string
-          email: string
-          full_name: string
-          id: string
-          plan: string
-          updated_at: string
-        }
-        Insert: {
-          created_at?: string
-          email: string
-          full_name: string
-          id?: string
-          plan?: string
-          updated_at: string
-        }
-        Update: {
-          created_at?: string
-          email?: string
-          full_name?: string
-          id?: string
-          plan?: string
-          updated_at?: string
-        }
-        Relationships: []
-      }
-      public_user_progress: {
+      guest_user_progress: {
         Row: {
           course_id: string
           created_at: string
@@ -147,6 +162,33 @@ export type Database = {
           modified_at?: string | null
           outputs_json?: Json | null
           user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          email: string
+          full_name: string
+          id: string
+          plan: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          full_name: string
+          id?: string
+          plan?: string
+          updated_at: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          full_name?: string
+          id?: string
+          plan?: string
+          updated_at?: string
         }
         Relationships: []
       }

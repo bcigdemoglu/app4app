@@ -1,18 +1,89 @@
 'use server';
 
-import { GUEST_MODE_COOKIE } from '@/lib/data';
-import {
-  JsonObject,
-  UpdateUserInputFormState,
-  isSameJson,
-  verifiedJsonObjectFromDB,
-} from '@/lib/types';
+import { COURSE_MAP, GUEST_MODE_COOKIE } from '@/lib/data';
+import { JsonObject, UpdateUserInputFormState, isSameJson } from '@/lib/types';
 import { createClient } from '@/utils/supabase/actions';
+import { SupabaseClient } from '@supabase/supabase-js';
 import { revalidatePath } from 'next/cache';
 import { cookies, headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 import requestIp from 'request-ip';
 import { v4 as uuidv4 } from 'uuid';
+
+/**
+ * Fetches the user or guest id and the user progress table based on the course id.
+ *
+ * @throws Redirects to '/login' page if user is not logged in.
+ */
+async function fetchDBAccessForUser<UserDBTable, GuestDBTable>(
+  courseId: string,
+  userDBTable: UserDBTable,
+  guestDBTable: GuestDBTable
+): Promise<{
+  userOrGuestDbTable: UserDBTable | GuestDBTable;
+  userOrGuestId: string;
+  supabase: SupabaseClient;
+}> {
+  const cookieStore = cookies();
+  const supabase = createClient(cookieStore);
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  const guestId = cookieStore.get(GUEST_MODE_COOKIE)?.value;
+
+  const { access } = COURSE_MAP[courseId];
+  const allowSubmit = (access === 'guest' && !!guestId) || user;
+
+  if (user || allowSubmit) {
+    const userOrGuestDbTable = user ? userDBTable : guestDBTable;
+    const userId = user ? user.id : guestId;
+
+    if (!userId) {
+      // Should not happen
+      console.error('No user id found but still allowed DB access!');
+      redirect('/login');
+    }
+
+    return { userOrGuestDbTable, userOrGuestId: userId, supabase };
+  }
+
+  redirect('/login');
+}
+
+async function fetchDBAccessForUserProgress(courseId: string): Promise<{
+  userProgressDbTable: 'user_progress' | 'guest_user_progress';
+  userOrGuestId: string;
+  supabase: SupabaseClient;
+}> {
+  const {
+    userOrGuestDbTable: userProgressDbTable,
+    userOrGuestId,
+    supabase,
+  } = await fetchDBAccessForUser<'user_progress', 'guest_user_progress'>(
+    courseId,
+    'user_progress',
+    'guest_user_progress'
+  );
+  return { userProgressDbTable, userOrGuestId, supabase };
+}
+
+async function fetchDBAccessForExportedOutput(courseId: string): Promise<{
+  exportedOutputsTable: 'exported_outputs' | 'guest_exported_outputs';
+  userOrGuestId: string;
+  supabase: SupabaseClient;
+}> {
+  const {
+    userOrGuestDbTable: exportedOutputsTable,
+    userOrGuestId,
+    supabase,
+  } = await fetchDBAccessForUser<'exported_outputs', 'guest_exported_outputs'>(
+    courseId,
+    'exported_outputs',
+    'guest_exported_outputs'
+  );
+  return { exportedOutputsTable, userOrGuestId, supabase };
+}
 
 export async function updateUserInputsByLessonId(
   _currentState: UpdateUserInputFormState,
@@ -22,6 +93,9 @@ export async function updateUserInputsByLessonId(
   const courseId = formData.get('course_id') as string;
   const lessonId = formData.get('lesson_id') as string;
   const section = parseInt(formData.get('section') as string);
+
+  const { userProgressDbTable, userOrGuestId, supabase } =
+    await fetchDBAccessForUserProgress(courseId);
 
   for (const [key, value] of formData.entries()) {
     if (
@@ -34,33 +108,12 @@ export async function updateUserInputsByLessonId(
     }
   }
 
-  const cookieStore = cookies();
-  const supabase = createClient(cookieStore);
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    redirect('/login');
-  }
-
-  // Once the user is logged in, they must have a profile
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('*')
-    .maybeSingle();
-
-  if (!profile) {
-    redirect('/my-account');
-  }
-
   try {
     // Fetch user progress with error handling
     const { data: userProgress, error: getUserProgressError } = await supabase
-      .from('user_progress')
+      .from(userProgressDbTable)
       .select('*')
-      .eq('user_id', user.id)
+      .eq('user_id', userOrGuestId)
       .eq('lesson_id', lessonId)
       .eq('course_id', courseId)
       .maybeSingle();
@@ -71,15 +124,11 @@ export async function updateUserInputsByLessonId(
 
     // Early return if data is unchanged
     if (userProgress && userProgress.inputs_json) {
-      const existingInputs = verifiedJsonObjectFromDB(
-        userProgress.inputs_json,
-        // More specific error message
-        `FATAL_DB_ERROR: inputs_json corrupt for user ${user.id}, lesson ${lessonId}`
-      ) as JsonObject;
+      const existingInputs = userProgress.inputs_json as JsonObject;
 
       const lastCompletedSection =
         ((existingInputs.metadata as JsonObject)
-          ?.lastCompletedSection as number) ?? 0;
+          ?.lastCompletedSection as number) ?? null;
 
       if (isSameJson(existingInputs.data, newLessonInput)) {
         return {
@@ -90,15 +139,17 @@ export async function updateUserInputsByLessonId(
       }
     }
 
+    const mergedLessonInput =
+      userProgress && userProgress.inputs_json
+        ? {
+            ...((userProgress.inputs_json as JsonObject).data as JsonObject),
+            ...newLessonInput,
+          }
+        : newLessonInput;
+
     // Data to be saved (consolidated)
     const lessonInputWithMetadata = {
-      data:
-        userProgress && userProgress.inputs_json
-          ? {
-              ...((userProgress.inputs_json as JsonObject).data as JsonObject),
-              ...newLessonInput,
-            }
-          : newLessonInput,
+      data: mergedLessonInput,
       metadata: {
         modified_at: new Date().toISOString(),
         lastCompletedSection: section,
@@ -106,23 +157,24 @@ export async function updateUserInputsByLessonId(
     };
 
     // Update or insert based on userProgress
-    const { data: updatedUserProgress, error } = await supabase
-      .from('user_progress')
-      .upsert({
-        // Upsert for cleaner logic
-        user_id: user.id,
-        lesson_id: lessonId,
-        course_id: courseId,
-        inputs_json: lessonInputWithMetadata,
-        modified_at: new Date().toISOString(),
-      })
-      .select()
-      .single();
+    const { data: updatedUserProgress, error: upsertUserProgressError } =
+      await supabase
+        .from(userProgressDbTable)
+        .upsert({
+          // Upsert for cleaner logic
+          user_id: userOrGuestId,
+          lesson_id: lessonId,
+          course_id: courseId,
+          inputs_json: lessonInputWithMetadata,
+          modified_at: new Date().toISOString(),
+        })
+        .select()
+        .single();
 
-    if (error) {
+    if (upsertUserProgressError) {
       console.error(
-        `DB_ERROR: Failed to update/insert progress for user ${user.id}`,
-        error
+        `upsertUserProgressError: Failed to update/insert progress for user ${userOrGuestId}`,
+        upsertUserProgressError
       );
       redirect('/error');
     }
@@ -145,28 +197,20 @@ export async function deleteUserDataByLessonId(
   courseId: string,
   lessonId: string
 ): Promise<boolean> {
-  const cookieStore = cookies();
-  const supabase = createClient(cookieStore);
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    redirect('/login');
-  }
+  const { userProgressDbTable, userOrGuestId, supabase } =
+    await fetchDBAccessForUserProgress(courseId);
 
   const { error: deleteUserProgressError } = await supabase
-    .from('user_progress')
+    .from(userProgressDbTable)
     .delete()
-    .eq('user_id', user.id)
+    .eq('user_id', userOrGuestId)
     .eq('lesson_id', lessonId)
     .eq('course_id', courseId);
 
   if (deleteUserProgressError) {
     console.error('deleteUserProgressError', deleteUserProgressError);
     throw new Error(
-      `DB_ERROR: could not delete user progress for user ${user.id} lesson ${lessonId} course ${courseId}!`
+      `DB_ERROR: could not delete user progress for user ${userOrGuestId} lesson ${lessonId} course ${courseId}!`
     );
   }
 
@@ -179,21 +223,13 @@ export async function updateUserOutputByLessonId(
   lessonId: string,
   outputHTML: string
 ): Promise<string> {
-  const cookieStore = cookies();
-  const supabase = createClient(cookieStore);
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    redirect('/login');
-  }
+  const { userProgressDbTable, userOrGuestId, supabase } =
+    await fetchDBAccessForUserProgress(courseId);
 
   const { data: userProgress, error: getUserProgressError } = await supabase
-    .from('user_progress')
+    .from(userProgressDbTable)
     .select('*')
-    .eq('user_id', user.id)
+    .eq('user_id', userOrGuestId)
     .eq('lesson_id', lessonId)
     .eq('course_id', courseId)
     .single();
@@ -203,7 +239,7 @@ export async function updateUserOutputByLessonId(
   }
   if (!userProgress) {
     throw new Error(
-      `FATAL_DB_ERROR: no user_progress found for user ${user.id} of lesson ${lessonId} to update output!`
+      `FATAL_DB_ERROR: no user_progress found for user ${userOrGuestId} of lesson ${lessonId} to update output!`
     );
   }
 
@@ -224,12 +260,12 @@ export async function updateUserOutputByLessonId(
   };
   const { data: updatedUserProgress, error: updateUserProgressError } =
     await supabase
-      .from('user_progress')
+      .from(userProgressDbTable)
       .update({
         outputs_json: lessonOutputWithMetadata,
         modified_at: new Date().toISOString(),
       })
-      .eq('user_id', user.id)
+      .eq('user_id', userOrGuestId)
       .eq('lesson_id', lessonId)
       .eq('course_id', courseId)
       .select()
@@ -238,7 +274,7 @@ export async function updateUserOutputByLessonId(
   if (updateUserProgressError) {
     console.error('updateUserProgressError', updateUserProgressError);
     throw new Error(
-      `DB_ERROR: could not update outputs_json for user ${user.id} of lesson ${lessonId}`
+      `DB_ERROR: could not update outputs_json for user ${userOrGuestId} of lesson ${lessonId}`
     );
   }
   revalidatePath('/playground');
@@ -254,32 +290,20 @@ export async function exportUserOutput(
   lessonId: string,
   isPublic: boolean
 ): Promise<{ id: string; output: string }> {
-  const cookieStore = cookies();
-  const supabase = createClient(cookieStore);
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    redirect('/login');
-  }
+  const { exportedOutputsTable, userOrGuestId, supabase } =
+    await fetchDBAccessForExportedOutput(courseId);
 
   const { data: profile } = await supabase
     .from('profiles')
     .select('*')
     .maybeSingle();
 
-  if (!profile) {
-    redirect('/my-account');
-  }
-
   const { data: existingExportedOutput, error: getExportedOutputError } =
     await supabase
-      .from('exported_outputs')
+      .from(exportedOutputsTable)
       .select('*')
       .eq('course_id', courseId)
-      .eq('user_id', user.id)
+      .eq('user_id', userOrGuestId)
       .eq('lesson_id', lessonId)
       .maybeSingle();
 
@@ -289,13 +313,13 @@ export async function exportUserOutput(
   if (!existingExportedOutput) {
     const { data: insertedExportedOutput, error: insertExportedOutputError } =
       await supabase
-        .from('exported_outputs')
+        .from(exportedOutputsTable)
         .insert({
           output: outputHTML,
           course_id: courseId,
           lesson_id: lessonId,
-          user_id: user.id,
-          full_name: profile?.full_name,
+          user_id: userOrGuestId,
+          full_name: profile?.full_name ?? 'Guest User',
           is_public: isPublic,
           modified_at: new Date().toISOString(),
         })
@@ -305,7 +329,7 @@ export async function exportUserOutput(
     if (insertExportedOutputError) {
       console.error('insertExportedOutputError', insertExportedOutputError);
       throw new Error(
-        `DB_ERROR: could not insert insertExportedOutputError for user ${user.id}`
+        `DB_ERROR: could not insert insertExportedOutputError for user ${userOrGuestId}`
       );
     }
     revalidatePath('/playground');
@@ -314,7 +338,7 @@ export async function exportUserOutput(
   } else {
     const { data: updatedExportedOutput, error: updateExportedOutputError } =
       await supabase
-        .from('exported_outputs')
+        .from(exportedOutputsTable)
         .update({
           output: outputHTML,
           is_public: isPublic,
@@ -327,7 +351,7 @@ export async function exportUserOutput(
     if (updateExportedOutputError) {
       console.error('updateExportedOutputError', updateExportedOutputError);
       throw new Error(
-        `DB_ERROR: could not insert updateExportedOutputError for user ${user.id}`
+        `DB_ERROR: could not insert updateExportedOutputError for user ${userOrGuestId}`
       );
     }
     revalidatePath('/playground');

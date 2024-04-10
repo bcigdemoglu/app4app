@@ -23,6 +23,7 @@ import {
   getUserProgressForLesson,
 } from '@/utils/lessonDataHelpers';
 import {
+  fetchGuestProgressForCourse,
   fetchUserProgressForCourse,
   getAIFeedbackMDX,
   getLessonMDX,
@@ -88,16 +89,16 @@ export default async function Page({ params, searchParams }: Props) {
 
   const cookieStore = cookies();
   const supabase = createClient(cookieStore);
-  const guestId = cookieStore.get(GUEST_MODE_COOKIE);
+  const guestId = cookieStore.get(GUEST_MODE_COOKIE)?.value;
 
   const {
     data: { user },
-  } = await perf('getUser', () => supabase.auth.getUser());
+  } = await supabase.auth.getUser();
 
   const allowAccess =
-    !!(access === 'public') || // Allow access if public
-    !!(access === 'preview' && sectionId === 1) || // Allow access if preview and first section
-    !!user; // Allow access if user is logged in
+    access === 'guest' || // Allow access if guest
+    (access === 'preview' && sectionId === 1) || // Allow access if preview and first section
+    (access === 'private' && user !== null); // Allow access if user is logged in
 
   if (!allowAccess) {
     redirect('/register');
@@ -114,6 +115,7 @@ export default async function Page({ params, searchParams }: Props) {
       redirect('/my-account');
     }
   }
+
   const lesson = COURSE_MAP[courseId].lessonMap[lessonId];
   const { notionId } = lesson;
 
@@ -121,7 +123,7 @@ export default async function Page({ params, searchParams }: Props) {
   const recordMapPromise = getRecordMap(notionId);
   const userProgressForCoursePromise = user
     ? fetchUserProgressForCourse(courseId)
-    : Promise.resolve(null);
+    : fetchGuestProgressForCourse(courseId);
 
   // Wait for both operations to complete
   const [recordMap, userProgressForCourse] = await perf(
@@ -151,7 +153,10 @@ export default async function Page({ params, searchParams }: Props) {
     modifiedAt: inputModifiedAt,
   } = getLessonInputs(userProgressForLesson, lessonId);
   const { data: lessonOutputfromDB, modifiedAt: outputModifiedAt } =
-    getLessonOutput(userProgressForLesson, lessonId, user);
+    getLessonOutput(userProgressForLesson);
+
+  console.log('lessonInputsFromDB', lessonInputsFromDB);
+  console.log('lessonOutputfromDB', lessonOutputfromDB);
 
   const prevSection = sectionId - 1 > 0 ? sectionId - 1 : null;
   const prevSectionLink = prevSection

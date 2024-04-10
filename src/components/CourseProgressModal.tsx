@@ -1,4 +1,4 @@
-import { COURSE_MAP } from '@/lib/data';
+import { COURSE_MAP, GUEST_MODE_COOKIE } from '@/lib/data';
 import { Lesson, UserProgressForCourseFromDB } from '@/lib/types';
 import {
   getLessonInputs,
@@ -104,11 +104,12 @@ export default async function CourseProgressModal({
   const {
     data: { user },
   } = await supabase.auth.getUser();
+  const guestId = cookieStore.get(GUEST_MODE_COOKIE)?.value;
 
   const { access, title, lessonMap } = COURSE_MAP[courseId];
 
   const allowAccess =
-    !!(access === 'public') || // Allow access if public
+    !!(access === 'guest' && guestId) || // Allow access if public
     !!user; // Allow access if user is logged in
 
   if (!allowAccess) {

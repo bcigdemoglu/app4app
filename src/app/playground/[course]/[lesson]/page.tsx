@@ -1,8 +1,12 @@
 import { COURSE_MAP, genMetadata } from '@/lib/data';
 import { perf } from '@/utils/debug';
-import { getLessonInputs } from '@/utils/lessonDataHelpers';
 import {
-  fetchUserProgressForLesson,
+  getLessonInputs,
+  getUserProgressForLesson,
+} from '@/utils/lessonDataHelpers';
+import {
+  fetchGuestProgressForCourse,
+  fetchUserProgressForCourse,
   getLessonMDX,
   getRecordMap,
 } from '@/utils/lessonHelpers';
@@ -52,20 +56,25 @@ export default async function Page({ params }: Props) {
     const { notionId } = lesson;
     // Start both serialization operations in parallel
     const recordMapPromise = getRecordMap(notionId);
-    const userProgressFromDBPromise = user
-      ? fetchUserProgressForLesson(lessonId, courseId)
-      : Promise.resolve(null);
+    const userProgressForCoursePromise = user
+      ? fetchUserProgressForCourse(courseId)
+      : fetchGuestProgressForCourse(courseId);
 
     // Wait for both operations to complete
-    const [recordMap, userProgressFromDB] = await perf(
+    const [recordMap, userProgressForCourse] = await perf(
       `/playground/${courseId}/${lessonId}: recordMapAndUserProgress`,
       async () =>
-        await Promise.all([recordMapPromise, userProgressFromDBPromise])
+        await Promise.all([recordMapPromise, userProgressForCoursePromise])
+    );
+
+    const userProgressForLesson = getUserProgressForLesson(
+      userProgressForCourse,
+      lessonId
     );
 
     const { totalSections } = getLessonMDX(recordMap, sectionId);
     const { lastCompletedSection } = getLessonInputs(
-      userProgressFromDB,
+      userProgressForLesson,
       lessonId
     );
     if (totalSections && lastCompletedSection) {

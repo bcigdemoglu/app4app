@@ -183,7 +183,7 @@ export const COURSE_MAP: CourseMap = {
     id: 'demo',
     title: 'Cloudybook Demo',
     description: 'Welcome to Cloudybook interactive workbook demo',
-    access: 'preview',
+    access: 'guest',
     lessonMap: DEMO_LESSON_MAP,
   },
   businessimprovementplan: {
