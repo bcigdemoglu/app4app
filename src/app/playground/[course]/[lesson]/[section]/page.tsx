@@ -155,9 +155,6 @@ export default async function Page({ params, searchParams }: Props) {
   const { data: lessonOutputfromDB, modifiedAt: outputModifiedAt } =
     getLessonOutput(userProgressForLesson);
 
-  console.log('lessonInputsFromDB', lessonInputsFromDB);
-  console.log('lessonOutputfromDB', lessonOutputfromDB);
-
   const prevSection = sectionId - 1 > 0 ? sectionId - 1 : null;
   const prevSectionLink = prevSection
     ? `/playground/${courseId}/${params.lesson}/${prevSection}`
