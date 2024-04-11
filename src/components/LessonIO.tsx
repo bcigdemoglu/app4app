@@ -227,6 +227,7 @@ const FormButtons = ({
   return (
     <>
       <button
+        name='submitSection'
         type='submit'
         aria-disabled={formButtonsDisabled}
         disabled={formButtonsDisabled}
