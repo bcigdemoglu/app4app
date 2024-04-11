@@ -42,13 +42,13 @@ async function fetchDBAccessForUser<UserDBTable, GuestDBTable>(
     if (!userId) {
       // Should not happen
       console.error('No user id found but still allowed DB access!');
-      redirect('/login');
+      redirect('/register');
     }
 
     return { userOrGuestDbTable, userOrGuestId: userId, supabase };
   }
 
-  redirect('/login');
+  redirect('/register');
 }
 
 async function fetchDBAccessForUserProgress(courseId: string): Promise<{
