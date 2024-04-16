@@ -154,7 +154,10 @@ const LessonButtons = ({
           <button
             id='next-section'
             disabled={!sectionCompleted}
-            className='rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700 disabled:bg-blue-300'
+            className={cn(
+              'rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700 disabled:bg-blue-300',
+              { 'animate-hue-background': sectionCompleted }
+            )}
           >
             <FontAwesomeIcon icon={faAngleRight} />
           </button>
@@ -164,7 +167,10 @@ const LessonButtons = ({
         <Link href={nextLessonLink}>
           <button
             id='next-lesson'
-            className='rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700 disabled:bg-blue-300'
+            className={cn(
+              'rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700 disabled:bg-blue-300',
+              { 'animate-hue-background': lessonCompleted }
+            )}
             disabled={!lessonCompleted}
           >
             <FontAwesomeIcon icon={faAnglesRight} />
@@ -207,6 +213,10 @@ const FormButtons = ({
   isGeneratingOutput,
   resetForm,
   invalidRecordMap,
+  isSubmittingForm,
+  setIsSubmittingForm,
+  formDirty,
+  setFormDirty,
 }: {
   courseId: string;
   lessonId: string;
@@ -214,22 +224,32 @@ const FormButtons = ({
   isGeneratingOutput: boolean;
   resetForm: () => void;
   invalidRecordMap: boolean;
+  isSubmittingForm: boolean;
+  setIsSubmittingForm: (isSubmitting: boolean) => void;
+  formDirty: boolean;
+  setFormDirty: (isDirty: boolean) => void;
 }) => {
   const status = useFormStatus();
   const [isRestatingLesson, startRestarting] = useTransition();
+  if (status.pending) {
+    setIsSubmittingForm(status.pending);
+    setFormDirty(false);
+  }
   const formButtonsDisabled =
     status.pending ||
     isGeneratingOutput ||
     isRestatingLesson ||
-    invalidRecordMap;
+    invalidRecordMap ||
+    isSubmittingForm;
+  const submitButtonDisabled = formButtonsDisabled || !formDirty;
 
   return (
     <>
       <button
         name='submitSection'
         type='submit'
-        aria-disabled={formButtonsDisabled}
-        disabled={formButtonsDisabled}
+        aria-disabled={submitButtonDisabled}
+        disabled={submitButtonDisabled}
         className='rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700 disabled:bg-blue-300'
       >
         {status.pending ? 'Submitting...' : 'Submit'}
@@ -332,6 +352,8 @@ export default function LessonIO({
         : 0 // First section displays lesson
   );
 
+  const [isSubmittingForm, setIsSubmittingForm] = useState(false);
+
   function onExportOutput() {
     startExporting(async () => {
       if (outputHTML) {
@@ -398,6 +420,8 @@ export default function LessonIO({
             hashString(renderedOutputHTML)
           );
         }
+        // Full generation is still not completed at this point so check for isGeneratingOutput as well
+        setIsSubmittingForm(false);
       });
     }
     setLoadingInputSection(false);
@@ -413,6 +437,8 @@ export default function LessonIO({
     totalSections,
     pathname,
   ]);
+
+  const [formDirty, setFormDirty] = useState(true);
 
   return (
     <>
@@ -456,6 +482,10 @@ export default function LessonIO({
       </div>
       <form
         action={formAction}
+        onChange={(e: any) => {
+          setFormDirty(true);
+          e.target.focus();
+        }}
         ref={formRef}
         className={cn(
           'col-span-3 flex flex-grow flex-col overflow-auto bg-white text-xs md:col-span-1 md:text-sm ',
@@ -513,6 +543,10 @@ export default function LessonIO({
             resetForm={resetForm}
             isGeneratingOutput={isGeneratingOutput}
             invalidRecordMap={!recordMap}
+            isSubmittingForm={isSubmittingForm}
+            setIsSubmittingForm={setIsSubmittingForm}
+            formDirty={formDirty}
+            setFormDirty={setFormDirty}
           />
         </div>
       </form>
@@ -529,7 +563,7 @@ export default function LessonIO({
         ) : null}
         <div className='hidden'>{MdxOutput}</div>
         <div className='h-screen flex-grow overflow-auto p-4'>
-          {isGeneratingOutput ? (
+          {isSubmittingForm || isGeneratingOutput ? (
             <LoadingAnimation className='m-auto h-full w-1/2' />
           ) : outputHTML ? (
             <OutputJsx

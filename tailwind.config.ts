@@ -1,4 +1,5 @@
 import type { Config } from 'tailwindcss';
+import colors from 'tailwindcss/colors';
 
 const config: Config = {
   content: [
@@ -16,6 +17,20 @@ const config: Config = {
       screens: {
         print: { raw: 'print' },
         screen: { raw: 'screen' },
+      },
+      animation: {
+        'pulse-slow': 'pulse 1s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+        'hue-background': 'hue 2s ease-in-out infinite',
+      },
+      keyframes: {
+        pulse: {
+          '0%, 100%': { transform: 'scale(1)' },
+          '50%': { transform: 'scale(1.05)' },
+        },
+        hue: {
+          '0%, 100%': { backgroundColor: colors.blue[500] },
+          '50%': { backgroundColor: colors.green[500] },
+        },
       },
     },
   },
