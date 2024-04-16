@@ -36,6 +36,7 @@ export interface Lesson {
   prev: string | null;
   next: string | null;
   order: number;
+  modifiedAt?: string;
 }
 
 export interface LessonInput {

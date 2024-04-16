@@ -178,7 +178,25 @@ export const ITP_LESSON_MAP: LessonMap = {
   },
 };
 
+export const TEST_LESSON_MAP: LessonMap = {
+  test: {
+    id: 'test',
+    notionId: '46877300bd044ab6b3f233ab42be3c66',
+    title: 'Test-Page',
+    prev: null,
+    next: null,
+    order: 0,
+  },
+};
+
 export const COURSE_MAP: CourseMap = {
+  test: {
+    id: 'test',
+    title: 'Cloudybook Test',
+    description: 'Welcome to Cloudybook interactive workbook tests',
+    access: 'private',
+    lessonMap: TEST_LESSON_MAP,
+  },
   demo: {
     id: 'demo',
     title: 'Cloudybook Demo',
