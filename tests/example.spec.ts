@@ -1,3 +1,4 @@
+import { GUEST_MODE_COOKIE, GUEST_MODE_COOKIE_DEV_ID } from '@/lib/data';
 import { expect, test } from '@playwright/test';
 
 test('can submit as guest', async ({ browser }) => {
@@ -7,6 +8,13 @@ test('can submit as guest', async ({ browser }) => {
   const page = await context.newPage();
 
   await page.goto('/playground/demo/smart/1');
+
+  // Check guest cookie is not present
+  expect(
+    (await context.cookies()).find(
+      (cookie) => cookie.name === GUEST_MODE_COOKIE
+    )
+  ).toBeUndefined();
 
   // Expect a title "to contain" a substring.
   await expect(page).toHaveTitle(/Cloudybook App/);
@@ -27,6 +35,13 @@ test('can submit as guest', async ({ browser }) => {
   await page.getByRole('button', { name: 'Continue with guest mode' }).click();
 
   await expect(page).toHaveURL('/playground/demo/smart/1');
+
+  // Check guest cookie is present
+  expect(
+    (await context.cookies()).find(
+      (cookie) => cookie.name === GUEST_MODE_COOKIE
+    )?.value
+  ).toBe(GUEST_MODE_COOKIE_DEV_ID);
 
   await page.getByRole('button', { name: 'Submit' }).click();
 

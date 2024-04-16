@@ -1,6 +1,10 @@
 'use server';
 
-import { COURSE_MAP, GUEST_MODE_COOKIE } from '@/lib/data';
+import {
+  COURSE_MAP,
+  GUEST_MODE_COOKIE,
+  GUEST_MODE_COOKIE_DEV_ID,
+} from '@/lib/data';
 import { JsonObject, UpdateUserInputFormState, isSameJson } from '@/lib/types';
 import { isDev } from '@/utils/debug';
 import { createClient } from '@/utils/supabase/actions';
@@ -401,9 +405,7 @@ export async function activateGuestMode() {
     redirect('/playground');
   }
 
-  const newGuestId = !isDev()
-    ? uuidv4()
-    : '00000000-0000-0000-0000-000000000000';
+  const newGuestId = !isDev() ? uuidv4() : GUEST_MODE_COOKIE_DEV_ID;
   // Set the cookie
   cookieStore.set(GUEST_MODE_COOKIE, newGuestId, { httpOnly: true });
 

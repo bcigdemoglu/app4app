@@ -3,6 +3,7 @@ import { Metadata } from 'next';
 import { Block, ExtendedRecordMap } from 'notion-types';
 
 export const GUEST_MODE_COOKIE = 'guestId';
+export const GUEST_MODE_COOKIE_DEV_ID = '00000000-0000-0000-0000-000000000000';
 
 export const END_SECTION_SEPARATOR = '>>>---ENDSECTION--->>>';
 ///// TODO IMPLEMENT IF THERE IS A USE CASE ONLY AT THIS POINT SERVES THE SAME AS ENDSECTION
