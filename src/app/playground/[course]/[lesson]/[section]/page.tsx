@@ -98,7 +98,7 @@ export default async function Page({ params, searchParams }: Props) {
   const allowAccess =
     access === 'guest' || // Allow access if guest
     (access === 'preview' && sectionId === 1) || // Allow access if preview and first section
-    (access === 'private' && user !== null); // Allow access if user is logged in
+    user !== null; // Allow access if user is logged in
 
   if (!allowAccess) {
     redirect('/register');
