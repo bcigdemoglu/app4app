@@ -37,6 +37,9 @@ import { cookies } from 'next/headers';
 import Image from 'next/image';
 import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
+import rehypeAutolinkHeadings from 'rehype-autolink-headings';
+import rehypeSlug from 'rehype-slug';
+import remarkGfm from 'remark-gfm';
 
 interface Props {
   params: { course: string; lesson: string; section: string };
@@ -173,11 +176,16 @@ export default async function Page({ params, searchParams }: Props) {
     ? `/playground/${courseId}/${nextLesson}`
     : null;
 
-  const genNewOutput = !!(
-    inputModifiedAt &&
-    (!outputModifiedAt ||
-      (outputModifiedAt && inputModifiedAt > outputModifiedAt))
-  );
+  const lessonModifiedAt = lesson.modifiedAt;
+
+  const isNewer = (
+    aModifiedAt?: string | null,
+    bModifiedAt?: string | null
+  ): boolean => !!(aModifiedAt && (!bModifiedAt || aModifiedAt > bModifiedAt));
+
+  const genNewOutput =
+    isNewer(inputModifiedAt, outputModifiedAt) ||
+    isNewer(lessonModifiedAt, outputModifiedAt);
 
   const mdxInputSource = await serializeLessonMDX(mdxInput);
   const MdxOutput =
@@ -185,6 +193,12 @@ export default async function Page({ params, searchParams }: Props) {
       <MDXRemote
         key={inputModifiedAt}
         source={mdxOutput}
+        options={{
+          mdxOptions: {
+            remarkPlugins: [remarkGfm],
+            rehypePlugins: [rehypeSlug, rehypeAutolinkHeadings],
+          },
+        }}
         components={{
           ...getMdxDynamicOutputComponents(lessonInputsFromDB),
           ...getMdxStaticOutputComponents(
