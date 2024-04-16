@@ -14,7 +14,8 @@
     "build": "next build",
     "start": "next start",
     "test": "playwright test",
-    "clean": "rm -r .next/ node_modules/"
+    "clean": "rm -r .next/ node_modules/",
+    "clean:node": "rm -r node_modules/ pnpm-lock.yaml && pnpm i"
   },
   "dependencies": {
     "@fortawesome/fontawesome-svg-core": "^6.5.2",
