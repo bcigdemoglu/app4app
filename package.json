@@ -8,8 +8,7 @@
   "scripts": {
     "gen": "echo 'Generating supabase types...' && supabase gen types typescript --project-id fehegdrzmwuqmeutkptb > $PWD/src/lib/database.types.ts",
     "lint": "next lint",
-    "dev": "next dev",
-    "dev:debug": "NODE_OPTIONS='--inspect' next dev",
+    "dev": "NODE_OPTIONS='--inspect' next dev --turbo",
     "prepare": "husky",
     "prod": "next build && next start",
     "build": "next build",

@@ -3,6 +3,7 @@ import { expect, test } from '@playwright/test';
 test('can submit as guest', async ({ browser }) => {
   // New context ensures clean cookies and storage
   const context = await browser.newContext();
+  context.clearCookies();
   const page = await context.newPage();
 
   await page.goto('/playground/demo/smart/1');
