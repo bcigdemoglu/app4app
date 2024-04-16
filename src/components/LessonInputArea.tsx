@@ -1,8 +1,9 @@
 'use client';
 
 import { getMdxInputComponents } from '@/components/MdxInputComponents';
+import { getMdxStaticOutputComponents } from '@/components/MdxStaticOutputComponents';
+import { isDev } from '@/utils/debug';
 import { MDXRemote, MDXRemoteSerializeResult } from 'next-mdx-remote';
-import { getMdxStaticOutputComponents } from './MdxStaticOutputComponents';
 
 export default function LessonInputArea({
   mdxInputSource,
@@ -21,7 +22,11 @@ export default function LessonInputArea({
   clearInputs?: boolean;
   setClearInputs?: (clear: boolean) => void;
 }) {
-  console.log('Size of user progress', new Blob([userProgressForCourse]).size);
+  if (isDev(process.env.NODE_ENV)) {
+    console.debug(
+      `Size of userProgressForCourse: ${new Blob([userProgressForCourse]).size} bytes`
+    );
+  }
   return (
     <MDXRemote
       {...mdxInputSource}
