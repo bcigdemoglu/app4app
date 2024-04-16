@@ -474,8 +474,8 @@ export default function LessonIO({
               mdxInputSource={mdxInputSource}
               courseId={courseId}
               lessonId={lessonId}
-              lessonInputs={lessonInputs}
-              userProgressForCourse={JSON.stringify(userProgressForCourse)}
+              lessonInputs={JSON.parse(lessonInputs)}
+              userProgressForCourse={userProgressForCourse}
               clearInputs={clearInputs}
               setClearInputs={setClearInputs}
             />

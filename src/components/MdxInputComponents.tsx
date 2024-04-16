@@ -230,7 +230,7 @@ export function getMdxInputComponents(
       action,
       children,
     }: {
-      action: (e: any) => any;
+      action: (e: React.MouseEvent<HTMLButtonElement>) => void;
       children: ReactNode;
     }) => {
       return (

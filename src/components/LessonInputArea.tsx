@@ -2,6 +2,7 @@
 
 import { getMdxInputComponents } from '@/components/MdxInputComponents';
 import { getMdxStaticOutputComponents } from '@/components/MdxStaticOutputComponents';
+import { JsonObject, UserProgressForCourseFromDB } from '@/lib/types';
 import { isDev } from '@/utils/debug';
 import { MDXRemote, MDXRemoteSerializeResult } from 'next-mdx-remote';
 
@@ -14,18 +15,21 @@ export default function LessonInputArea({
   lessonInputs,
   userProgressForCourse,
 }: {
-  mdxInputSource: MDXRemoteSerializeResult;
+  mdxInputSource: MDXRemoteSerializeResult | null;
   courseId: string;
   lessonId: string;
-  lessonInputs: string;
-  userProgressForCourse: string;
+  lessonInputs: JsonObject | null;
+  userProgressForCourse: UserProgressForCourseFromDB | null;
   clearInputs?: boolean;
   setClearInputs?: (clear: boolean) => void;
 }) {
   if (isDev(process.env.NODE_ENV)) {
     console.debug(
-      `Size of userProgressForCourse: ${new Blob([userProgressForCourse]).size} bytes`
+      `Size of userProgressForCourse: ${new Blob([JSON.stringify(userProgressForCourse)]).size} bytes`
     );
+  }
+  if (!mdxInputSource) {
+    return null;
   }
   return (
     <MDXRemote
@@ -36,11 +40,11 @@ export default function LessonInputArea({
           setClearInputs ?? (() => {}),
           courseId,
           lessonId,
-          JSON.parse(lessonInputs)
+          lessonInputs
         ),
         ...getMdxStaticOutputComponents(
-          JSON.parse(lessonInputs),
-          JSON.parse(userProgressForCourse),
+          lessonInputs,
+          userProgressForCourse,
           courseId
         ),
       }}

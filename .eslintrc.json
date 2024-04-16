@@ -9,9 +9,8 @@
     "prettier"
   ],
   "rules": {
-    "no-console": "warn",
+    "no-console": "off",
     "@typescript-eslint/no-explicit-any": "off"
-
     // // Possible Errors
     // "no-await-in-loop": "error",
     // "no-extra-parens": "error",
