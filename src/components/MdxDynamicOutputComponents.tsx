@@ -13,8 +13,6 @@ export function getMdxDynamicOutputComponents(
       ? (lessonInputsJson[fieldId] as string)
       : 'ERROR';
     const aiResponse = await fetchAiResponse(inputValue, prompt);
-    // const aiResponse = await Promise.resolve('AI response');
-    console.log('aiResponse generated: ', aiResponse);
 
     return (
       // Respect the newlines in the value

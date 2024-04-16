@@ -10,7 +10,7 @@ export default function TrackAnalytics({ children }: any) {
   const [allowTracking, setAllowTracking] = useState(false);
 
   useEffect(() => {
-    setAllowTracking(!isDev() && !doNotTrackPath(pathname));
+    setAllowTracking(!isDev(process.env.NODE_ENV) && !doNotTrackPath(pathname));
   }, [pathname]);
 
   return allowTracking ? children : <></>;
