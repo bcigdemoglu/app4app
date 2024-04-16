@@ -6,9 +6,8 @@ import {
   updateUserInputsByLessonId,
   updateUserOutputByLessonId as updateUserOutputsByLessonId,
 } from '@/app/actions';
+import LessonInputArea from '@/components/LessonInputArea';
 import LoadingAnimation from '@/components/LoadingAnimation';
-import { getMdxInputComponents } from '@/components/MdxInputComponents';
-import { getMdxStaticOutputComponents } from '@/components/MdxStaticOutputComponents';
 import NotionPage from '@/components/NotionPage';
 import {
   AI_MODAL_PARAM,
@@ -35,7 +34,7 @@ import {
   faTrashCan,
 } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { MDXRemote, MDXRemoteSerializeResult } from 'next-mdx-remote';
+import { MDXRemoteSerializeResult } from 'next-mdx-remote';
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
@@ -361,7 +360,7 @@ export default function LessonIO({
     }
   };
 
-  if (isDev()) {
+  if (isDev(process.env.NODE_ENV)) {
     console.debug(
       'Rendering page: formState.state',
       formState.state,
@@ -377,7 +376,7 @@ export default function LessonIO({
     ) {
       startGeneratingOutput(async () => {
         const renderedOutputHTML = renderToStaticMarkup(MdxOutput);
-        if (isDev()) {
+        if (isDev(process.env.NODE_ENV)) {
           console.debug(
             'Sending form data... ',
             'new outputHTML',
@@ -392,7 +391,7 @@ export default function LessonIO({
         );
         // Select output tab after successful form submission
         setSelectedTab(2);
-        if (isDev()) {
+        if (isDev(process.env.NODE_ENV)) {
           console.debug(
             'Sent form data! ',
             'new outputHTML',
@@ -471,22 +470,14 @@ export default function LessonIO({
           ) : loadingInputSection ? (
             <LoadingAnimation className='m-auto h-full w-1/2' />
           ) : (
-            <MDXRemote
-              {...mdxInputSource}
-              components={{
-                ...getMdxInputComponents(
-                  clearInputs,
-                  setClearInputs,
-                  courseId,
-                  lessonId,
-                  JSON.parse(lessonInputs)
-                ),
-                ...getMdxStaticOutputComponents(
-                  JSON.parse(lessonInputs),
-                  userProgressForCourse,
-                  courseId
-                ),
-              }}
+            <LessonInputArea
+              mdxInputSource={mdxInputSource}
+              courseId={courseId}
+              lessonId={lessonId}
+              lessonInputs={lessonInputs}
+              userProgressForCourse={JSON.stringify(userProgressForCourse)}
+              clearInputs={clearInputs}
+              setClearInputs={setClearInputs}
             />
           )}
         </div>
