@@ -114,8 +114,8 @@ export default async function Page({ params }: Props) {
           mdxInputSource={mdxInputSource}
           courseId={courseId}
           lessonId={lessonId}
-          lessonInputs={lessonInputs}
-          userProgressForCourse={JSON.stringify(userProgressForCourse)}
+          lessonInputs={JSON.parse(lessonInputs)}
+          userProgressForCourse={userProgressForCourse}
         />
       </div>
       <div className='prose h-full overflow-auto'>
