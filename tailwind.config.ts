@@ -20,7 +20,7 @@ const config: Config = {
       },
       animation: {
         'pulse-slow': 'pulse 1s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-        'hue-background': 'hue 2s ease-in-out infinite',
+        'hue-background': 'hue 1.5s ease-in-out infinite',
       },
       keyframes: {
         pulse: {

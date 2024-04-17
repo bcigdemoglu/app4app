@@ -8,13 +8,13 @@
   "scripts": {
     "gen": "echo 'Generating supabase types...' && supabase gen types typescript --project-id fehegdrzmwuqmeutkptb > $PWD/src/lib/database.types.ts",
     "lint": "next lint",
-    "dev": "NODE_OPTIONS='--inspect' next dev --turbo",
+    "dev": "NODE_OPTIONS='--inspect' next dev",
     "prepare": "husky",
     "prod": "next build && next start",
     "build": "next build",
     "start": "next start",
     "test": "playwright test",
-    "clean": "rm -r .next/ node_modules/",
+    "clean": "rm -r .next/",
     "clean:node": "rm -r node_modules/ pnpm-lock.yaml && pnpm i"
   },
   "dependencies": {

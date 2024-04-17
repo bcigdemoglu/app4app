@@ -214,9 +214,7 @@ const FormButtons = ({
   resetForm,
   invalidRecordMap,
   isSubmittingForm,
-  setIsSubmittingForm,
   formDirty,
-  setFormDirty,
 }: {
   courseId: string;
   lessonId: string;
@@ -225,16 +223,10 @@ const FormButtons = ({
   resetForm: () => void;
   invalidRecordMap: boolean;
   isSubmittingForm: boolean;
-  setIsSubmittingForm: (isSubmitting: boolean) => void;
   formDirty: boolean;
-  setFormDirty: (isDirty: boolean) => void;
 }) => {
   const status = useFormStatus();
   const [isRestatingLesson, startRestarting] = useTransition();
-  if (status.pending) {
-    setIsSubmittingForm(status.pending);
-    setFormDirty(false);
-  }
   const formButtonsDisabled =
     status.pending ||
     isGeneratingOutput ||
@@ -252,7 +244,7 @@ const FormButtons = ({
         disabled={submitButtonDisabled}
         className='rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700 disabled:bg-blue-300'
       >
-        {status.pending ? 'Submitting...' : 'Submit'}
+        Submit
       </button>
       <button
         type='reset'
@@ -341,6 +333,8 @@ export default function LessonIO({
   const [isGeneratingOutput, startGeneratingOutput] = useTransition();
 
   const [clearInputs, setClearInputs] = useState(false);
+  const [formDirty, setFormDirty] = useState(!sectionCompleted);
+  const [isSubmittingForm, setIsSubmittingForm] = useState(false);
 
   const [isExporting, startExporting] = useTransition();
   const router = useRouter();
@@ -351,8 +345,6 @@ export default function LessonIO({
         ? 1 // Section greater than 1 displays input
         : 0 // First section displays lesson
   );
-
-  const [isSubmittingForm, setIsSubmittingForm] = useState(false);
 
   function onExportOutput() {
     startExporting(async () => {
@@ -396,6 +388,8 @@ export default function LessonIO({
       (formState.state === 'success' || formState.state === 'noupdate') &&
       MdxOutput !== null
     ) {
+      // Disable submit button after successful form submission
+      setFormDirty(false);
       startGeneratingOutput(async () => {
         const renderedOutputHTML = renderToStaticMarkup(MdxOutput);
         if (isDev(process.env.NODE_ENV)) {
@@ -437,8 +431,6 @@ export default function LessonIO({
     totalSections,
     pathname,
   ]);
-
-  const [formDirty, setFormDirty] = useState(true);
 
   return (
     <>
@@ -482,9 +474,14 @@ export default function LessonIO({
       </div>
       <form
         action={formAction}
-        onChange={(e: any) => {
+        onChange={() => {
           setFormDirty(true);
-          e.target.focus();
+          // TODO: SOMEHOW UPDATE FOCUS TO INPUT FIELD
+          // TODO: SOMEHOW UPDATE FOCUS TO INPUT FIELD
+        }}
+        onSubmit={() => {
+          setIsSubmittingForm(true);
+          setFormDirty(false);
         }}
         ref={formRef}
         className={cn(
@@ -544,9 +541,7 @@ export default function LessonIO({
             isGeneratingOutput={isGeneratingOutput}
             invalidRecordMap={!recordMap}
             isSubmittingForm={isSubmittingForm}
-            setIsSubmittingForm={setIsSubmittingForm}
             formDirty={formDirty}
-            setFormDirty={setFormDirty}
           />
         </div>
       </form>
