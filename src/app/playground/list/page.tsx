@@ -2,7 +2,7 @@ import { COURSE_MAP } from '@/lib/data';
 import { createClient } from '@/utils/supabase/server';
 import { cookies } from 'next/headers';
 import Link from 'next/link';
-import { notFound } from 'next/navigation';
+import { redirect } from 'next/navigation';
 
 export default async function Page() {
   const cookieStore = cookies();
@@ -17,7 +17,7 @@ export default async function Page() {
 
   const isAdmin = profile?.plan.toLowerCase() === 'admin';
   if (!isAdmin) {
-    notFound();
+    redirect('/login');
   }
 
   return (
