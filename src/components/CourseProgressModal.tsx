@@ -1,5 +1,6 @@
 import { COURSE_MAP, GUEST_MODE_COOKIE } from '@/lib/data';
 import { Lesson, UserProgressForCourseFromDB } from '@/lib/types';
+import { perf } from '@/utils/debug';
 import {
   getLessonInputs,
   getUserProgressForLesson,
@@ -132,10 +133,16 @@ export default async function CourseProgressModal({
     ? await fetchUserProgressForCourse(courseId)
     : null;
 
-  const lessonSectionData: Record<string, number[]> = {};
-  for (const lesson of Object.values(lessonMap)) {
-    lessonSectionData[lesson.id] = await getLessonTotalSections(lesson);
-  }
+  const lessonSectionData: Record<string, number[]> = Object.fromEntries(
+    await perf('getallrecord', () =>
+      Promise.all(
+        Object.values(lessonMap).map(async (lesson) => [
+          lesson.id,
+          await getLessonTotalSections(lesson),
+        ])
+      )
+    )
+  );
 
   return (
     <dialog className='fixed left-0 top-0 z-50 flex h-full w-full items-center justify-center overflow-auto bg-black bg-opacity-50 backdrop-blur-sm'>

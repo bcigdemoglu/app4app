@@ -35,10 +35,10 @@ export const perf = async <T>(
   const startTime = performance.now();
   try {
     const result = await fn();
-    const endTime = performance.now();
-    const elapsedTime = endTime - startTime;
 
     if (isDev()) {
+      const endTime = performance.now();
+      const elapsedTime = endTime - startTime;
       console.debug(
         `${fnName} execution time: ${elapsedTime.toFixed(0)} milliseconds`
       );
