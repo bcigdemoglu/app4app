@@ -6,16 +6,19 @@ import {
   updateUserInputsByLessonId,
   updateUserOutputByLessonId as updateUserOutputsByLessonId,
 } from '@/app/actions';
+import LessonCompletedAnimation from '@/components/LessonCompletedAnimation';
 import LessonInputArea from '@/components/LessonInputArea';
 import LoadingAnimation from '@/components/LoadingAnimation';
 import NotionPage from '@/components/NotionPage';
 import {
   AI_MODAL_PARAM,
   CREATOR_MODAL_PARAM,
+  LESSON_END_PARAM,
+  LESSON_START_PARAM,
   getLSPrefix,
-  isDemoCourse,
 } from '@/lib/data';
 import {
+  Course,
   JsonObject,
   Lesson,
   UpdateUserInputFormState,
@@ -37,8 +40,9 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { MDXRemoteSerializeResult } from 'next-mdx-remote';
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { ExtendedRecordMap } from 'notion-types';
+import converter from 'number-to-words';
 import { useEffect, useRef, useState, useTransition } from 'react';
 import { useFormState, useFormStatus } from 'react-dom';
 import { renderToStaticMarkup } from 'react-dom/server';
@@ -114,13 +118,20 @@ const LessonButtons = ({
   onExportOutput: () => void;
   isExporting: boolean;
 }) => {
+  const searchParams = useSearchParams();
+  const congrats = searchParams.get(LESSON_END_PARAM);
+  const welcome = searchParams.get(LESSON_START_PARAM);
+
   return (
     <>
       <button
         id='export-output'
         disabled={!sectionCompleted || isExporting}
         onClick={onExportOutput}
-        className='rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700 disabled:bg-blue-300'
+        className={cn(
+          'rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700 disabled:bg-blue-300',
+          { 'animate-hue-background': congrats }
+        )}
       >
         {!isExporting ? (
           <FontAwesomeIcon icon={faCloudArrowDown} />
@@ -128,7 +139,7 @@ const LessonButtons = ({
           'Exporting...'
         )}
       </button>
-      {prevSectionLink && (
+      {prevSectionLink ? (
         <Link href={prevSectionLink}>
           <button
             id='prev-section'
@@ -137,8 +148,7 @@ const LessonButtons = ({
             <FontAwesomeIcon icon={faAngleLeft} />
           </button>
         </Link>
-      )}
-      {!prevSectionLink && prevLessonLink && (
+      ) : prevLessonLink ? (
         <Link href={prevLessonLink}>
           <button
             id='prev-lesson'
@@ -148,12 +158,12 @@ const LessonButtons = ({
             <FontAwesomeIcon icon={faAnglesLeft} />
           </button>
         </Link>
-      )}
-      {nextSectionLink && (
+      ) : null}
+      {nextSectionLink ? (
         <Link href={nextSectionLink}>
           <button
             id='next-section'
-            disabled={!sectionCompleted}
+            disabled={!sectionCompleted && !welcome}
             className={cn(
               'rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700 disabled:bg-blue-300',
               { 'animate-hue-background': sectionCompleted }
@@ -162,8 +172,7 @@ const LessonButtons = ({
             <FontAwesomeIcon icon={faAngleRight} />
           </button>
         </Link>
-      )}
-      {!nextSectionLink && nextLessonLink && (
+      ) : nextLessonLink ? (
         <Link href={nextLessonLink}>
           <button
             id='next-lesson'
@@ -176,7 +185,7 @@ const LessonButtons = ({
             <FontAwesomeIcon icon={faAnglesRight} />
           </button>
         </Link>
-      )}
+      ) : null}
     </>
   );
 };
@@ -276,7 +285,7 @@ const FormButtons = ({
 
 export default function LessonIO({
   recordMap,
-  courseId,
+  course,
   lesson,
   totalLessons,
   sectionId,
@@ -294,7 +303,7 @@ export default function LessonIO({
   userProgressForCourse,
 }: {
   recordMap: ExtendedRecordMap | null;
-  courseId: string;
+  course: Course;
   lesson: Lesson;
   totalLessons: number;
   sectionId: number;
@@ -311,6 +320,7 @@ export default function LessonIO({
   PreviousLessonOutputs: JSX.Element | null;
   userProgressForCourse: UserProgressForCourseFromDB | null;
 }) {
+  const { id: courseId } = course;
   const { id: lessonId, notionId } = lesson;
   const outputHTML = lessonOutputfromDB;
   const sectionCompleted =
@@ -319,9 +329,21 @@ export default function LessonIO({
     sectionId <= lastCompletedSectionFromDB;
   const finalSection = sectionId === totalSections;
   const lessonCompleted = sectionCompleted && finalSection;
-  const completionConfetti = finalSection && lessonCompleted;
+  const remainingLessonCount = totalLessons - (lesson.order + 1);
+  const remainingLessonMessage =
+    remainingLessonCount > 0
+      ? `You're doing great, ${converter.toWords(remainingLessonCount)} more to lessons to go!`
+      : null;
 
   const pathname = usePathname();
+  // get "?intro" search param from url using hooks
+  const searchParams = useSearchParams();
+  const showLessonAsIntro = searchParams.get(LESSON_START_PARAM);
+  const showCongratsAfterCompletion = searchParams.get(LESSON_END_PARAM);
+  // Do not show confetti if lesson is not completed or if it is already shown
+  const outputCompletionConfetti =
+    finalSection && lessonCompleted && !showCongratsAfterCompletion;
+
   const [loadingInputSection, setLoadingInputSection] = useState(true);
   const [formState, formAction] = useFormState(updateUserInputsByLessonId, {
     state: 'pending',
@@ -349,10 +371,9 @@ export default function LessonIO({
   function onExportOutput() {
     startExporting(async () => {
       if (outputHTML) {
-        const previousLessonOutputsHTML =
-          !isDemoCourse(courseId) && PreviousLessonOutputs
-            ? renderToStaticMarkup(PreviousLessonOutputs)
-            : '';
+        const previousLessonOutputsHTML = renderToStaticMarkup(
+          PreviousLessonOutputs
+        );
         const { id: exportedOutputId } = await exportUserOutput(
           previousLessonOutputsHTML.concat(outputHTML),
           courseId,
@@ -434,7 +455,13 @@ export default function LessonIO({
 
   return (
     <>
-      <div className='z-50 col-span-3 mt-[-1rem] flex h-min translate-y-4 justify-center gap-2 md:hidden'>
+      <div
+        className={cn(
+          'z-50 col-span-3 mt-[-1rem] h-min translate-y-4 justify-center gap-2',
+          'flex md:hidden', // Hidden on desktop
+          { 'hidden md:hidden': showLessonAsIntro } // Hide for intro
+        )}
+      >
         <button
           onClick={() => setSelectedTab(0)}
           className={cn('rounded bg-blue-300 px-4 py-1 font-bold text-white', {
@@ -460,11 +487,15 @@ export default function LessonIO({
           Output
         </button>
       </div>
+
       <div
+        id='lesson-tab'
         className={cn(
-          'col-span-3 flex flex-col overflow-auto bg-white md:col-span-1',
+          'flex flex-col overflow-auto bg-white',
+          'col-span-3 md:col-span-1', // Full width on mobile, 1/3 width on desktop
           {
-            'hidden md:flex': selectedTab !== 0,
+            'hidden md:flex': selectedTab !== 0, // Hide lesson tab when input or output tab is selected
+            'col-span-3 md:col-span-3': showLessonAsIntro, // Lesson full width if intro
           }
         )}
       >
@@ -472,88 +503,119 @@ export default function LessonIO({
           <NotionPage recordMap={recordMap}></NotionPage>
         </div>
       </div>
-      <form
-        action={formAction}
-        onChange={() => {
-          setFormDirty(true);
-          // TODO: SOMEHOW UPDATE FOCUS TO INPUT FIELD
-          // TODO: SOMEHOW UPDATE FOCUS TO INPUT FIELD
-        }}
-        onSubmit={() => {
-          setIsSubmittingForm(true);
-          setFormDirty(false);
-        }}
-        ref={formRef}
-        className={cn(
-          'col-span-3 flex flex-grow flex-col overflow-auto bg-white text-xs md:col-span-1 md:text-sm ',
-          {
-            'hidden md:flex': selectedTab !== 1,
-          }
-        )}
-      >
-        <div className='prose h-screen flex-grow overflow-auto p-4'>
-          {!mdxInputSource ? (
-            ''
-          ) : loadingInputSection ? (
-            <LoadingAnimation className='m-auto h-full w-1/2' />
+
+      {showCongratsAfterCompletion ? (
+        <div className='prose flex h-full flex-col items-center justify-center overflow-auto p-4 text-center'>
+          <DynamicConfetti />
+          <LessonCompletedAnimation className='-mt-20 w-1/2' />
+          {remainingLessonMessage ? (
+            <>
+              <p className='text-3xl'>
+                {`Fantastic! You've wrapped up Lesson ${lesson.order + 1}: ${lesson.title}.`}
+              </p>
+              <p className='text-xl'>{`${remainingLessonMessage}`}</p>
+            </>
           ) : (
-            <LessonInputArea
-              mdxInputSource={mdxInputSource}
+            <p className='text-3xl'>{`Excellent job! You've officially completed the course ${course.title}.`}</p>
+          )}
+          <p>{`You can export or share your work using the cloud icon below.`}</p>
+        </div>
+      ) : (
+        <form
+          id='input-tab'
+          action={formAction}
+          onChange={() => {
+            setFormDirty(true);
+            // TODO: SOMEHOW UPDATE FOCUS TO INPUT FIELD
+            // TODO: SOMEHOW UPDATE FOCUS TO INPUT FIELD
+          }}
+          onSubmit={() => {
+            setIsSubmittingForm(true);
+            setFormDirty(false);
+          }}
+          ref={formRef}
+          className={cn(
+            'flex flex-grow flex-col overflow-auto bg-white text-xs md:text-sm',
+            'col-span-3 md:col-span-1', // Full width on mobile, 1/3 width on desktop
+            {
+              'hidden md:flex': selectedTab !== 1,
+              'hidden md:hidden': showLessonAsIntro, // Hide for intro and ending
+            }
+          )}
+        >
+          <div className='prose h-screen flex-grow overflow-auto p-4'>
+            {!mdxInputSource ? (
+              ''
+            ) : loadingInputSection ? (
+              <LoadingAnimation className='m-auto h-full w-1/2' />
+            ) : (
+              <LessonInputArea
+                mdxInputSource={mdxInputSource}
+                courseId={courseId}
+                lessonId={lessonId}
+                lessonInputs={JSON.parse(lessonInputs)}
+                userProgressForCourse={userProgressForCourse}
+                clearInputs={clearInputs}
+                setClearInputs={setClearInputs}
+              />
+            )}
+          </div>
+          <input
+            type='hidden'
+            readOnly={true}
+            name='notion_id'
+            value={notionId}
+          />
+          <input
+            type='hidden'
+            readOnly={true}
+            name='course_id'
+            value={courseId}
+          />
+          <input
+            type='hidden'
+            readOnly={true}
+            name='lesson_id'
+            value={lessonId}
+          />
+          <input
+            type='hidden'
+            readOnly={true}
+            name='section'
+            value={sectionId}
+          />
+          {totalSections ? (
+            <div className=''>
+              <ProgressBar section={sectionId} totalSections={totalSections} />
+            </div>
+          ) : null}
+          <div className='bottom-0 left-0 flex w-full justify-center space-x-2 bg-sky-100 pt-1 md:justify-start md:pt-2'>
+            <FormButtons
               courseId={courseId}
               lessonId={lessonId}
-              lessonInputs={JSON.parse(lessonInputs)}
-              userProgressForCourse={userProgressForCourse}
-              clearInputs={clearInputs}
-              setClearInputs={setClearInputs}
+              sectionCompleted={sectionCompleted}
+              resetForm={resetForm}
+              isGeneratingOutput={isGeneratingOutput}
+              invalidRecordMap={!recordMap}
+              isSubmittingForm={isSubmittingForm}
+              formDirty={formDirty}
             />
-          )}
-        </div>
-        <input
-          type='hidden'
-          readOnly={true}
-          name='notion_id'
-          value={notionId}
-        />
-        <input
-          type='hidden'
-          readOnly={true}
-          name='course_id'
-          value={courseId}
-        />
-        <input
-          type='hidden'
-          readOnly={true}
-          name='lesson_id'
-          value={lessonId}
-        />
-        <input type='hidden' readOnly={true} name='section' value={sectionId} />
-        {totalSections ? (
-          <div className=''>
-            <ProgressBar section={sectionId} totalSections={totalSections} />
           </div>
-        ) : null}
-        <div className='bottom-0 left-0 flex w-full justify-center space-x-2 bg-sky-100 pt-1 md:justify-start md:pt-2'>
-          <FormButtons
-            courseId={courseId}
-            lessonId={lessonId}
-            sectionCompleted={sectionCompleted}
-            resetForm={resetForm}
-            isGeneratingOutput={isGeneratingOutput}
-            invalidRecordMap={!recordMap}
-            isSubmittingForm={isSubmittingForm}
-            formDirty={formDirty}
-          />
-        </div>
-      </form>
+        </form>
+      )}
+
       <div
+        id='output-tab'
         className={cn(
-          'relative col-span-3 flex flex-grow flex-col overflow-auto bg-sky-50 text-sm md:col-span-1',
+          'relative flex flex-grow flex-col overflow-auto bg-sky-50 text-sm',
+          'col-span-3 md:col-span-1', // Full width on mobile, 1/3 width on desktop
           {
             'hidden md:flex': selectedTab !== 2,
+            'hidden md:hidden': showLessonAsIntro, // Hide for intro
           }
         )}
       >
-        {!isGeneratingOutput && outputHTML && completionConfetti ? (
+        {!isGeneratingOutput && outputHTML && outputCompletionConfetti ? (
           <DynamicConfetti />
         ) : null}
         <div className='hidden'>{MdxOutput}</div>

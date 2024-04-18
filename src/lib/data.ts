@@ -180,10 +180,10 @@ export const ITP_LESSON_MAP: LessonMap = {
 };
 
 export const TEST_LESSON_MAP: LessonMap = {
-  test: {
-    id: 'test',
+  testlesson: {
+    id: 'testlesson',
     notionId: '46877300bd044ab6b3f233ab42be3c66',
-    title: 'Test-Page',
+    title: 'Test Lesson',
     prev: null,
     next: null,
     order: 0,
@@ -191,8 +191,8 @@ export const TEST_LESSON_MAP: LessonMap = {
 };
 
 export const COURSE_MAP: CourseMap = {
-  test: {
-    id: 'test',
+  testcourse: {
+    id: 'testcourse',
     title: 'Cloudybook Test',
     description: 'Welcome to Cloudybook interactive workbook tests',
     access: 'private',
@@ -229,6 +229,9 @@ export const CREATOR_MODAL_PARAM = 'showfeedback';
 export const AI_MODAL_PARAM = 'showai';
 
 export const PROGRESS_MODAL_PARAM = 'showprogress';
+
+export const LESSON_START_PARAM = 'welcome';
+export const LESSON_END_PARAM = 'congrats';
 
 export const DEMO_LESSON_AI_FEEDBACK: AIFeedbackMap = {
   smart: {

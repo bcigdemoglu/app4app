@@ -1,4 +1,4 @@
-import { COURSE_MAP, genMetadata } from '@/lib/data';
+import { COURSE_MAP, LESSON_START_PARAM, genMetadata } from '@/lib/data';
 import { perf } from '@/utils/debug';
 import {
   getLessonInputs,
@@ -83,5 +83,12 @@ export default async function Page({ params }: Props) {
     }
   }
 
-  redirect(`/playground/${courseId}/${lessonId}/${sectionId}`);
+  if (sectionId === STARTING_SECTION) {
+    // Display welcome message on first section
+    redirect(
+      `/playground/${courseId}/${lessonId}/${sectionId}?${LESSON_START_PARAM}=true`
+    );
+  } else {
+    redirect(`/playground/${courseId}/${lessonId}/${sectionId}`);
+  }
 }

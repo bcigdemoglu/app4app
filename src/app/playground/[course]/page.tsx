@@ -1,4 +1,9 @@
 import { COURSE_MAP, genMetadata } from '@/lib/data';
+import { getUserProgressForLastLesson } from '@/utils/lessonDataHelpers';
+import {
+  fetchGuestProgressForCourse,
+  fetchUserProgressForCourse,
+} from '@/utils/lessonHelpers';
 import { createClient } from '@/utils/supabase/server';
 import { Metadata } from 'next';
 import { cookies } from 'next/headers';
@@ -33,7 +38,26 @@ export default async function Page({ params }: Props) {
     redirect('/register');
   }
 
-  const lessonId = Object.entries(COURSE_MAP[courseId].lessonMap)[0][1].id;
+  const userProgressForCourse = user
+    ? await fetchUserProgressForCourse(courseId)
+    : await fetchGuestProgressForCourse(courseId);
 
-  redirect(`/playground/${courseId}/${lessonId}`);
+  if (userProgressForCourse) {
+    const lastUserProgress = getUserProgressForLastLesson(
+      userProgressForCourse
+    );
+    if (lastUserProgress) {
+      const lessonId = lastUserProgress.lesson_id;
+      redirect(`/playground/${courseId}/${lessonId}`);
+    }
+  }
+
+  const firstLesson = Object.entries(COURSE_MAP[courseId].lessonMap).find(
+    (l) => l[1].order === 0
+  );
+  if (!firstLesson) {
+    notFound();
+  }
+  const firstLessonId = firstLesson[1].id;
+  redirect(`/playground/${courseId}/${firstLessonId}`);
 }

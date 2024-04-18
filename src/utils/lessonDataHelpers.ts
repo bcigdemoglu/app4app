@@ -92,6 +92,26 @@ export function getUserProgressForLesson(
   return userProgressForCourse[lessonId];
 }
 
+export function getUserProgressForLastLesson(
+  userProgressForCourse: UserProgressForCourseFromDB
+): UserProgressForLessonFromDB | null {
+  const userProgressList = Object.values(userProgressForCourse);
+
+  // Find the highest order lesson directly
+  let lastLessonUserProgress = null;
+  for (const userProgress of userProgressList) {
+    const lessonOrder = getLessonOrderFromUserProgress(userProgress);
+    if (
+      !lastLessonUserProgress ||
+      lessonOrder > getLessonOrderFromUserProgress(lastLessonUserProgress)
+    ) {
+      lastLessonUserProgress = userProgress;
+    }
+  }
+
+  return lastLessonUserProgress;
+}
+
 export function getOrderedUserProgressUpToLesson(
   userProgressForCourse: UserProgressForCourseFromDB,
   courseId: string,

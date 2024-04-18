@@ -12,10 +12,13 @@ import {
   CREATOR_MODAL_PARAM,
   DEMO_LESSON_AI_FEEDBACK,
   GUEST_MODE_COOKIE,
+  LESSON_END_PARAM,
+  LESSON_START_PARAM,
   PROGRESS_MODAL_PARAM,
   genMetadata,
   isDemoCourse,
 } from '@/lib/data';
+import { cn } from '@/utils/cn';
 import { perf } from '@/utils/debug';
 import {
   getLessonInputs,
@@ -47,6 +50,8 @@ interface Props {
     [AI_MODAL_PARAM]: string;
     [CREATOR_MODAL_PARAM]: string;
     [PROGRESS_MODAL_PARAM]: string;
+    [LESSON_START_PARAM]: string;
+    [LESSON_END_PARAM]: string;
   };
 }
 
@@ -82,13 +87,16 @@ export default async function Page({ params, searchParams }: Props) {
     notFound();
   }
 
+  // Get IDs from Search Params
   const courseId = params.course;
-  const { access } = COURSE_MAP[courseId];
-  const sectionId = parseInt(params.section);
   const lessonId = params.lesson;
-  const totalLessons = !isDemoCourse(courseId)
-    ? Object.keys(COURSE_MAP[courseId].lessonMap).length
-    : 1;
+  const sectionId = parseInt(params.section);
+
+  const course = COURSE_MAP[courseId];
+  const { access } = course;
+  const totalLessons = Object.keys(course.lessonMap).length;
+  const lesson = course.lessonMap[lessonId];
+  const { notionId } = lesson;
 
   const cookieStore = cookies();
   const supabase = createClient(cookieStore);
@@ -118,9 +126,6 @@ export default async function Page({ params, searchParams }: Props) {
       redirect('/my-account');
     }
   }
-
-  const lesson = COURSE_MAP[courseId].lessonMap[lessonId];
-  const { notionId } = lesson;
 
   // Start both serialization operations in parallel
   const recordMapPromise = getRecordMap(notionId);
@@ -160,12 +165,19 @@ export default async function Page({ params, searchParams }: Props) {
 
   const prevSection = sectionId - 1 > 0 ? sectionId - 1 : null;
   const prevSectionLink = prevSection
-    ? `/playground/${courseId}/${params.lesson}/${prevSection}`
+    ? `/playground/${courseId}/${lessonId}/${prevSection}`
     : null;
-  const nextSection =
-    totalSections && sectionId + 1 <= totalSections ? sectionId + 1 : null;
+  const nextSection = !totalSections
+    ? 1 // Reset to section 1 if no totalSections
+    : sectionId === 1 && searchParams[LESSON_START_PARAM]
+      ? 1 // Reset to section 1 if starting a new lesson after welcome message
+      : sectionId < totalSections
+        ? sectionId + 1 // Go to next section if not last section
+        : sectionId === totalSections && !searchParams[LESSON_END_PARAM]
+          ? `${sectionId}?${LESSON_END_PARAM}=true` // Display end of lesson message if last section
+          : null;
   const nextSectionLink = nextSection
-    ? `/playground/${courseId}/${params.lesson}/${nextSection}`
+    ? `/playground/${courseId}/${lessonId}/${nextSection}`
     : null;
   const prevLesson = lesson.prev;
   const prevLessonLink = prevLesson
@@ -242,10 +254,10 @@ export default async function Page({ params, searchParams }: Props) {
             </button>
           </Link> */}
           {isDemoCourse(courseId) ? <CTAButton /> : null}
-          {user ? (
+          {user ? ( // If user is logged in
             <>
               <Link href={`?${PROGRESS_MODAL_PARAM}=true`}>
-                <button className='rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700 disabled:bg-blue-300 md:flex'>
+                <button className='rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700 disabled:bg-blue-300'>
                   My Progress
                 </button>
               </Link>
@@ -256,18 +268,21 @@ export default async function Page({ params, searchParams }: Props) {
               </Link>
             </>
           ) : (
+            // If user is not logged in
             <>
               <Link href='/register'>
                 <button className='rounded bg-green-500 px-4 py-2 font-bold text-white hover:bg-green-600 disabled:bg-green-300'>
-                  {guestId
-                    ? 'Ready? Create account for full access!'
-                    : 'Create account'}
+                  {guestId ? 'Ready? Create account!' : 'Create account'}
                 </button>
               </Link>
               {!guestId ? (
                 <Link href='/login'>
-                  <button className='hidden rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700 disabled:bg-blue-300 md:flex'>
-                    {/* Hidden on mobile */}
+                  <button
+                    className={cn(
+                      'rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700 disabled:bg-blue-300',
+                      'hidden md:flex' // Hide on mobile
+                    )}
+                  >
                     Log in
                   </button>
                 </Link>
@@ -280,7 +295,7 @@ export default async function Page({ params, searchParams }: Props) {
       {/* Left, Middle, Right Columns */}
       <LessonIO
         recordMap={recordMap}
-        courseId={courseId}
+        course={course}
         lesson={lesson}
         totalLessons={totalLessons}
         sectionId={sectionId}
@@ -316,7 +331,6 @@ export default async function Page({ params, searchParams }: Props) {
       {searchParams[PROGRESS_MODAL_PARAM] ? (
         <CourseProgressModal courseId={courseId} />
       ) : null}
-      {/* {isDemoCourse(courseId) ? <CTAModal /> : null} */}
     </main>
   );
 }
