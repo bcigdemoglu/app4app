@@ -83,7 +83,9 @@ export async function handleLogInWithGoogle() {
     redirect('/error');
   }
 
-  if (oauthData.url) redirect(oauthData.url);
+  if (oauthData.url) {
+    redirect(`/googleLogin?link=${encodeURIComponent(oauthData.url)}`);
+  }
 }
 
 export async function handleUserIdentitiesFromEmail(email: string) {

@@ -18,6 +18,7 @@ jobs:
       - name: Install Playwright Browsers
         run: pnpm exec playwright install --with-deps
         # Make sure to include the new variables in https://github.com/bcigdemoglu/app4app/settings/secrets/actions/new
+        # And in .env.local
         # And in https://vercel.com/bcigdemoglus-projects/cloudybook/settings/environment-variables
         # And in this file :)
       - name: Create .env.local file
