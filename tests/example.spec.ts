@@ -7,7 +7,8 @@ test('can submit as guest', async ({ browser }) => {
   context.clearCookies();
   const page = await context.newPage();
 
-  await page.goto('/playground/demo/smart/1');
+  await page.goto('/playground/demo/smart');
+  await expect(page).toHaveURL('/playground/demo/smart/1?welcome=true');
 
   // Check guest cookie is not present
   expect(
@@ -19,34 +20,74 @@ test('can submit as guest', async ({ browser }) => {
   // Expect a title "to contain" a substring.
   await expect(page).toHaveTitle(/Cloudybook App/);
 
-  const specificInput = page.getByPlaceholder('Type your answer here');
-
-  const inputValue = 'Specific input';
-  await specificInput.fill(inputValue);
-
-  await page.waitForFunction((e) => {
-    return localStorage['cloudybook.demo.smart.I_TEXT.specific'] === e;
-  }, inputValue);
-
+  await page.locator('#next-section').click();
+  await page.locator('#next-section').click();
+  await page.getByPlaceholder('Type your answer here...').click();
+  await page
+    .getByPlaceholder('Type your answer here...')
+    .fill('Test input to specific!');
   await page.getByRole('button', { name: 'Submit' }).click();
-
-  await expect(page).toHaveURL('/register');
-
+  await page.goto('/register');
   await page.getByRole('button', { name: 'Continue with guest mode' }).click();
 
   await expect(page).toHaveURL('/playground/demo/smart/1');
-
   // Check guest cookie is present
   expect(
     (await context.cookies()).find(
       (cookie) => cookie.name === GUEST_MODE_COOKIE
     )?.value
   ).toBe(GUEST_MODE_COOKIE_DEV_ID);
-
+  // verify local storage for input field
+  await expect(page.getByPlaceholder('Type your answer here...')).toHaveValue(
+    'Test input to specific!'
+  );
   await page.getByRole('button', { name: 'Submit' }).click();
+  await expect(page.locator('#output-tab')).toContainText(
+    'Test input to specific!'
+  );
+  await page.locator('#next-section').click();
 
-  const spanSelector = `span:has-text("${inputValue}")`;
-  await page.waitForSelector(spanSelector);
-  await page.locator(spanSelector).waitFor();
-  await expect(page.locator(spanSelector)).toHaveText('Specific input');
+  await expect(page).toHaveURL('/playground/demo/smart/2');
+  await page.getByPlaceholder('Type your answer here...').click();
+  await page
+    .getByPlaceholder('Type your answer here...')
+    .fill('Test input to measurable!');
+  await page.locator('#input-tab').getByRole('button').nth(1).click();
+  await expect(page.getByPlaceholder('Type your answer here...')).toBeEmpty();
+  await page.getByPlaceholder('Type your answer here...').click();
+  await page.getByPlaceholder('Type your answer here...').fill('T');
+  await page.getByPlaceholder('Type your answer here...').click();
+  await page
+    .getByPlaceholder('Type your answer here...')
+    .fill('Test input to measurable!');
+  await page.getByRole('button', { name: 'Submit' }).click();
+  await expect(page.locator('#output-tab')).toContainText(
+    'Test input to measurable!'
+  );
+  await page.locator('#export-output').click();
+
+  // await expect(page).toHaveURL('playground/output/.*');
+  await expect(page.locator('body')).toContainText('Test input to measurable!');
+
+  // Go back to the playground
+  await page.goto('/playground/demo/smart/2');
+  await page.locator('#prev-section').click();
+
+  await expect(page).toHaveURL('/playground/demo/smart/1');
+  await expect(page.getByPlaceholder('Type your answer here...')).toHaveValue(
+    'Test input to specific!'
+  );
+  await expect(page.locator('#output-tab')).toContainText(
+    'Test input to measurable!'
+  );
+  await page.getByRole('button', { name: 'Reset Lesson' }).click();
+
+  // Ensure lesson is reset
+  await expect(page).toHaveURL('/playground/demo/smart/1?welcome=true');
+  await page.locator('#next-section').click();
+  await expect(page).toHaveURL('/playground/demo/smart/1');
+  await expect(page.getByPlaceholder('Type your answer here...')).toBeEmpty();
+  await expect(page.locator('#output-tab')).toContainText(
+    'Please fill out all fields in playground'
+  );
 });
