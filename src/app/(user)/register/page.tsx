@@ -7,10 +7,12 @@ import { handleLogInWithGoogle } from '../login/actions';
 import { register } from './actions';
 
 interface Props {
-  searchParams: { email: string };
+  searchParams: { fullName: string; email: string };
 }
 
-export default async function RegisterPage({ searchParams: { email } }: Props) {
+export default async function RegisterPage({
+  searchParams: { fullName, email },
+}: Props) {
   const user = await getAuthUser();
   if (user) {
     redirect('/my-account');
@@ -48,24 +50,27 @@ export default async function RegisterPage({ searchParams: { email } }: Props) {
         </div>
       </div>
 
-      <form className='space-y-6'>
-        <div>
-          <label
-            htmlFor='full_name'
-            className='block text-sm font-medium text-zinc-700'
-          >
-            Full Name
-          </label>
-          <input
-            type='text'
-            name='full_name'
-            id='full_name'
-            autoComplete='full_name'
-            required
-            className='mt-1 block w-full rounded-md border border-slate-300 bg-white px-3 py-2 placeholder-zinc-400 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500'
-            placeholder='Full Name'
-          />
-        </div>
+      <form action={register} className='space-y-6'>
+        {email ? (
+          <div>
+            <label
+              htmlFor='full_name'
+              className='block text-sm font-medium text-zinc-700'
+            >
+              Full Name
+            </label>
+            <input
+              type='text'
+              name='full_name'
+              id='full_name'
+              autoComplete='full_name'
+              defaultValue={fullName}
+              required
+              className='mt-1 block w-full rounded-md border border-slate-300 bg-white px-3 py-2 placeholder-zinc-400 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500'
+              placeholder='Full Name'
+            />
+          </div>
+        ) : null}
 
         <div>
           <label
@@ -86,28 +91,29 @@ export default async function RegisterPage({ searchParams: { email } }: Props) {
           />
         </div>
 
-        <div>
-          <label
-            htmlFor='password'
-            className='block text-sm font-medium text-zinc-700'
-          >
-            Password
-          </label>
-          <input
-            type='password'
-            name='password'
-            id='password'
-            autoComplete='current-password'
-            required
-            minLength={6}
-            className='mt-1 block w-full rounded-md border border-slate-300 bg-white px-3 py-2 placeholder-zinc-400 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500'
-            placeholder='Password'
-          />
-        </div>
+        {email ? (
+          <div>
+            <label
+              htmlFor='password'
+              className='block text-sm font-medium text-zinc-700'
+            >
+              Password
+            </label>
+            <input
+              type='password'
+              name='password'
+              id='password'
+              autoComplete='current-password'
+              required
+              minLength={8}
+              className='mt-1 block w-full rounded-md border border-slate-300 bg-white px-3 py-2 placeholder-zinc-400 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500'
+              placeholder='Password'
+            />
+          </div>
+        ) : null}
 
         <div>
           <button
-            formAction={register}
             type='submit'
             className='flex w-full justify-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2'
           >

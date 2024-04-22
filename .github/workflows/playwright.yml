@@ -17,12 +17,16 @@ jobs:
         run: npm install -g pnpm && pnpm install --no-frozen-lockfile
       - name: Install Playwright Browsers
         run: pnpm exec playwright install --with-deps
+        # Make sure to include the new variables in https://github.com/bcigdemoglu/app4app/settings/secrets/actions/new
+        # And in https://vercel.com/bcigdemoglus-projects/cloudybook/settings/environment-variables
+        # And in this file :)
       - name: Create .env.local file
         run: |
           touch .env.local
           echo NEXT_PUBLIC_NODE_ENV=${{ secrets.NEXT_PUBLIC_NODE_ENV }} >> .env.local
           echo NEXT_PUBLIC_SUPABASE_URL=${{ secrets.NEXT_PUBLIC_SUPABASE_URL }} >> .env.local
           echo NEXT_PUBLIC_SUPABASE_ANON_KEY=${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }} >> .env.local
+          echo SUPABASE_SERVICE_ROLE_KEY=${{ secrets.SUPABASE_SERVICE_ROLE_KEY }} >> .env.local
           echo GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }} >> .env.local
           echo GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }} >> .env.local
           echo HUGGINGFACE_API_KEY=${{ secrets.HUGGINGFACE_API_KEY }} >> .env.local

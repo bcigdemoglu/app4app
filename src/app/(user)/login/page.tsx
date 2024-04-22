@@ -5,7 +5,13 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { handleLogInWithGoogle, login } from './actions';
 
-export default async function LoginPage() {
+interface Props {
+  searchParams: { email: string; invalid: boolean };
+}
+
+export default async function LoginPage({
+  searchParams: { email, invalid },
+}: Props) {
   const user = await getAuthUser();
   if (user) {
     redirect('/my-account');
@@ -53,7 +59,8 @@ export default async function LoginPage() {
             type='email'
             name='email'
             id='email'
-            autoComplete='email'
+            autoComplete='username'
+            defaultValue={email}
             required
             className='mt-1 block w-full rounded-md border border-slate-300 bg-white px-3 py-2 placeholder-zinc-400 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500'
             placeholder='you@example.com'
@@ -86,6 +93,14 @@ export default async function LoginPage() {
             Login
           </button>
         </div>
+
+        {invalid ? (
+          <div>
+            <span className='text-sm text-red-600'>
+              Invalid email or password, please try again.
+            </span>
+          </div>
+        ) : null}
       </form>
 
       <div className='mt-4 text-sm'>
