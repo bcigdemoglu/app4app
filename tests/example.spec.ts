@@ -41,9 +41,13 @@ test('can submit as guest', async ({ browser }) => {
   await expect(page.getByPlaceholder('Type your answer here...')).toHaveValue(
     'Test input to specific!'
   );
+  // Add a new input to re-active submit if disabled
+  await page
+    .getByPlaceholder('Type your answer here...')
+    .fill('Test input 2 to specific!');
   await page.getByRole('button', { name: 'Submit' }).click();
   await expect(page.locator('#output-tab')).toContainText(
-    'Test input to specific!'
+    'Test input 2 to specific!'
   );
   await page.locator('#next-section').click();
 
@@ -52,10 +56,10 @@ test('can submit as guest', async ({ browser }) => {
   await page
     .getByPlaceholder('Type your answer here...')
     .fill('Test input to measurable!');
-  await page.locator('#input-tab').getByRole('button').nth(1).click();
+  await page.locator('#reset-section').click();
   await expect(page.getByPlaceholder('Type your answer here...')).toBeEmpty();
-  await page.getByPlaceholder('Type your answer here...').click();
-  await page.getByPlaceholder('Type your answer here...').fill('T');
+  // await page.getByPlaceholder('Type your answer here...').click();
+  // await page.getByPlaceholder('Type your answer here...').fill('T');
   await page.getByPlaceholder('Type your answer here...').click();
   await page
     .getByPlaceholder('Type your answer here...')
@@ -75,7 +79,7 @@ test('can submit as guest', async ({ browser }) => {
 
   await expect(page).toHaveURL('/playground/demo/smart/1');
   await expect(page.getByPlaceholder('Type your answer here...')).toHaveValue(
-    'Test input to specific!'
+    'Test input 2 to specific!'
   );
   await expect(page.locator('#output-tab')).toContainText(
     'Test input to measurable!'

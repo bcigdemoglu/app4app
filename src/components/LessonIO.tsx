@@ -257,6 +257,7 @@ const FormButtons = ({
         Submit
       </button>
       <button
+        id='reset-section'
         type='reset'
         value='reset'
         aria-disabled={formButtonsDisabled}
