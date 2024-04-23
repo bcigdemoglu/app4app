@@ -15,6 +15,7 @@ import {
   CREATOR_MODAL_PARAM,
   LESSON_END_PARAM,
   LESSON_START_PARAM,
+  PLAYGROUND_REDIRECT_LSK,
   getLSPrefix,
 } from '@/lib/data';
 import {
@@ -406,7 +407,7 @@ export default function LessonIO({
 
   useEffect(() => {
     // Set pathname to redirect to after login or going to my account
-    localStorage.setItem('redirectTo', pathname);
+    localStorage.setItem(PLAYGROUND_REDIRECT_LSK, pathname);
   }, [pathname]);
 
   useEffect(() => {

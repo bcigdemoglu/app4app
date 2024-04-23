@@ -2,6 +2,8 @@ import { AIFeedbackMap, CourseMap, LessonMap } from '@/lib/types';
 import { Metadata } from 'next';
 import { Block, ExtendedRecordMap } from 'notion-types';
 
+export const PLAYGROUND_REDIRECT_LSK = 'playgroundRedirect';
+
 export const GUEST_MODE_COOKIE = 'guestId';
 export const GUEST_MODE_COOKIE_DEV_ID = '00000000-0000-0000-0000-000000000000';
 
